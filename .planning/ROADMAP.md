@@ -24,7 +24,10 @@
   1. User can search a term that appears only in a document's tags (not in title or body) and that document appears in search results
   2. User's normal search experience (without `tag:` prefix) is unchanged from before — same UI, same interaction
   3. Search results continue to use VitePress native search popup with existing styling
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Create search module with _render injection and MiniSearch config for tag indexing
 
 ### Phase 2: Tag-Prefix Search
 **Goal**: 用户输入 `tag:` 前缀时，搜索范围限定在标签字段，支持多标签 AND 交集
@@ -94,7 +97,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Tag Indexing in Search | 0/0 | Not started | - |
+| 1. Tag Indexing in Search | 1/1 | Planning | - |
 | 2. Tag-Prefix Search | 0/0 | Not started | - |
 | 3. Tag Autocomplete | 0/0 | Not started | - |
 | 4. Tag Summary Page | 0/0 | Not started | - |
