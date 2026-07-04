@@ -7,7 +7,7 @@
 
 ### 搜索增强
 
-- [ ] **SEARCH-01**: 普通搜索（无 `tag:` 前缀）时，文档 frontmatter 中的 `tags` 字段内容纳入 MiniSearch 索引，匹配标签的文档出现在搜索结果中
+- [x] **SEARCH-01**: 普通搜索（无 `tag:` 前缀）时，文档 frontmatter 中的 `tags` 字段内容纳入 MiniSearch 索引，匹配标签的文档出现在搜索结果中
 - [ ] **SEARCH-02**: 输入 `tag: vue react` 前缀时，搜索范围限定在标签字段，多个标签用空格分隔表示交集（AND），只返回同时包含所有标签的文档
 - [ ] **SEARCH-03**: `tag:` 前缀搜索支持自动补全/提示，在输入 `tag:` 后可展示已有标签列表
 
@@ -43,7 +43,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEARCH-01 | Phase 1 | Pending |
+| SEARCH-01 | Phase 1 | Complete |
 | SEARCH-02 | Phase 2 | Pending |
 | SEARCH-03 | Phase 3 | Pending |
 | PAGE-01 | Phase 4 | Pending |
@@ -51,6 +51,7 @@
 | META-01 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 6 total
 - Mapped to phases: 6 ✓
 - Unmapped: 0 ✓

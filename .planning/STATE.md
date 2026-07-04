@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Tag Indexing in Search
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-04T22:27:59.165Z"
+status: verifying
+stopped_at: "Completed 01-tag-indexing-in-search: tag injection into MiniSearch via hidden span render"
+last_updated: "2026-07-04T22:47:48.930Z"
 last_activity: 2026-07-05
 last_activity_desc: Roadmap created
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 Phase: 1 of 6 (Tag Indexing in Search)
 Plan: 0 of 0 in current phase
-Status: Ready to plan
+Status: Phase complete — ready for verification
 Last activity: 2026-07-05 — Roadmap created
 
 Progress: [░░░░░░░░░░] 0%
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: N/A
 
 *Updated after each plan completion*
+| Phase 01 P01 | 8min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,7 +64,10 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- (None yet — initial planning phase)
+- (— initial planning phase)
+- [Phase ?]: Use md.render() (synchronous) instead of md.renderAsync() — markdown-it's standard API that VitePress uses internally; both populate env.frontmatter correctly
+- [Phase ?]: Tags injected as hidden span — splitPageIntoSections strips HTML tags, leaving tag text in MiniSearch text field
+- [Phase ?]: Search module exported as factory function for Phase 2 parameter extensibility without changing import pattern
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T22:27:59.160Z
-Stopped at: Phase 1 context gathered
+Last session: 2026-07-04T22:47:48.926Z
+Stopped at: Completed 01-tag-indexing-in-search: tag injection into MiniSearch via hidden span render
 Resume file: .planning/phases/01-tag-indexing-in-search/01-CONTEXT.md
