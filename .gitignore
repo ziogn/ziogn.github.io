@@ -5,8 +5,8 @@ docs/.vitepress/dist/
 # 规划文档（GSD workflow 产物）
 .planning/
 
-# 部署脚本: 本地执行,构建后推送到 gh-pages 分支,无需入库
-/deploy.sh
+# 依赖锁定文件（不锁定版本，依赖 package.json 语义化版本）
+package-lock.json
 
 *.local
 .DS_Store
