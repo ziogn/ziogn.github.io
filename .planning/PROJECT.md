@@ -23,9 +23,9 @@
 
 - ✓ **标签云页面** — 独立标签云页面`/tags`，导航栏右侧图标入口（已验证 Phase 1）
 - ✓ **标签云标签展示** — 标签云页面展示所有标签及其文档计数（已验证 Phase 1）
+- ✓ **标签云公用 CSS** — `.tag-chip-base` 全局类提取到 custom.css，标签芯片样式组件间共享
+- ✓ **首页改造** — 首页移除「开始浏览」按钮，Hero 下方展示标签云区域（已验证 Phase 2）
 - [ ] **TAGCLOUD-03**: 用户点击标签云中的标签可跳转到搜索弹窗并自动选中该标签
-- [ ] **HOME-01**: 首页不再显示「开始浏览」按钮
-- [ ] **HOME-02**: 首页展示标签云区域，样式与搜索弹窗 tag chip 一致
 
 ### Out of Scope
 
@@ -59,4 +59,4 @@
 
 ---
 
-*Last updated: 2026-07-05 — Phase 1 (标签云页面) complete*
+*Last updated: 2026-07-06 — Phase 2 (首页改造) complete, milestone v1.0 complete*

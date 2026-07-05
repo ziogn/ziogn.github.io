@@ -1,11 +1,11 @@
 ---
 title: java程序员面试
 created: 2026-07-03 18:00
-updated: 2026-07-05 20:10
-version: 0.4.1
+updated: 2026-07-06 10:00
+version: 0.4.2
 author: ziogn
 source:
-tags: [java, spring, mybatis, mysql, langchain4j, interview, guide]
+tags: [java, spring, mybatis, mysql, langchain4j, interview, guide, java面试]
 aliases: [Java面试知识网络, Spring面试, AI面试, MyBatis面试, MySQL面试, 后端面试]
 description: 面向中高级 Java 后端的面试知识网络图谱，覆盖 Java 核心技术、Spring 生态体系、MyBatis、MySQL、LangChain4j AI 开发五大方向，附跨域知识关联链路与复习路线图
 ---

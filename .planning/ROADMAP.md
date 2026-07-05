@@ -11,7 +11,7 @@ This milestone extends the existing tag chip filtering in the search modal with 
 ## Phases
 
 - [x] **Phase 1: 标签云页面** - 创建独立标签云页面与导航栏入口 (completed 2026-07-05)
-- [ ] **Phase 2: 首页改造** - 移除以废弃 hero 按钮并添加标签云展示区
+- [x] **Phase 2: 首页改造** - 移除以废弃 hero 按钮并添加标签云展示区 (completed 2026-07-05)
 
 ## Phase Details
 
@@ -47,11 +47,11 @@ Plans:
   3. Each tag chip on the homepage uses the same HSL deterministic color, pill shape, and hover effect as the search modal tag chips
   4. User can see the tag cloud area without scrolling past the hero section (visible in the upper portion of the page)
 
-**Plans**: 1 plan
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 02-01-PLAN.md — 首页改造：移除 hero actions 按钮、提取公用标签芯片样式、创建 HomeTagCloud 组件并通过 home-hero-after slot 集成到主题
+- [x] 02-01-PLAN.md — 首页改造：移除 hero actions 按钮、提取公用标签芯片样式、创建 HomeTagCloud 组件并通过 home-hero-after slot 集成到主题
 
 **UI hint**: yes
 
@@ -60,4 +60,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. 标签云页面 | 1/1 | Complete    | 2026-07-05 |
-| 2. 首页改造 | 0/1 | Not started | - |
+| 2. 首页改造 | 1/1 | Complete    | 2026-07-05 |
