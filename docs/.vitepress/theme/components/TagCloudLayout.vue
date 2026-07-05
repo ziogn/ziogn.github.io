@@ -21,7 +21,7 @@ const totalDocs = computed(() => Object.keys(tagIndex as Record<string, string[]
         <button
           v-for="tag in allTags"
           :key="tag.name"
-          class="tag-chip"
+          class="tag-chip-base tag-chip"
           :style="tagChipStyle(tag.name, isDark)"
           type="button"
         >
@@ -69,28 +69,10 @@ const totalDocs = computed(() => Object.keys(tagIndex as Record<string, string[]
 }
 
 .tag-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   padding: 4px 14px;
-  border-radius: 999px;
-  border: 1px solid transparent;
   font-size: 0.85rem;
   cursor: default;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  line-height: 1.6;
   font-family: inherit;
-}
-
-.tag-chip:hover {
-  filter: brightness(1.15);
-  transform: translateY(-1px);
-}
-
-.tag-count {
-  font-size: 0.7rem;
-  opacity: 0.75;
 }
 
 @media (max-width: 767px) {

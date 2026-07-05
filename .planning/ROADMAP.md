@@ -47,7 +47,12 @@ Plans:
   3. Each tag chip on the homepage uses the same HSL deterministic color, pill shape, and hover effect as the search modal tag chips
   4. User can see the tag cloud area without scrolling past the hero section (visible in the upper portion of the page)
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+
+- [ ] 02-01-PLAN.md — 首页改造：移除 hero actions 按钮、提取公用标签芯片样式、创建 HomeTagCloud 组件并通过 home-hero-after slot 集成到主题
+
 **UI hint**: yes
 
 ## Progress
@@ -55,4 +60,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. 标签云页面 | 1/1 | Complete    | 2026-07-05 |
-| 2. 首页改造 | 0/0 | Not started | - |
+| 2. 首页改造 | 0/1 | Not started | - |

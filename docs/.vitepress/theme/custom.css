@@ -32,3 +32,25 @@
 .vp-doc li {
   line-height: 1.75;
 }
+
+/* Tag chip shared styles */
+.tag-chip-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1.6;
+}
+
+.tag-chip-base:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.tag-count {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}

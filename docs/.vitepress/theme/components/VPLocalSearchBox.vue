@@ -567,7 +567,7 @@ function onMouseMove(e: MouseEvent) {
           <button
             v-for="tag in allTags"
             :key="tag.name"
-            class="tag-chip"
+            class="tag-chip-base tag-chip"
             :class="{ active: selectedTags.has(tag.name) }"
             :style="tagChipStyle(tag.name, isDark.value)"
             @click="toggleTag(tag.name)"
@@ -579,7 +579,7 @@ function onMouseMove(e: MouseEvent) {
           </button>
           <button
             v-if="selectedTags.size > 0"
-            class="tag-chip tag-clear"
+            class="tag-chip-base tag-chip tag-clear"
             type="button"
             @click="selectedTags = new Set()"
           >
@@ -974,22 +974,9 @@ function onMouseMove(e: MouseEvent) {
 }
 
 .tag-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   padding: 2px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
   font-size: 0.8rem;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  line-height: 1.6;
-}
-
-.tag-chip:hover {
-  filter: brightness(1.15);
-  transform: translateY(-1px);
 }
 
 .tag-chip.active {
@@ -1010,12 +997,8 @@ function onMouseMove(e: MouseEvent) {
   color: var(--vp-c-text-1) !important;
 }
 
-.tag-count {
-  font-size: 0.7rem;
-  opacity: 0.75;
-}
-
 svg {
+
   flex: none;
 }
 </style>
