@@ -182,17 +182,6 @@ const allTags = computed<TagItem[]>(() => allTagsFromIndex(tagIndex as Record<st
 
 const isDark = useData().isDark
 
-/** 为每个标签生成样式（亮/暗模式自适应） */
-function tagChipStyle(tag: string, isDark: boolean): Record<string, string> {
-  const hue = tagHue(tag)
-  const lightness = isDark ? 60 : 35
-  return {
-    backgroundColor: `hsla(${hue}, 50%, ${lightness}%, 0.15)`,
-    color: `hsl(${hue}, 50%, ${lightness}%)`,
-    borderColor: `hsla(${hue}, 50%, ${lightness}%, 0.25)`
-  }
-}
-
 /** 使用标签芯片 + 文本查询的搜索过滤函数 */
 function searchWithTagFilter(
   index: MiniSearch<Result>,

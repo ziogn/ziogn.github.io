@@ -54,5 +54,5 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. 标签云页面 | 1/1 | Complete   | 2026-07-05 |
+| 1. 标签云页面 | 1/1 | Complete    | 2026-07-05 |
 | 2. 首页改造 | 0/0 | Not started | - |
