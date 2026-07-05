@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { generateSidebar } from 'vitepress-sidebar'
+import path from 'path'
 import { createSearchConfig } from './search/index'
 import { tagIndexPlugin } from './search/tag-index-plugin'
 
@@ -53,7 +54,15 @@ export default defineConfig({
     build: {
       chunkSizeWarningLimit: 1000,
     },
-    plugins: [tagIndexPlugin()],
+    plugins: [
+      tagIndexPlugin(),
+    ],
+    resolve: {
+      alias: [{
+        find: './VPLocalSearchBox.vue',
+        replacement: path.resolve(process.cwd(), 'docs/.vitepress/theme/components/VPLocalSearchBox.vue'),
+      }],
+    },
     ssr: {
       noExternal: ['mark.js'],
     },

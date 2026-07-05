@@ -163,46 +163,102 @@ const mark = computedAsync(async () => {
 
 const cache = new LRUCache<string, Map<string, string>>(16) // 16 files
 
-/** 检测 `tag:` 前缀并过滤结果的辅助函数 */
+/* tag 芯片筛选状态 */
+interface TagItem {
+  name: string
+  count: number
+}
+
+const selectedTags = ref(new Set<string>())
+
+function toggleTag(tag: string) {
+  const next = new Set(selectedTags.value)
+  if (next.has(tag)) {
+    next.delete(tag)
+  } else {
+    next.add(tag)
+  }
+  selectedTags.value = next
+}
+
+/** 从 virtual:tag-index 提取所有唯一标签及文档计数（大小写忽略归一化） */
+const allTags = computed<TagItem[]>(() => {
+  const countMap = new Map<string, number>()
+  for (const [, tags] of Object.entries(tagIndex as Record<string, string[]>)) {
+    const seen = new Set<string>()
+    for (const tag of tags) {
+      const key = tag.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      countMap.set(key, (countMap.get(key) ?? 0) + 1)
+    }
+  }
+  return Array.from(countMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+})
+
+/** 基于标签名的确定性 HSL 色相（Jenkins one-at-a-time hash） */
+function tagHue(tag: string): number {
+  let hash = 0
+  for (let i = 0; i < tag.length; i++) {
+    hash = ((hash << 5) - hash) + tag.charCodeAt(i)
+    hash |= 0
+  }
+  return ((hash % 360) + 360) % 360
+}
+
+const isDark = useData().isDark
+
+/** 为每个标签生成响应式样式（亮/暗模式自适应） */
+function tagChipStyle(tag: string): Record<string, string> {
+  const hue = tagHue(tag)
+  const lightness = isDark.value ? 60 : 35
+  return {
+    backgroundColor: `hsla(${hue}, 50%, ${lightness}%, 0.15)`,
+    color: `hsl(${hue}, 50%, ${lightness}%)`,
+    borderColor: `hsla(${hue}, 50%, ${lightness}%, 0.25)`
+  }
+}
+
+/** 使用标签芯片 + 文本查询的搜索过滤函数 */
 function searchWithTagFilter(
   index: MiniSearch<Result>,
   query: string
 ): (SearchResult & Result)[] {
-  const TAG_PREFIX = 'tag:'
-  let searchQuery = query
-  let tagFilterFn: ((id: string) => boolean) | null = null
-
-  if (query.toLowerCase().startsWith(TAG_PREFIX)) {
-    const tagPart = query.slice(TAG_PREFIX.length).trim()
-    const tagTerms = tagPart.split(/\s+/).filter(Boolean)
-
-    if (tagTerms.length > 0) {
-      // tag: 前缀搜索时，用标签名作为搜索词
-      searchQuery = tagTerms.join(' ')
-      tagFilterFn = (id: string) => {
-        const url = id.split('#')[0]
-        const docTags = (tagIndex as Record<string, string[]>)[url]
-        if (!docTags || docTags.length === 0) return false
-        // 多标签 AND 交集：文档必须包含所有指定标签
-        return tagTerms.every((term) =>
-          docTags.some((t) => t.toLowerCase() === term.toLowerCase())
-        )
-      }
-    } else {
-      // tag: 前缀后无标签名时，返回空结果（避免 MiniSearch 搜索 "tag:" 误匹配 "tag" 关键词）
-      return []
-    }
+  // 无查询且无选中标签 → 空结果
+  if (!query.trim() && selectedTags.value.size === 0) {
+    return []
   }
 
-  let rawResults = index.search(searchQuery) as (SearchResult & Result)[]
-  if (tagFilterFn) {
-    rawResults = rawResults.filter((r) => tagFilterFn(r.id))
+  // 有查询 → MiniSearch 搜索；无查询但有标签 → 用 wildcard 获取全部文档用于过滤
+  let rawResults: (SearchResult & Result)[]
+  if (query.trim()) {
+    rawResults = index.search(query) as (SearchResult & Result)[]
+  } else {
+    rawResults = index.search((MiniSearch as any).wildcard) as (SearchResult & Result)[]
   }
+
+  // 应用多标签 AND 过滤
+  if (selectedTags.value.size > 0) {
+    const selected = new Set(
+      [...selectedTags.value].map((t) => t.toLowerCase())
+    )
+    rawResults = rawResults.filter((r) => {
+      const url = r.id.split('#')[0]
+      const docTags = (tagIndex as Record<string, string[]>)[url]
+      if (!docTags || docTags.length === 0) return false
+      return [...selected].every((tag) =>
+        docTags.some((t) => t.toLowerCase() === tag)
+      )
+    })
+  }
+
   return rawResults.slice(0, 16)
 }
 
 debouncedWatch(
-  () => [searchIndex.value, filterText.value, showDetailedList.value] as const,
+  () => [searchIndex.value, filterText.value, showDetailedList.value, selectedTags.value.size] as const,
   async ([index, filterTextValue, showDetailedListValue], old, onCleanup) => {
     if (old?.[0] !== index) {
       // in case of hmr
@@ -545,6 +601,30 @@ function onMouseMove(e: MouseEvent) {
             </button>
           </div>
         </form>
+
+        <div v-if="allTags.length" class="tag-filters">
+          <button
+            v-for="tag in allTags"
+            :key="tag.name"
+            class="tag-chip"
+            :class="{ active: selectedTags.has(tag.name) }"
+            :style="tagChipStyle(tag.name)"
+            @click="toggleTag(tag.name)"
+            :aria-pressed="selectedTags.has(tag.name) ? 'true' : 'false'"
+            type="button"
+          >
+            {{ tag.name }}
+            <span class="tag-count">{{ tag.count }}</span>
+          </button>
+          <button
+            v-if="selectedTags.size > 0"
+            class="tag-chip tag-clear"
+            type="button"
+            @click="selectedTags = new Set()"
+          >
+            清除
+          </button>
+        </div>
 
         <ul
           ref="resultsEl"
@@ -920,6 +1000,58 @@ function onMouseMove(e: MouseEvent) {
   font-size: 0.9rem;
   text-align: center;
   padding: 12px;
+}
+
+.tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1.6;
+}
+
+.tag-chip:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.tag-chip.active {
+  box-shadow: 0 0 0 2px currentColor;
+  filter: brightness(1.1);
+}
+
+.tag-chip.tag-clear {
+  background: transparent !important;
+  color: var(--vp-c-text-2) !important;
+  border-color: var(--vp-c-divider);
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.tag-chip.tag-clear:hover {
+  opacity: 1;
+  color: var(--vp-c-text-1) !important;
+}
+
+.tag-count {
+  font-size: 0.7rem;
+  opacity: 0.75;
 }
 
 svg {
