@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { generateSidebar } from 'vitepress-sidebar'
 import { createSearchConfig } from './search/index'
+import { tagIndexPlugin } from './search/tag-index-plugin'
 
 // markdown-it 插件：在解析前自动将含空格的链接 URL 包裹角括号 `<url>`。
 // markdown-it 原生不支持 `[text](url with spaces)`，但支持 `[text](<url with spaces>)`。
@@ -51,6 +52,10 @@ export default defineConfig({
   vite: {
     build: {
       chunkSizeWarningLimit: 1000,
+    },
+    plugins: [tagIndexPlugin()],
+    ssr: {
+      noExternal: ['mark.js'],
     },
   },
   markdown: {
