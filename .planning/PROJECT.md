@@ -8,6 +8,14 @@
 
 用户可以通过标签快速定位相关文档，尤其是当文档量增长后，标签搜索成为比全文搜索更精准的发现方式。
 
+## Current Milestone: v1.1 首页交互优化
+
+**Goal:** 改进首页文档列表展示和标签交互功能
+
+**Target features:**
+- 首页文档列表标题从"其他"改为"文章列表"
+- 首页标签支持多选 AND 筛选文章列表
+
 ## Requirements
 
 ### Validated
@@ -18,14 +26,16 @@
 - ✓ **标签颜色** — 基于哈希的确定性 HSL 颜色，亮/暗模式自适应
 - ✓ **品牌色** — 靛蓝 (#6366f1) 主题色
 - ✓ **自动侧边栏** — vitepress-sidebar 自动生成
+- ✓ **标签云页面** — 独立标签云页面`/tags`，导航栏右侧图标入口（Phase 1）
+- ✓ **标签云标签展示** — 标签云页面展示所有标签及其文档计数（Phase 1）
+- ✓ **标签云公用 CSS** — `.tag-chip-base` 全局类提取到 custom.css，标签芯片样式组件间共享（Phase 2）
+- ✓ **首页改造** — 首页移除「开始浏览」按钮，Hero 下方展示标签云区域（Phase 2）
 
 ### Active
 
-- ✓ **标签云页面** — 独立标签云页面`/tags`，导航栏右侧图标入口（已验证 Phase 1）
-- ✓ **标签云标签展示** — 标签云页面展示所有标签及其文档计数（已验证 Phase 1）
-- ✓ **标签云公用 CSS** — `.tag-chip-base` 全局类提取到 custom.css，标签芯片样式组件间共享
-- ✓ **首页改造** — 首页移除「开始浏览」按钮，Hero 下方展示标签云区域（已验证 Phase 2）
 - [ ] **TAGCLOUD-03**: 用户点击标签云中的标签可跳转到搜索弹窗并自动选中该标签
+- [ ] **HOME-01**: 首页文档列表标题从"其他"改为"文章列表"
+- [ ] **HOME-02**: 首页标签支持多选 AND 筛选文章列表
 
 ### Out of Scope
 
@@ -59,4 +69,21 @@
 
 ---
 
-*Last updated: 2026-07-06 — Phase 2 (首页改造) complete, milestone v1.0 complete*
+*Last updated: 2026-07-06 — Milestone v1.1 started*
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
