@@ -68,7 +68,7 @@ This milestone improves the homepage experience by giving the document list a cl
 
 ### Phases
 
-- [ ] **Phase 3: 首页文章列表标题更新** - 将首页文档列表标题从「其他」改为「文章列表」
+- [x] **Phase 3: 首页文章列表标题更新** - 将首页文档列表标题从「其他」改为「文章列表」 (completed 2026-07-06)
 - [ ] **Phase 4: 首页标签交互筛选** - 标签点击筛选文章列表、多标签 AND 组合、选中高亮与取消
 
 ### Phase Details
@@ -82,11 +82,11 @@ This milestone improves the homepage experience by giving the document list a cl
 
   1. User sees "文章列表" instead of "其他" as the heading for the document list on the homepage
 
-**Plans**: 1 plan
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 03-01-PLAN.md — Update homepage document list heading from "其他" to "文章列表"
+- [x] 03-01-PLAN.md — Update homepage document list heading from "其他" to "文章列表"
 
 #### Phase 4: 首页标签交互筛选
 
@@ -111,5 +111,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. 标签云页面 | 1/1 | Complete | 2026-07-05 |
 | 2. 首页改造 | 1/1 | Complete | 2026-07-05 |
-| 3. 首页文章列表标题更新 | 0/1 | Planning | - |
+| 3. 首页文章列表标题更新 | 1/1 | Complete   | 2026-07-06 |
 | 4. 首页标签交互筛选 | 0/1 | Not started | - |
