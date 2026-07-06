@@ -12,7 +12,7 @@ const totalDocs = computed(() => Object.keys(tagIndex as Record<string, string[]
 
 <template>
   <div v-if="allTags.length" class="HomeTagCloud">
-    <h2>内容分类</h2>
+    <h2>标签云</h2>
     <p class="hc-stats">
       共 {{ allTags.length }} 个标签，覆盖 {{ totalDocs }} 篇文档
     </p>

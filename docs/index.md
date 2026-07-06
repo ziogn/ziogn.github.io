@@ -5,10 +5,6 @@ hero:
   name: "Ziogn Notes"
   text: "个人技术文档知识库"
   tagline: "Flutter · Java Spring Boot · DevOps · AI 工具链"
-  actions:
-    - theme: brand
-      text: "开始浏览"
-      link: /其他/
 ---
 
 ## 其他

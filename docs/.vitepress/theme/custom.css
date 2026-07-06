@@ -54,3 +54,15 @@
   font-size: 0.7rem;
   opacity: 0.75;
 }
+
+/* 标签云按钮放在主题切换器左侧 */
+.tag-nav-button {
+  order: 0;
+}
+
+.VPNavBarAppearance,
+.VPNavBarSocialLinks,
+.VPNavBarExtra,
+.VPNavBarHamburger {
+  order: 1;
+}
