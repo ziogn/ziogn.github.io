@@ -101,9 +101,14 @@ Plans:
   4. User can click an already-selected tag chip to deselect it and expand the filtered list
   5. When no tags are selected, the full document list is displayed as it was before filtering
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 **UI hint**: yes
+
+Plans:
+
+- [ ] 04-01-PLAN.md — 数据层扩展：tagIndex 标题注入 + 消费者类型更新 + useHomeTagFilter composable
+- [ ] 04-02-PLAN.md — 交互层实现：HomeTagCloud 标签点击 + FilteredDocList 筛选列表
 
 ## Progress
 
@@ -112,4 +117,4 @@ Plans:
 | 1. 标签云页面 | 1/1 | Complete | 2026-07-05 |
 | 2. 首页改造 | 1/1 | Complete | 2026-07-05 |
 | 3. 首页文章列表标题更新 | 1/1 | Complete    | 2026-07-06 |
-| 4. 首页标签交互筛选 | 0/1 | Not started | - |
+| 4. 首页标签交互筛选 | 0/2 | Not started | - |
