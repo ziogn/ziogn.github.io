@@ -20,7 +20,7 @@
 
 ### 首页优化
 
-- [ ] **HOME-03**: 首页文档列表部分的标题从「其他」改为「文章列表」
+- [x] **HOME-03**: 首页文档列表部分的标题从「其他」改为「文章列表」
 - [ ] **HOME-04**: 用户点击首页标签云中的标签可筛选下方文章列表
 - [ ] **HOME-05**: 用户可选择多个标签，文章列表按 AND 逻辑过滤（文档须包含所有选中标签才显示）
 - [ ] **HOME-06**: 已选中的标签有视觉高亮状态，再次点击可取消选中
@@ -50,12 +50,13 @@
 | TAGS-03 | Phase 1 | Complete |
 | HOME-01 | Phase 2 | Complete |
 | HOME-02 | Phase 2 | Complete |
-| HOME-03 | Phase 3 | Pending |
+| HOME-03 | Phase 3 | Complete |
 | HOME-04 | Phase 4 | Pending |
 | HOME-05 | Phase 4 | Pending |
 | HOME-06 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 9 total
 - Mapped to phases: 9
 - Unmapped: 0 ✓
