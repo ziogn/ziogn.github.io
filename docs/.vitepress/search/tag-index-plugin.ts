@@ -6,7 +6,7 @@ const VIRTUAL_MODULE_ID = 'virtual:tag-index'
 const RESOLVED_ID = '\0' + VIRTUAL_MODULE_ID
 
 interface TagIndex {
-  [url: string]: string[]
+  [url: string]: { tags: string[]; title: string }
 }
 
 export function tagIndexPlugin(): Plugin {
@@ -31,10 +31,10 @@ export function tagIndexPlugin(): Plugin {
       const files = fs.readdirSync(docsDir).filter((f) => f.endsWith('.md'))
       for (const file of files) {
         const content = fs.readFileSync(path.join(docsDir, file), 'utf-8')
-        const tags = extractTags(content)
-        if (tags.length === 0) continue
+        const result = extractFrontmatter(content)
+        if (!result) continue
         const url = fileToUrl(file)
-        tagIndex[url] = tags
+        tagIndex[url] = result
       }
 
       return `export default ${JSON.stringify(tagIndex)}`
@@ -42,19 +42,27 @@ export function tagIndexPlugin(): Plugin {
   }
 }
 
-function extractTags(content: string): string[] {
+function extractFrontmatter(content: string): { tags: string[]; title: string } | null {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
-  if (!match) return []
+  if (!match) return null
   const fmBlock = match[1]
 
   // Match `tags: [tag1, tag2, ...]` in YAML frontmatter
   const tagMatch = fmBlock.match(/^tags:\s*\[([^\]]*)\]/m)
-  if (!tagMatch) return []
+  if (!tagMatch) return null
 
-  return tagMatch[1]
+  const tags = tagMatch[1]
     .split(',')
     .map((v) => v.trim().replace(/^['"]|['"]$/g, ''))
     .filter(Boolean)
+
+  if (tags.length === 0) return null
+
+  // Match `title:` in YAML frontmatter
+  const titleMatch = fmBlock.match(/^title:\s*(.*)$/m)
+  const title = titleMatch ? titleMatch[1].replace(/^['"]|['"]$/g, '').trim() : ''
+
+  return { tags, title }
 }
 
 function fileToUrl(filename: string): string {

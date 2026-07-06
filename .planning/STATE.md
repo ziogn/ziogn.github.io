@@ -4,16 +4,16 @@ milestone: v1.1
 milestone_name: — 首页交互优化
 current_phase: 4
 current_phase_name: 首页标签交互筛选
-status: planning
-stopped_at: Phase 4 plans created
-last_updated: "2026-07-06T09:30:00.000Z"
+status: completed
+stopped_at: Phase 4 execution complete
+last_updated: "2026-07-06T10:30:00.000Z"
 last_activity: 2026-07-06
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -23,21 +23,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core value:** 用户可以通过标签快速定位相关文档，尤其是当文档量增长后，标签搜索成为比全文搜索更精准的发现方式
-**Current focus:** Phase 03 — 首页文章列表标题更新
+**Current focus:** Phase 4 — 首页标签交互筛选 (completed)
 
 ## Current Position
 
 **Milestone:** v1.1 首页交互优化
 **Phase:** 4 — 首页标签交互筛选
-**Plan:** Not started
-**Status:** Ready to plan
+**Plan:** 2/2 plans complete
+**Status:** Complete
 **Last activity:** 2026-07-06
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 5
 - Average duration: —
 - Total execution time: —
 
@@ -48,7 +48,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 | 1 | 1 | - | - |
 | 2 | 1 | - | - |
 | 03 | 1 | - | - |
-| 4 | TBD | - | - |
+| 4 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -69,8 +69,8 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 | Phase | Todo | Status |
 |-------|------|--------|
-| 3 | 将 docs/index.md 中「## 其他」改为「## 文章列表」 | Pending |
-| 4 | 实现首页标签点击筛选交互 | Pending |
+| 3 | 将 docs/index.md 中「## 其他」改为「## 文章列表」 | Done |
+| 4 | 实现首页标签点击筛选交互 | Done |
 
 ### Blockers/Concerns
 
@@ -85,5 +85,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-07-06T09:00:08.849Z
-**Stopped at:** Phase 4 context gathered
-**Resume file:** .planning/phases/04-首页标签交互筛选/04-CONTEXT.md
+**Stopped at:** Phase 4 execution complete
+**Resume file:** (none — milestone complete)

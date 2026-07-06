@@ -4,6 +4,7 @@ import VPLocalSearchBox from './components/VPLocalSearchBox.vue'
 import TagCloudLayout from './components/TagCloudLayout.vue'
 import TagCloudNavButton from './components/TagCloudNavButton.vue'
 import HomeTagCloud from './components/HomeTagCloud.vue'
+import FilteredDocList from './components/FilteredDocList.vue'
 import './custom.css'
 
 export default {
@@ -18,5 +19,6 @@ export default {
   enhanceApp({ app }) {
     app.component('VPLocalSearchBox', VPLocalSearchBox)
     app.component('tag-cloud', TagCloudLayout)
+    app.component('FilteredDocList', FilteredDocList)
   },
 }

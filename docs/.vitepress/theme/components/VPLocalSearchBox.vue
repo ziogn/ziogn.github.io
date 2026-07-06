@@ -178,7 +178,7 @@ function toggleTag(tag: string) {
 }
 
 /** 从 virtual:tag-index 提取所有唯一标签及文档计数（大小写忽略归一化） */
-const allTags = computed<TagItem[]>(() => allTagsFromIndex(tagIndex as Record<string, string[]>))
+const allTags = computed<TagItem[]>(() => allTagsFromIndex(tagIndex as Record<string, { tags: string[]; title: string }>))
 
 const isDark = useData().isDark
 
@@ -207,7 +207,7 @@ function searchWithTagFilter(
     )
     rawResults = rawResults.filter((r) => {
       const url = r.id.split('#')[0]
-      const docTags = (tagIndex as Record<string, string[]>)[url]
+      const docTags = (tagIndex as Record<string, { tags: string[]; title: string }>)[url]?.tags
       if (!docTags || docTags.length === 0) return false
       return [...selected].every((tag) =>
         docTags.some((t) => t.toLowerCase() === tag)

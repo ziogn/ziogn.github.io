@@ -25,11 +25,11 @@ export function tagChipStyle(tag: string, isDark: boolean): Record<string, strin
 }
 
 /** 从 virtual:tag-index 提取所有唯一标签及文档计数（大小写忽略归一化） */
-export function allTagsFromIndex(tagIndex: Record<string, string[]>): TagItem[] {
+export function allTagsFromIndex(tagIndex: Record<string, { tags: string[]; title: string }>): TagItem[] {
   const countMap = new Map<string, number>()
-  for (const [, tags] of Object.entries(tagIndex)) {
+  for (const [, entry] of Object.entries(tagIndex)) {
     const seen = new Set<string>()
-    for (const tag of tags) {
+    for (const tag of entry.tags) {
       const key = tag.toLowerCase()
       if (seen.has(key)) continue
       seen.add(key)

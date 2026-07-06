@@ -6,8 +6,8 @@ import { allTagsFromIndex, tagChipStyle } from '../util/tagChip'
 
 const { isDark } = useData()
 
-const allTags = computed(() => allTagsFromIndex(tagIndex as Record<string, string[]>))
-const totalDocs = computed(() => Object.keys(tagIndex as Record<string, string[]>).length)
+const allTags = computed(() => allTagsFromIndex(tagIndex as Record<string, { tags: string[]; title: string }>))
+const totalDocs = computed(() => Object.keys(tagIndex as Record<string, { tags: string[]; title: string }>).length)
 </script>
 
 <template>

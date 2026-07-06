@@ -60,7 +60,8 @@ Plans:
 ## Milestone v1.1 — 首页交互优化
 
 **Started:** 2026-07-06
-**Status:** Planning
+**Completed:** 2026-07-06
+**Status:** Complete
 
 ### Overview
 
@@ -69,7 +70,7 @@ This milestone improves the homepage experience by giving the document list a cl
 ### Phases
 
 - [x] **Phase 3: 首页文章列表标题更新** - 将首页文档列表标题从「其他」改为「文章列表」 (completed 2026-07-06)
-- [ ] **Phase 4: 首页标签交互筛选** - 标签点击筛选文章列表、多标签 AND 组合、选中高亮与取消
+- [x] **Phase 4: 首页标签交互筛选** - 标签点击筛选文章列表、多标签 AND 组合、选中高亮与取消 (completed 2026-07-06)
 
 ### Phase Details
 
@@ -101,14 +102,14 @@ Plans:
   4. User can click an already-selected tag chip to deselect it and expand the filtered list
   5. When no tags are selected, the full document list is displayed as it was before filtering
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
 **UI hint**: yes
 
 Plans:
 
-- [ ] 04-01-PLAN.md — 数据层扩展：tagIndex 标题注入 + 消费者类型更新 + useHomeTagFilter composable
-- [ ] 04-02-PLAN.md — 交互层实现：HomeTagCloud 标签点击 + FilteredDocList 筛选列表
+- [x] 04-01-PLAN.md — 数据层扩展：tagIndex 标题注入 + 消费者类型更新 + useHomeTagFilter composable
+- [x] 04-02-PLAN.md — 交互层实现：HomeTagCloud 标签点击 + FilteredDocList 筛选列表
 
 ## Progress
 
@@ -117,4 +118,4 @@ Plans:
 | 1. 标签云页面 | 1/1 | Complete | 2026-07-05 |
 | 2. 首页改造 | 1/1 | Complete | 2026-07-05 |
 | 3. 首页文章列表标题更新 | 1/1 | Complete    | 2026-07-06 |
-| 4. 首页标签交互筛选 | 0/2 | Not started | - |
+| 4. 首页标签交互筛选 | 2/2 | Complete | 2026-07-06 |
