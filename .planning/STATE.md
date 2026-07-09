@@ -76,6 +76,12 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 None yet.
 
+## Quick Tasks Completed
+
+| Date | Task | Status |
+|------|------|--------|
+| 2026-07-09 | 移除首页标签云 (remove-home-tag-cloud) | completed |
+
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |

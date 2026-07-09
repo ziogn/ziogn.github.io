@@ -3,8 +3,6 @@ import { h } from 'vue'
 import VPLocalSearchBox from './components/VPLocalSearchBox.vue'
 import TagCloudLayout from './components/TagCloudLayout.vue'
 import TagCloudNavButton from './components/TagCloudNavButton.vue'
-import HomeTagCloud from './components/HomeTagCloud.vue'
-import FilteredDocList from './components/FilteredDocList.vue'
 import './custom.css'
 
 export default {
@@ -13,12 +11,10 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'nav-bar-content-after': () => h(TagCloudNavButton),
       'nav-screen-content-after': () => h(TagCloudNavButton),
-      'home-hero-after': () => h(HomeTagCloud)
     })
   },
   enhanceApp({ app }) {
     app.component('VPLocalSearchBox', VPLocalSearchBox)
     app.component('tag-cloud', TagCloudLayout)
-    app.component('FilteredDocList', FilteredDocList)
   },
 }
