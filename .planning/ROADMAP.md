@@ -157,8 +157,12 @@ This milestone adds interactive tag filtering to the tag cloud page at /tags. Th
   5. When tags are selected, compatible tags (tags that co-occur with ALL selected tags in at least one document) display with normal visual state while incompatible tags appear dimmed/disabled
   6. When no tags are selected, all tags display in their normal state and the full document list is shown
 
-**Plans**: TBD
+**Plans**: 1/1 plans
 **UI hint**: yes
+
+**Plans**:
+
+- [ ] 06-01-PLAN.md — 双栏交互实现：TagPanel + DocListPanel 子组件、双栏父容器重构、tags.md git 恢复
 
 ## Progress
 
