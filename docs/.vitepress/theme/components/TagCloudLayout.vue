@@ -1,33 +1,27 @@
 <script lang="ts" setup>
-import tagIndex from 'virtual:tag-index'
-import { useData } from 'vitepress'
-import { computed } from 'vue'
-import { allTagsFromIndex, tagChipStyle } from '../util/tagChip'
+import TagPanel from './TagPanel.vue'
+import DocListPanel from './DocListPanel.vue'
+import { useTagFilter, TAG_FILTER_INJECTION_KEY } from '../util/useTagFilter'
+import { provide } from 'vue'
 
-const { isDark } = useData()
-
-const allTags = computed(() => allTagsFromIndex(tagIndex as Record<string, { tags: string[]; title: string }>))
-const totalDocs = computed(() => Object.keys(tagIndex as Record<string, { tags: string[]; title: string }>).length)
+const tagFilter = useTagFilter()
+provide(TAG_FILTER_INJECTION_KEY, tagFilter)
 </script>
 
 <template>
   <div class="TagCloud">
-    <div class="container">
-      <div class="header">
-        <h1 class="title">标签云</h1>
-        <p class="subtitle">共 {{ allTags.length }} 个标签，覆盖 {{ totalDocs }} 篇文档</p>
+    <div class="dual-layout">
+      <div class="tag-panel-col">
+        <div class="header">
+          <h1 class="title">标签云</h1>
+          <p class="subtitle">
+            共 {{ tagFilter.allTags.length }} 个标签，覆盖 {{ tagFilter.filteredDocs.length }} 篇文档
+          </p>
+        </div>
+        <TagPanel />
       </div>
-      <div class="tag-cloud">
-        <button
-          v-for="tag in allTags"
-          :key="tag.name"
-          class="tag-chip-base tag-chip"
-          :style="tagChipStyle(tag.name, isDark)"
-          type="button"
-        >
-          {{ tag.name }}
-          <span class="tag-count">{{ tag.count }}</span>
-        </button>
+      <div class="doc-list-col">
+        <DocListPanel />
       </div>
     </div>
   </div>
@@ -36,16 +30,30 @@ const totalDocs = computed(() => Object.keys(tagIndex as Record<string, { tags: 
 <style scoped>
 .TagCloud {
   min-height: 100vh;
-  padding: 80px 24px 48px;
 }
 
-.container {
-  max-width: 900px;
+.dual-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.tag-panel-col {
+  align-self: start;
+}
+
+@media (min-width: 768px) {
+  .tag-panel-col {
+    position: sticky;
+    top: calc(var(--vp-nav-height) + 24px);
+  }
 }
 
 .header {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .title {
@@ -57,40 +65,27 @@ const totalDocs = computed(() => Object.keys(tagIndex as Record<string, { tags: 
 
 .subtitle {
   color: var(--vp-c-text-2);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   margin: 0;
 }
 
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.tag-chip {
-  padding: 4px 14px;
-  font-size: 0.85rem;
-  cursor: default;
-  font-family: inherit;
-}
-
 @media (max-width: 767px) {
-  .TagCloud {
-    padding: 64px 16px 32px;
+  .dual-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 32px 16px;
+  }
+
+  .tag-panel-col {
+    position: static;
   }
 
   .title {
     font-size: 1.5rem;
   }
 
-  .tag-cloud {
-    gap: 8px;
-  }
-
-  .tag-chip {
-    padding: 3px 10px;
-    font-size: 0.8rem;
+  .TagCloud {
+    padding-top: 0;
   }
 }
 </style>
