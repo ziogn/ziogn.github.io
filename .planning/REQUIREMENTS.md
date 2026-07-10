@@ -3,7 +3,7 @@
 **Defined:** 2026-07-05
 **Core Value:** 用户可以通过标签快速定位相关文档，尤其是当文档量增长后，标签搜索成为比全文搜索更精准的发现方式
 
-## v1 Requirements (Completed — Milestone v1.0)
+## v1 Requirements (Completed)
 
 ### 标签云页面
 
@@ -15,21 +15,31 @@
 
 - [x] **HOME-01**: 首页 hero 区域移除「开始浏览」按钮
 - [x] **HOME-02**: 首页新增标签云展示区域
-
-## v1 Requirements (Milestone v1.1)
-
-### 首页优化
-
 - [x] **HOME-03**: 首页文档列表部分的标题从「其他」改为「文章列表」
-- [ ] **HOME-04**: 用户点击首页标签云中的标签可筛选下方文章列表
-- [ ] **HOME-05**: 用户可选择多个标签，文章列表按 AND 逻辑过滤（文档须包含所有选中标签才显示）
-- [ ] **HOME-06**: 已选中的标签有视觉高亮状态，再次点击可取消选中
+- [x] **HOME-04**: 用户点击首页标签云中的标签可筛选下方文章列表
+- [x] **HOME-05**: 用户可选择多个标签，文章列表按 AND 逻辑过滤
+- [x] **HOME-06**: 已选中的标签有视觉高亮状态，再次点击可取消选中
 
-## v2 Requirements
+## v1.2.0 Requirements (标签云页面交互筛选)
+
+### 布局
+
+- [ ] **TAGCLOUD-04**: 标签云页面使用左标签右文档列表的双栏布局
+
+### 筛选
+
+- [ ] **TAGCLOUD-05**: 用户点击标签云中的标签可筛选下方文档列表
+- [x] **TAGCLOUD-06**: 用户可选择多个标签，文档列表按 AND 逻辑过滤
+- [ ] **TAGCLOUD-07**: 已选中的标签有视觉高亮状态，再次点击可取消选中
+
+### 兼容性高亮
+
+- [ ] **TAGCLOUD-08**: 选中标签后，兼容标签（与所有已选标签同属至少一篇文档的标签）高亮显示，不兼容标签置灰，避免筛选后结果为 0
+
+## Future Requirements
 
 ### 标签交互增强
 
-- **TAGS-04**: 点击标签云中的标签可跳转到搜索弹窗并自动选中该标签
 - **TAGS-05**: 标签云页面支持按文档数排序/筛选
 
 ## Out of Scope
@@ -39,7 +49,8 @@
 | 标签 CRUD 管理界面 | 标签通过 frontmatter 维护，无需管理 UI |
 | 标签关联推荐 | 不自动推荐相关标签，仅展示已有标签 |
 | 标签层级/分类 | 保持扁平标签体系 |
-| 标签页直接搜索 | 跳转到搜索弹窗更符合 VitePress 搜索体验 |
+| 标签云跳转到搜索弹窗 | 用户选择在标签云页面内直接筛选 |
+| 首页标签云筛选 | 首页标签云已移除，筛选功能集中在 /tags 页面 |
 
 ## Traceability
 
@@ -51,16 +62,20 @@
 | HOME-01 | Phase 2 | Complete |
 | HOME-02 | Phase 2 | Complete |
 | HOME-03 | Phase 3 | Complete |
-| HOME-04 | Phase 4 | Pending |
-| HOME-05 | Phase 4 | Pending |
-| HOME-06 | Phase 4 | Pending |
+| HOME-04 | Phase 4 | Complete |
+| HOME-05 | Phase 4 | Complete |
+| HOME-06 | Phase 4 | Complete |
+| TAGCLOUD-04 | Phase 6 | Pending |
+| TAGCLOUD-05 | Phase 6 | Pending |
+| TAGCLOUD-06 | Phase 5 | Complete |
+| TAGCLOUD-07 | Phase 6 | Pending |
+| TAGCLOUD-08 | Phase 6 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0 ✓
+- v1 requirements: 9 total, mapped: 9 ✓
+- v1.2.0 requirements: 5 total, mapped: 5 ✓
 
 ---
 *Requirements defined: 2026-07-05*
-*Last updated: 2026-07-06 after milestone v1.1 roadmap*
+*Last updated: 2026-07-10 — milestone v1.2.0*
