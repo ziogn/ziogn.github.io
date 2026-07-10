@@ -1,19 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: — 首页交互优化
-current_phase: 4
-current_phase_name: 首页标签交互筛选
-status: completed
-stopped_at: Phase 4 execution complete
-last_updated: "2026-07-06T10:30:00.000Z"
-last_activity: 2026-07-06
+milestone: v1.2.0
+milestone_name: 标签云页面交互筛选
+status: planning
+last_updated: "2026-07-10T04:29:57.698Z"
+last_activity: 2026-07-10
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,11 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-**Milestone:** v1.1 首页交互优化
-**Phase:** 4 — 首页标签交互筛选
-**Plan:** 2/2 plans complete
-**Status:** Complete
-**Last activity:** 2026-07-06
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-10 — Milestone v1.2.0 started
 
 ## Performance Metrics
 

@@ -22,8 +22,8 @@
 ## v1.1 — 首页交互优化
 
 **Started:** 2026-07-06
-**Completed:** —
-**Status:** Planning
+**Completed:** 2026-07-10
+**Status:** Complete
 
 **Goal:** 改进首页文档列表展示和标签交互功能
 
@@ -34,5 +34,22 @@
 **Key deliverables:**
 - 首页文档列表标题改为"文章列表"
 - 首页标签多选 AND 筛选文档列表
+
+**Learnings:** —
+
+## v1.2.0 — 标签云页面交互筛选
+
+**Started:** 2026-07-10
+**Completed:** —
+**Status:** Planning
+
+**Goal:** 标签云页面支持标签点击筛选文档列表，多选 AND 逻辑，兼容性高亮
+
+**Milestone phases:** (to be defined)
+
+**Key deliverables:**
+- 标签云页面左标签右列表的双栏布局
+- 标签点击多选 AND 筛选文档列表
+- AND 兼容性高亮
 
 **Learnings:** —
