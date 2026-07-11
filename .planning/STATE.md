@@ -90,6 +90,7 @@ Last activity: 2026-07-11 — Phase 06 execution complete, milestone v1.2.0 deli
 | 2026-07-11 | 移除首页开始浏览按钮 (remove-start-browsing-button) | completed |
 | 2026-07-11 | 首页标题"其他"修改为"文档列表" (change-index-heading) | completed |
 | 2026-07-09 | 移除首页标签云 (remove-home-tag-cloud) | completed |
+| 2026-07-11 | 添加 VitePress Mermaid 语法图支持 (add-mermaid-support) | completed |
 
 ## Deferred Items
 
