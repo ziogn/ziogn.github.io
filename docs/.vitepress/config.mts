@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { generateSidebar } from 'vitepress-sidebar'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import path from 'path'
 import { createSearchConfig } from './search/index'
 import { tagIndexPlugin } from './search/tag-index-plugin'
@@ -42,7 +43,7 @@ function stripDocsPrefix(items: any[]): any[] {
   })
 }
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: 'Ziogn Notes',
   description: '个人技术文档知识库',
   lang: 'zh-CN',
@@ -99,4 +100,4 @@ export default defineConfig({
     returnToTopLabel: '回到顶部',
     lastUpdatedText: '最后更新',
   },
-})
+}))
