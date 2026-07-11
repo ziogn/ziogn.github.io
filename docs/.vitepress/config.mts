@@ -53,15 +53,11 @@ export default withMermaid(defineConfig({
   head: [['meta', { name: 'theme-color', content: '#6366f1' }]],
   mermaid: {
     themeVariables: {
-      // 节点背景与文字 — 深底白字确保可读性
+      // 暗色模式下的节点背景与边框 — 与 VitePress 暗色背景协调
       mainBkg: '#18181b',
-      primaryTextColor: '#f4f4f5',
-      tertiaryTextColor: '#d4d4d8',
-      // 线条与边框 — 清晰区分方框边界
-      lineColor: '#a1a1aa',
       nodeBorder: '#52525b',
       primaryBorderColor: '#52525b',
-      // 分组区背景
+      lineColor: '#a1a1aa',
       clusterBkg: '#09090b',
       clusterBorder: '#3f3f46',
     },

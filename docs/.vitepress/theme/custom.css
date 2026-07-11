@@ -67,3 +67,12 @@
   order: 1;
 }
 
+/* Mermaid 图表文字颜色 — 强制使用主题文字色,避免浅色文字看不清 */
+.mermaid svg .nodeLabel,
+.mermaid svg .edgeLabel,
+.mermaid svg .label text,
+.mermaid svg text {
+  fill: var(--vp-c-text-1) !important;
+  color: var(--vp-c-text-1) !important;
+}
+
