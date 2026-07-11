@@ -53,11 +53,16 @@ export default withMermaid(defineConfig({
   head: [['meta', { name: 'theme-color', content: '#6366f1' }]],
   mermaid: {
     themeVariables: {
-      primaryTextColor: '#e4e4e7',
-      tertiaryTextColor: '#a1a1aa',
+      // 节点背景与文字 — 深底白字确保可读性
+      mainBkg: '#18181b',
+      primaryTextColor: '#f4f4f5',
+      tertiaryTextColor: '#d4d4d8',
+      // 线条与边框 — 清晰区分方框边界
       lineColor: '#a1a1aa',
+      nodeBorder: '#52525b',
       primaryBorderColor: '#52525b',
-      clusterBkg: '#18181b',
+      // 分组区背景
+      clusterBkg: '#09090b',
       clusterBorder: '#3f3f46',
     },
   },
