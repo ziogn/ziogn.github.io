@@ -67,12 +67,21 @@
   order: 1;
 }
 
-/* Mermaid 图表文字颜色 — 强制使用主题文字色,避免浅色文字看不清 */
+/* Mermaid 图表文字颜色 — 亮色模式使用主题文字色 */
 .mermaid svg .nodeLabel,
 .mermaid svg .edgeLabel,
 .mermaid svg .label text,
 .mermaid svg text {
   fill: var(--vp-c-text-1) !important;
   color: var(--vp-c-text-1) !important;
+}
+
+/* 暗色模式文字色略深 — 纯亮白色刺眼,改为柔和灰白提升阅读舒适度 */
+.dark .mermaid svg .nodeLabel,
+.dark .mermaid svg .edgeLabel,
+.dark .mermaid svg .label text,
+.dark .mermaid svg text {
+  fill: #d4d4d8 !important;
+  color: #d4d4d8 !important;
 }
 
