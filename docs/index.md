@@ -6,7 +6,7 @@ hero:
   text: "个人技术文档知识库"
 ---
 
-## 其他
+## 文档列表
 
 - [Certbot 使用指南](Certbot使用指南.md)
 - [DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）](deepseek-v4-flash-gsd-core-调研报告.md)
