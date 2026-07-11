@@ -4,9 +4,14 @@ layout: home
 hero:
   name: "Ziogn Notes"
   text: "个人技术文档知识库"
+  tagline: "Flutter · Java Spring Boot · DevOps · AI 工具链"
+  actions:
+    - theme: brand
+      text: "开始浏览"
+      link: /其他/
 ---
 
-## 文档列表
+## 其他
 
 - [Certbot 使用指南](Certbot使用指南.md)
 - [DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）](deepseek-v4-flash-gsd-core-调研报告.md)
@@ -22,6 +27,12 @@ hero:
 - [Nginx 配置实战指南](nginx配置实战指南.md)
 - [Tauri2打包react移动端应用调研](Tauri2打包react移动端应用调研.md)
 - [docker-compose 使用教程](docker-compose使用教程.md)
+- [java知识规划——ai开发](java知识规划——ai开发.md)
+- [java知识规划——mybatis](java知识规划——mybatis.md)
+- [java知识规划——mysql](java知识规划——mysql.md)
+- [java知识规划——spring](java知识规划——spring.md)
+- [java知识规划——总览](java知识规划——总览.md)
+- [java知识规划——核心](java知识规划——核心.md)
 - [java程序员面试](java程序员面试.md)
 - [移动 Web 项目打包为移动端 App 技术方案调研](移动Web打包移动端App技术调研.md)
 - [轻量级系统日志聚合服务调研](轻量级日志聚合服务调研.md)
