@@ -50,9 +50,31 @@ export default withMermaid(defineConfig({
   lastUpdated: true,
   cleanUrls: true,
   ignoreDeadLinks: true,
-  head: [['meta', { name: 'theme-color', content: '#6366f1' }]],
+  head: [
+    ['meta', { name: 'theme-color', content: '#6366f1' }],
+  ],
   mermaid: {
-    theme: 'base',
+    themeVariables: {
+      // 节点边框 — themeVariables 对此生效
+      nodeBorder: '#818cf8',
+      primaryBorderColor: '#818cf8',
+      secondaryBorderColor: '#818cf8',
+      tertiaryBorderColor: '#818cf8',
+      quaternaryBorderColor: '#818cf8',
+      quinaryBorderColor: '#818cf8',
+      // 连线与箭头
+      lineColor: '#a78bfa',
+      // 分组
+      clusterBkg: '#0f0d1a',
+      clusterBorder: '#6d28d9',
+      edgeLabelBackground: '#1a1a2e',
+      // 节点填充色会被 JS 覆盖，保留以作备用
+      primaryColor: '#1e1b4b',
+      secondaryColor: '#1a1a3e',
+      tertiaryColor: '#2d1b3c',
+      quaternaryColor: '#1b2a3c',
+      quinaryColor: '#3c1b2a',
+    },
   },
   vite: {
     build: {
