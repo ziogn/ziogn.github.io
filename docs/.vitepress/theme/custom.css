@@ -85,3 +85,24 @@
   color: #d4d4d8 !important;
 }
 
+/* Mermaid 暗色模式 — 鲜艳配色：节点深靛蓝 + 靛蓝/紫罗兰线条边框，与品牌色呼应 */
+.dark .mermaid .node rect,
+.dark .mermaid .node polygon,
+.dark .mermaid .node circle {
+  fill: #1e1b4b !important;
+  stroke: #818cf8 !important;
+}
+
+.dark .mermaid .cluster rect {
+  fill: #0f0d1a !important;
+  stroke: #6d28d9 !important;
+}
+
+.dark .mermaid .edgePath .path {
+  stroke: #a78bfa !important;
+}
+
+.dark .mermaid marker path {
+  fill: #a78bfa !important;
+}
+
