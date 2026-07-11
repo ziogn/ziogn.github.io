@@ -123,7 +123,7 @@ This milestone adds interactive tag filtering to the tag cloud page at /tags. Th
 ### Phases
 
 - [x] **Phase 5: 数据层扩展** - 添加标签选择状态管理与文档列表 AND 筛选核心逻辑 (completed 2026-07-10)
-- [ ] **Phase 6: 交互与布局实现** - 实现左标签右文档列表双栏布局与交互式筛选
+- [x] **Phase 6: 交互与布局实现** - 实现左标签右文档列表双栏布局与交互式筛选 (completed 2026-07-11)
 
 ### Phase Details
 
@@ -157,12 +157,12 @@ This milestone adds interactive tag filtering to the tag cloud page at /tags. Th
   5. When tags are selected, compatible tags (tags that co-occur with ALL selected tags in at least one document) display with normal visual state while incompatible tags appear dimmed/disabled
   6. When no tags are selected, all tags display in their normal state and the full document list is shown
 
-**Plans**: 1/1 plans
+**Plans**: 1/1 plans complete
 **UI hint**: yes
 
 **Plans**:
 
-- [ ] 06-01-PLAN.md — 双栏交互实现：TagPanel + DocListPanel 子组件、双栏父容器重构、tags.md git 恢复
+- [x] 06-01-PLAN.md — 双栏交互实现：TagPanel + DocListPanel 子组件、双栏父容器重构、tags.md git 恢复
 
 ## Progress
 
@@ -173,4 +173,4 @@ This milestone adds interactive tag filtering to the tag cloud page at /tags. Th
 | 3. 首页文章列表标题更新 | 1/1 | Complete | 2026-07-06 |
 | 4. 首页标签交互筛选 | 2/2 | Complete | 2026-07-06 |
 | 5. 数据层扩展 | 1/1 | Complete    | 2026-07-10 |
-| 6. 交互与布局实现 | 0/0 | Pending | - |
+| 6. 交互与布局实现 | 1/1 | Complete   | 2026-07-11 |
