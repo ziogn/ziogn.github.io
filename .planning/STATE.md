@@ -87,6 +87,8 @@ Last activity: 2026-07-11 — Phase 06 execution complete, milestone v1.2.0 deli
 
 | Date | Task | Status |
 |------|------|--------|
+| 2026-07-11 | Mermaid 暗色模式鲜艳靛蓝/紫罗兰配色 (mermaid-dark-vibrant) | completed |
+| 2026-07-11 | 暗色模式 Mermaid 文字色降低亮度 (mermaid-dark-text-darker) | completed |
 | 2026-07-11 | 移除首页开始浏览按钮 (remove-start-browsing-button) | completed |
 | 2026-07-11 | 首页标题"其他"修改为"文档列表" (change-index-heading) | completed |
 | 2026-07-09 | 移除首页标签云 (remove-home-tag-cloud) | completed |
