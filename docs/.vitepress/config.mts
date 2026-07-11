@@ -51,6 +51,16 @@ export default withMermaid(defineConfig({
   cleanUrls: true,
   ignoreDeadLinks: true,
   head: [['meta', { name: 'theme-color', content: '#6366f1' }]],
+  mermaid: {
+    themeVariables: {
+      primaryTextColor: '#e4e4e7',
+      tertiaryTextColor: '#a1a1aa',
+      lineColor: '#a1a1aa',
+      primaryBorderColor: '#52525b',
+      clusterBkg: '#18181b',
+      clusterBorder: '#3f3f46',
+    },
+  },
   vite: {
     build: {
       chunkSizeWarningLimit: 1000,
