@@ -87,6 +87,7 @@ Last activity: 2026-07-11 — Phase 06 execution complete, milestone v1.2.0 deli
 
 | Date | Task | Status |
 |------|------|--------|
+| 2026-07-11 | 移除首页开始浏览按钮 (remove-start-browsing-button) | completed |
 | 2026-07-09 | 移除首页标签云 (remove-home-tag-cloud) | completed |
 
 ## Deferred Items
