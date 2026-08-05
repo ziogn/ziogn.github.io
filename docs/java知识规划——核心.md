@@ -1,8 +1,8 @@
 ---
 title: java知识规划——核心
 created: 2026-07-11 15:00
-updated: 2026-07-11 15:00
-version: 0.0.1
+updated: 2026-07-11 15:32
+version: 0.1.0
 author: ziogn
 tags: [java, interview, guide, java面试, research]
 aliases: [Java核心技术, Java面试核心, JVM, 并发编程, 集合框架]
@@ -412,41 +412,255 @@ GC 标记      | 11    | （GC 时使用）
 
 #### AQS（AbstractQueuedSynchronizer）
 
-JUC 锁和同步器的基石，核心三要素：
+JUC 锁和同步器的基石，核心由三要素构成：Node 节点（CLH 队列变体）、volatile int state 同步状态、ConditionObject 等待队列。底层基于模板方法设计模式。
 
-**CLH 队列变体**：
-- 双向链表（Node 节点），头节点持有锁
-- 后继节点通过 `LockSupport.park()/unpark()` 阻塞/唤醒
-- 公平锁：新线程入队尾；非公平锁：新线程先 CAS 抢锁，失败再入队
+---
 
-**state**：
-- `volatile int state`，表示同步状态
-- ReentrantLock：0=未锁定，>0=重入次数
-- Semaphore：剩余许可数
-- CountDownLatch：计数
+##### Node 节点与等待状态
 
-**Condition**：
-- 内部维护 `ConditionObject` 等待队列（单向链表）
-- `await()`：释放锁，入队等待队列，挂起
-- `signal()`：等待队列头节点移到同步队列
+AQS 内部维护一个 CLH 双向链表作为同步队列，每个 Node 代表一个等待线程：
 
 ```java
-// AQS 独占模式核心骨架（简化理解）
-public final void acquire(int arg) {
-    if (!tryAcquire(arg) &&              // 子类实现：CAS 尝试获取
-        acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) // 入队 + 自旋/阻塞
-        selfInterrupt();
+static final class Node {
+    volatile int waitStatus;    // 等待状态
+    volatile Node prev;         // 前驱节点
+    volatile Node next;         // 后继节点
+    volatile Thread thread;     // 当前线程
+    Node nextWaiter;            // Condition 队列中的后继 / 共享模式标记
 }
 ```
 
-**基于 AQS 的实现**：
-- `ReentrantLock`（独占模式 + Condition）
-- `CountDownLatch`（共享模式，count=0 时释放所有等待线程）
-- `Semaphore`（共享模式，state 表示剩余许可）
-- `CyclicBarrier`（基于 ReentrantLock + Condition 实现）
-- `ReentrantReadWriteLock`（独占 + 共享双模式）
+**waitStatus 五状态**：
 
-> **关联知识点**：AQS → ReentrantLock / AQS CLH 队列 → Condition / AQS 共享模式 → CountDownLatch / AQS → synchronized Monitor 的异同
+| 值 | 命名 | 说明 |
+|----|------|------|
+| 1 | CANCELLED | 线程等待超时或被中断，需从队列中移除 |
+| -1 | SIGNAL | 后继节点等待被唤醒——当前节点释放锁后要 unpark 后继 |
+| -2 | CONDITION | 节点在 Condition 等待队列中，等待 signal 移入同步队列 |
+| -3 | PROPAGATE | 共享模式下传播唤醒（如 CountDownLatch 释放后唤醒所有） |
+| 0 | 初始 | 新节点入队时的默认状态 |
+
+> 只有 CANCELLED 是正值，`if (ws > 0)` 即可快速跳过已取消节点。
+
+**CLH 队列变体 vs 原始 CLH**：原始 CLH 自旋轮询前驱状态，AQS 的变体通过 `LockSupport.park()/unpark()` 显式唤醒后继（避免自旋空耗 CPU）。头节点持有锁（`head.thread == null`），尾节点表示最新入队的线程。
+
+---
+
+##### acquireQueued 自旋等待机制
+
+```java
+// acquireQueued 核心逻辑：自旋 + park
+final boolean acquireQueued(final Node node, int arg) {
+    boolean failed = true;
+    try {
+        boolean interrupted = false;
+        for (;;) {
+            final Node p = node.predecessor();
+            // 前驱是 head → 尝试获取锁
+            if (p == head && tryAcquire(arg)) {
+                setHead(node);      // 自己成为新的 head
+                p.next = null;      // 断开引用，辅助 GC
+                failed = false;
+                return interrupted;
+            }
+            // 获取失败 → 判断是否可以 park
+            if (shouldParkAfterFailedAcquire(p, node))
+                interrupted |= parkAndCheckInterrupt();
+        }
+    } finally {
+        if (failed)
+            cancelAcquire(node);   // 异常/中断 → 取消
+    }
+}
+```
+
+**shouldParkAfterFailedAcquire 三路分支**：
+1. 前驱是 SIGNAL（-1）→ 可以安全 park（前驱释放锁后会 unpark 自己）
+2. 前驱是 CANCELLED（1）→ 向前遍历跳过所有已取消节点，重新链接
+3. 前驱是其他状态 → CAS 设置前驱为 SIGNAL（告知前驱："释放时唤醒我"）
+
+---
+
+##### state 同步状态
+
+```java
+private volatile int state;
+```
+
+| 同步器 | state 含义 |
+|--------|-----------|
+| ReentrantLock | 0=未锁定，N=当前线程重入 N 次 |
+| Semaphore | 剩余许可数 |
+| CountDownLatch | 待计数（需 countDown N 次才释放） |
+| ReentrantReadWriteLock | 高 16 位读锁计数，低 16 位写锁重入计数 |
+
+**ReentrantLock 公平锁 vs 非公平锁**：
+
+```java
+// === 公平锁 tryAcquire ===
+protected final boolean tryAcquire(int acquires) {
+    final Thread current = Thread.currentThread();
+    int c = getState();
+    if (c == 0) {
+        // hasQueuedPredecessors() 检查队列前方是否有等待线程
+        if (!hasQueuedPredecessors() && compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(current);
+            return true;
+        }
+    } else if (current == getExclusiveOwnerThread()) {
+        int nextc = c + acquires;
+        if (nextc < 0) throw new Error("锁重入计数溢出");
+        setState(nextc);
+        return true;
+    }
+    return false;
+}
+
+// === 非公平锁 tryAcquire ===
+protected final boolean tryAcquire(int acquires) {
+    final Thread current = Thread.currentThread();
+    int c = getState();
+    if (c == 0) {
+        // 不检查队列，直接 CAS 抢锁
+        if (compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(current);
+            return true;
+        }
+    } else if (current == getExclusiveOwnerThread()) {
+        int nextc = c + acquires;
+        if (nextc < 0) throw new Error("锁重入计数溢出");
+        setState(nextc);
+        return true;
+    }
+    return false;
+}
+```
+
+**核心差异**：`state == 0` 时非公平锁直接 CAS 抢锁，公平锁通过 `hasQueuedPredecessors()` 检查队列中是否有等待线程，有则排队。非公平锁吞吐量更高（减少线程挂起/唤醒的 syscall 次数），但存在线程饥饿风险。
+
+---
+
+##### ConditionObject 完整流程
+
+```java
+public class ConditionObject implements Condition {
+    private transient Node firstWaiter;  // 等待队列头（单向链表）
+    private transient Node lastWaiter;
+}
+```
+
+**await() 完整流程**：
+1. 封装当前线程为 `Node(CONDITION)`，加入条件等待队列尾
+2. **完全释放**当前持有的锁：`release(savedState)`，其中 `savedState = getState()`（注意释放的是全部重入计数，不是只释放一次）
+3. `parkAndCheckInterrupt()` 挂起当前线程
+4. 被 signal 后节点移入同步队列，通过 `acquireQueued()` 重新竞争锁
+5. 成功获取锁后从 await 返回
+
+**signal() 流程**：
+1. 将等待队列头节点的状态从 CONDITION 改为 0
+2. 通过 `enq(node)` 将节点移入同步队列尾
+3. 设置前驱为 SIGNAL（等待前驱释放锁后主动唤醒）
+
+**await() vs wait() 关键区别**：
+
+| 维度 | synchronized + wait() | ReentrantLock + await() |
+|------|----------------------|------------------------|
+| 等待队列数量 | 一个 Monitor 只有一个等待集 | 一个锁可有多个 Condition 实例 |
+| 释放量 | 只释放一次 | 释放全部重入计数值 |
+| 中断响应 | 抛 InterruptedException | 抛 InterruptedException |
+| 超时 | wait(timeout) | await(timeout, unit) |
+| 唤醒 | notify 随机唤醒一个 | signal 唤醒头节点（FIFO） |
+
+---
+
+##### ReentrantReadWriteLock 读写状态设计
+
+将 32 位 int state 拆分为高 16 位（读锁计数）和低 16 位（写锁重入次数）：
+
+```text
+state (32-bit int):
+┌────────────────────┬────────────────────┐
+│  高 16 位           │  低 16 位           │
+│  读锁计数           │  写锁重入次数       │
+│  state >>> 16      │  state & 0xFFFF    │
+└────────────────────┴────────────────────┘
+
+// 常用位操作常量
+static final int SHARED_SHIFT   = 16;
+static final int SHARED_UNIT    = (1 << SHARED_SHIFT);  // 1 个读线程的计数单位
+static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1;
+static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;
+```
+
+**锁降级**（写锁 → 读锁）：
+
+```java
+ReentrantReadWriteLock rw = new ReentrantReadWriteLock();
+rw.writeLock().lock();
+try {
+    cache.put(key, value);
+    rw.readLock().lock();   // 降级：先获取读锁
+} finally {
+    rw.writeLock().unlock(); // 再释放写锁，此时仍持有读锁
+}
+// 继续以读锁读取...
+rw.readLock().unlock();
+```
+
+**读写互斥规则**：读读不互斥、读写互斥、写写互斥。
+
+---
+
+##### AQS vs synchronized 完整对比
+
+| 对比维度 | AQS（ReentrantLock） | synchronized |
+|---------|---------------------|-------------|
+| 等待可中断 | `lockInterruptibly()` 支持 | 不支持（wait 只能等待，无法被中断退出）|
+| 超时获取 | `tryLock(timeout, unit)` | 不支持 |
+| 公平性 | 公平/非公平可选 | 非公平（无法配置）|
+| 多条件 | 支持多个 Condition | 一个 Monitor 只有一个等待集 |
+| 锁释放 | 必须 finally 中 unlock | 自动释放（异常也释放）|
+| 底层机制 | volatile state + CAS + LockSupport | 对象头 Mark Word + Monitor |
+| 低竞争性能 | CAS 自旋（用户态） | 偏向锁 → 轻量级锁 |
+| 高竞争性能 | 线程进入同步队列 | 膨胀为重量级锁（内核态）|
+| 查看持有者 | `getOwner()` / `getHoldCount()` | 不可见 |
+
+**选择建议**：简单互斥用 synchronized（简洁、自动释放、JVM 持续优化）；需要超时/中断/公平/多 Condition 用 ReentrantLock；读多写少用 ReentrantReadWriteLock。
+
+---
+
+##### 模板方法设计模式
+
+AQS 是**模板方法模式**的经典应用——定义获取/释放锁的骨架流程，子类实现具体策略：
+
+```java
+public final void acquire(int arg) {
+    if (!tryAcquire(arg))               // ← 抽象方法，子类实现
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg);
+}
+```
+
+| 子类需实现的方法 | 模式 | 使用场景 |
+|----------------|------|---------|
+| `tryAcquire(int)` | 独占 | ReentrantLock |
+| `tryRelease(int)` | 独占 | ReentrantLock |
+| `tryAcquireShared(int)` | 共享 | Semaphore, CountDownLatch |
+| `tryReleaseShared(int)` | 共享 | Semaphore, CountDownLatch |
+| `isHeldExclusively()` | 通用 | ReentrantReadWriteLock |
+
+---
+
+**基于 AQS 的实现一览**：
+
+| 同步器 | 模式 | 说明 |
+|--------|------|------|
+| ReentrantLock | 独占 + Condition | 可重入，公平/非公平 |
+| ReentrantReadWriteLock | 独占 + 共享 | 读写锁，读读不互斥 |
+| Semaphore | 共享 | 许可号控制并发数 |
+| CountDownLatch | 共享 | count=0 时释放所有等待 |
+| CyclicBarrier | 基于 ReentrantLock | 屏障等待，可复用 |
+
+> **关联知识点**：AQS CLH 队列 → Condition 等待队列 / AQS state → ReentrantLock 重入 / AQS 共享模式 → CountDownLatch / 模板方法 → 设计模式 / AQS vs synchronized 选择 / Node waitStatus → 取消/唤醒控制 / ReentrantReadWriteLock 位运算 → 位操作技巧
 
 ---
 

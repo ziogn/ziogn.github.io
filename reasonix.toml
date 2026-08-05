@@ -1,0 +1,2 @@
+[permissions]
+allow = ["Bash(git status && echo \"---BRANCH---\" && git branch --show-current && echo \"---REMOTE---\" && git remote -v)"]

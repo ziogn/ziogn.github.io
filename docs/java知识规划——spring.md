@@ -1,17 +1,17 @@
 ---
 title: java知识规划——spring
 created: 2026-07-11 15:00
-updated: 2026-07-11 15:00
-version: 0.0.1
+updated: 2026-07-17 22:00
+version: 0.2.0
 author: ziogn
 tags: [java, spring, interview, guide, java面试, research]
-aliases: [Spring面试, Spring生态, Spring Boot, Spring Cloud]
-description: Spring 生态体系面试知识规划，覆盖 IoC 容器、AOP、Spring Boot 自动配置、MVC/REST、事务管理、Spring Data JPA、Security、微服务八大模块，附知识点追问链与跨域知识关联。
+aliases: [Spring面试, Spring生态, Spring Boot]
+description: Spring 生态体系面试知识规划，覆盖 IoC 容器、AOP、Spring Boot 自动配置、MVC/REST、事务管理、Spring Data JPA、Security 七大模块，附知识点追问链与跨域知识关联。
 ---
 
 # java知识规划——spring
 
-> 本文档覆盖面试权重 30% 的 Spring 知识体系，按"容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全 → 微服务"层层递进。每节末尾标注与 [Java 核心](java知识规划——核心.md) 及 [AI 开发](java知识规划——ai开发.md) 方向的知识关联。
+> 本文档覆盖面试权重 25% 的 Spring 知识体系，按"容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全"层层递进。每节末尾标注与 [Java 核心](java知识规划——核心.md)、[AI 开发](java知识规划——ai开发.md) 及 [Spring Cloud 微服务](java知识规划——springCloud微服务.md) 方向的知识关联。
 
 ---
 
@@ -1026,150 +1026,4 @@ JWT（JSON Web Token）是一种无状态认证方案，核心结构由 Header�
 
 ---
 
-## 2.8 Spring Cloud 微服务
-
-Spring Cloud 构建了完整的微服务治理体系，面试重点在 Nacos（注册+配置）、Gateway（路由）、Sentinel（限流熔断）和 OpenFeign（声明式调用）四大组件的原理与整合。
-
----
-
-#### Nacos：注册中心 + 配置中心
-
-**注册中心原理**：
-
-```text
-服务启动 → 向 Nacos Server 注册
-  → Nacos 维护服务注册表
-  → 消费者从 Nacos 拉取服务列表（定时 10s 拉取 + UDP 长轮询推送变更）
-  → 服务实例每 5s 发送心跳维持健康状态
-  → Nacos 15s 未收到心跳标记为不健康，30s 彻底移除
-```
-
-**CAP 权衡**：
-
-| 模式 | 一致性 | 可用性 | 使用场景 |
-|------|--------|--------|---------|
-| AP（默认） | 最终一致 | 优先 | 注册中心 |
-| CP | 强一致 | 次优先 | 配置中心 |
-
-**配置中心结构**：`Namespace（环境隔离）→ Group（逻辑分组）→ DataId（具体配置）`
-
-**配置动态刷新**：
-
-```java
-// 方式一：@RefreshScope（Bean 重新初始化）
-@RefreshScope
-@ConfigurationProperties(prefix = "order")
-public class OrderProperties {
-    private Integer timeout;
-    private Boolean retryEnabled;
-}
-```
-
----
-
-#### Gateway 路由网关
-
-Spring Cloud Gateway 基于 Spring WebFlux（Reactor），核心三要素：
-
-```yaml
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-            - Method=GET,POST
-          filters:
-            - StripPrefix=1
-            - AddRequestHeader=X-Request-Id, 123456
-```
-
-**执行流程**：`客户端请求 → 匹配 Route → 进入 Filter 链 → 转发到目标服务 → 返回响应`
-
-**常用 Predicate 工厂**：Path、Method、Header、Query、Cookie、Before/After
-
-> **常见陷阱**：Gateway 基于 WebFlux，Filter 中不能使用阻塞 API（如 JDBC、Thread.sleep）；全局 Filter 对所有 Route 生效。
-
----
-
-#### Sentinel 限流与熔断
-
-Sentinel 以"资源"为粒度进行流量控制。
-
-**流量控制规则**：
-
-```java
-FlowRule rule = new FlowRule();
-rule.setResource("GET:/api/orders");
-rule.setGrade(RuleConstant.FLOW_GRADE_QPS);
-rule.setCount(100);
-FlowRuleManager.loadRules(Collections.singletonList(rule));
-```
-
-**熔断状态机**：
-
-```text
-Closed（关闭，正常状态）
-  → 异常比例/慢调用比例超过阈值 → Open（开启，直接拒绝请求）
-  → 经过 timeWindow 时间后 → Half-Open（半开，放行少量试探请求）
-  → 试探成功 → Closed
-  → 试探失败 → Open（重新计时）
-```
-
-**限流算法对比**：
-
-| 算法 | 特点 | Sentinel 使用 |
-|------|------|--------------|
-| 滑动窗口 | 将时间窗分为多个小格，逐格统计 | 默认 QPS 限流 |
-| 令牌桶 | 固定速率放令牌，桶内积累令牌应对突发 | Warm Up 模式 |
-| 漏桶 | 固定速率处理请求，超出丢弃 | 排队等待模式 |
-
----
-
-#### OpenFeign 声明式调用
-
-OpenFeign 通过接口注解定义 HTTP 客户端，动态代理生成实现类。
-
-```java
-@FeignClient(
-    name = "user-service",
-    path = "/api/users",
-    fallbackFactory = UserClientFallbackFactory.class
-)
-public interface UserClient {
-
-    @GetMapping("/{id}")
-    Result<User> getUser(@PathVariable Long id);
-}
-```
-
-**Feign 调用链路**：`@FeignClient 接口调用 → 动态代理发起 HTTP 请求 → RequestInterceptor 拦截 → 负载均衡 → 发送 HTTP 请求 → ErrorDecoder 处理响应`
-
-> **常见陷阱**：Feign 超时不设置或设置过长会导致线程池耗尽；重试机制需要幂等性保证。
-
----
-
-#### Bootstrap 上下文与配置加载
-
-Spring Cloud 应用在启动时比 Spring Boot 多了一个 Bootstrap 上下文：
-
-```text
-Spring Cloud 应用启动
-  → Bootstrap ApplicationContext 初始化
-  → 加载 bootstrap.yml / bootstrap-{profile}.yml
-  → 从 Nacos Config 拉取远程配置
-  → 创建主 ApplicationContext（读取远程配置+本地配置合并）
-  → 正常 Spring Boot 启动流程
-```
-
-> **关联知识点**：微服务治理 → [MySQL 分库分表](java知识规划——mysql.md#48-分库分表shardingsphere-原理) 分布式场景 / Sentinel 熔断 → [线程池拒绝策略](java知识规划——核心.md#13-并发编程) 类比
-
----
-
-**追问链**：`Nacos 注册中心原理 → 心跳机制 → CAP 权衡(AP/CP) → 配置中心 Namespace/Group/DataId → @RefreshScope 动态刷新 → Gateway 路由三要素 → Predicate 匹配 → Filter 链 → Sentinel 流量控制 → 熔断状态机(Closed/Open/Half-Open) → 滑动窗口/令牌桶/漏桶对比 → OpenFeign 声明式调用 → Feign 调用链路 → 超时重试配置 → Bootstrap 上下文 → 与 @Conditional(2.3) 及线程池拒绝策略(核心1.3) 关联`
-
----
-
-**整体追问链（方向二）**：`Bean 生命周期 10 步 → 三级缓存解决循环依赖 → AOP 代理选择策略 → @EnableAspectJAutoProxy 底层 → 自调用失效解决方案 → 自动配置加载链路 → @Conditional 条件体系 → 配置加载优先级 → DispatcherServlet doDispatch 流程 → 拦截器 vs 过滤器 → @Transactional 声明式事务原理 → 传播行为七种 → 隔离级别并发问题 → 自调用事务失效 → 默认回滚规则 → JPA N+1 问题 → JOIN FETCH 解决 → SecurityFilterChain → JWT 认证流程 → OAuth2 授权码模式 → Nacos 注册配置 → Gateway 路由 → Sentinel 限流熔断 → OpenFeign 声明式调用 → Bootstrap 上下文`
+**整体追问链（方向二）**：`Bean 生命周期 10 步 → 三级缓存解决循环依赖 → AOP 代理选择策略 → @EnableAspectJAutoProxy 底层 → 自调用失效解决方案 → 自动配置加载链路 → @Conditional 条件体系 → 配置加载优先级 → DispatcherServlet doDispatch 流程 → 拦截器 vs 过滤器 → @Transactional 声明式事务原理 → 传播行为七种 → 隔离级别并发问题 → 自调用事务失效 → 默认回滚规则 → JPA N+1 问题 → JOIN FETCH 解决 → SecurityFilterChain → JWT 认证流程 → OAuth2 授权码模式`

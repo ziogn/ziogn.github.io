@@ -1,8 +1,8 @@
 ---
 title: java知识规划——mysql
 created: 2026-07-11 15:00
-updated: 2026-07-11 15:00
-version: 0.0.1
+updated: 2026-07-23 11:30
+version: 0.1.0
 author: ziogn
 tags: [java, mysql, interview, guide, java面试, research]
 aliases: [MySQL面试, MySQL核心机制, InnoDB, SQL优化]
@@ -346,4 +346,384 @@ UPDATE user SET name='new' WHERE id=1
 
 ---
 
-**整体追问链（方向四）**：`B+Tree 三层结构 → 聚簇 vs 二级索引 → 最左前缀失效 → 覆盖索引 Using index → ICP 下推 → MRR 顺序 I/O → EXPLAIN type/key_len/Extra → ACID 四特性底层机制 → 四种隔离级别 → 三类并发问题 → MVCC Undo Log 版本链 → ReadView 可见性判定 → RC vs RR ReadView 差异 → 快照读 vs 当前读 → Record Lock/Gap Lock/Next-Key Lock → 锁退化规则 → 慢查询定位 → SQL 改写 → 深分页游标 → 分库分表 ShardingSphere → 主从复制 Binlog 三格式 → Buffer Pool LRU 变种 → Redo Log WAL → 两阶段提交 → 与 @Transactional 及 MyBatis 缓存的跨层关联`
+**整体追问链（方向四）**：`B+Tree 三层结构 → 聚簇 vs 二级索引 → 最左前缀失效 → 覆盖索引 Using index → ICP 下推 → MRR 顺序 I/O → EXPLAIN type/key_len/Extra → ACID 四特性底层机制 → 四种隔离级别 → 三类并发问题 → MVCC Undo Log 版本链 → ReadView 可见性判定 → RC vs RR ReadView 差异 → 快照读 vs 当前读 → Record Lock/Gap Lock/Next-Key Lock → 锁退化规则 → 慢查询定位 → SQL 改写 → 深分页游标 → 分库分表 ShardingSphere → 主从复制 Binlog 三格式 → Buffer Pool LRU 变种 → Redo Log WAL → 两阶段提交 → 窗口函数 ROW_NUMBER/RANK/DENSE_RANK → CTE 递归查询 → Hash Join → Online DDL INSTANT/INPLACE/COPY → 自增锁三种模式 → utf8mb4 陷阱 → 排序规则选型 → 与 @Transactional 及 MyBatis 缓存的跨层关联`
+
+---
+
+## 4.11 MySQL 8.0 新特性（窗口函数 / CTE / Hash Join / 不可见索引）
+
+**一句话原理**：MySQL 8.0 引入了窗口函数、CTE、Hash Join、不可见索引等重大特性，弥补了与传统商业数据库的功能差距。
+
+---
+
+#### 窗口函数
+
+窗口函数在"窗口"（一组行）上执行计算，**不改变返回的行数**——这是与 GROUP BY 最本质的区别。GROUP BY 会压缩行数，窗口函数保留每一行明细的同时进行聚合/排序/偏移计算。
+
+**排名函数**：
+
+```sql
+SELECT name, department, salary,
+    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS row_num,
+    RANK()       OVER (PARTITION BY department ORDER BY salary DESC) AS rnk,
+    DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dense_rnk,
+    NTILE(4)     OVER (PARTITION BY department ORDER BY salary DESC) AS quartile
+FROM employee;
+```
+
+| 函数 | 同值编号策略 | 适用场景 |
+|------|-------------|---------|
+| `ROW_NUMBER()` | 同值不同号（严格顺序）| 分页、去重 |
+| `RANK()` | 同值同号，跳过后续名次 | 排名榜（并列后跳过）|
+| `DENSE_RANK()` | 同值同号，不跳过 | 密集排名（并列后连续）|
+| `NTILE(N)` | 平均分 N 组 | 分桶分析 |
+
+**分析函数（前后行访问）**：
+
+```sql
+-- LAG: 前一行的值，LEAD: 后一行的值
+SELECT time, price,
+    LAG(price, 1)  OVER (ORDER BY time) AS prev_price,    -- 上一行
+    LEAD(price, 1) OVER (ORDER BY time) AS next_price     -- 下一行
+FROM stock_history;
+```
+
+**帧边界子句**：定义窗口函数的计算范围：
+
+```sql
+-- ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING: 当前行 + 前一行 + 后一行
+-- ROWS UNBOUNDED PRECEDING: 窗口第一行到当前行
+-- RANGE BETWEEN ...: 按值范围（而非行号）确定边界
+SUM(salary) OVER (ORDER BY hire_date ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
+```
+
+> **关联知识点**：窗口函数保留明细 vs GROUP BY 压缩 → 4.2 覆盖索引（分析查询的索引优化）
+
+---
+
+#### CTE（公用表表达式）
+
+**非递归 CTE**：替代嵌套子查询，提升可读性：
+
+```sql
+WITH dept_avg AS (
+    SELECT department, AVG(salary) AS avg_salary
+    FROM employee GROUP BY department
+),
+high_earners AS (
+    SELECT e.name, e.salary, d.avg_salary
+    FROM employee e JOIN dept_avg d USING(department)
+    WHERE e.salary > d.avg_salary * 1.5
+)
+SELECT * FROM high_earners;
+```
+
+**递归 CTE**：处理树形结构（组织架构、分类树）：
+
+```sql
+WITH RECURSIVE org_tree AS (
+    -- 锚点：根节点
+    SELECT id, name, parent_id, 1 AS level
+    FROM organization WHERE parent_id IS NULL
+    UNION ALL
+    -- 递归：逐层向下
+    SELECT o.id, o.name, o.parent_id, t.level + 1
+    FROM organization o JOIN org_tree t ON o.parent_id = t.id
+)
+SELECT * FROM org_tree ORDER BY level, id;
+```
+
+> **常见陷阱**：递归 CTE 必须包含 `UNION ALL`（不能是 UNION）；递归部分必须有终止条件（通常是 WHERE 条件限制递归深度）；`cte_max_recursion_depth` 参数控制最大递归深度（默认 1000）。
+
+---
+
+#### Hash Join
+
+MySQL 8.0.18+ 引入，**等值连接且无索引时自动使用**。两阶段执行：
+
+```text
+Build Phase：选择小表（build table），逐行计算 hash 存入内存 hash 表
+  ↓
+Probe Phase：扫描大表（probe table），对每行计算 hash → 到 hash 表中探测匹配
+```
+
+**查看方式**：
+
+```sql
+EXPLAIN FORMAT=TREE
+SELECT * FROM orders o JOIN customers c ON o.customer_id = c.id;
+-- 输出类似：
+-- -> Inner hash join (o.customer_id = c.id)  (cost=...)
+--     -> Table scan on o  (cost=...)
+--     -> Hash
+--         -> Table scan on c  (cost=...)
+```
+
+**限制条件**：
+- 仅适用于等值 JOIN（非等值连接不会用 Hash Join）
+- 不支持 LEFT/RIGHT JOIN 中的被驱动表
+- 当 build table 过大超出 `join_buffer_size`（默认 256K）时，会溢出到磁盘（chunk 分片）
+
+> **常见陷阱**：Hash Join 不是在所有 JOIN 场景都优于 NLJ（Index Nested-Loop Join）。有索引时 NLJ 通常更快；Hash Join 的优势在于大表无索引等值连接场景。
+
+---
+
+#### 不可见索引与降序索引
+
+**不可见索引**：优化器不会使用的索引，用于安全测试删除索引的影响：
+
+```sql
+ALTER TABLE employee ALTER INDEX idx_salary INVISIBLE;
+-- 查看查询计划是否变化
+EXPLAIN SELECT * FROM employee WHERE salary > 10000;
+ALTER TABLE employee ALTER INDEX idx_salary VISIBLE;  -- 恢复
+```
+
+限制：主键不能设为不可见。
+
+**降序索引**：MySQL 8.0 真正实现降序索引（5.7 只解析 DESC 关键字但实际建升序索引）：
+
+```sql
+CREATE INDEX idx_dept_salary ON employee(dept_id ASC, salary DESC);
+-- 查询 `WHERE dept_id=1 ORDER BY salary DESC` 直接走索引，无需 filesort
+```
+
+#### 直方图
+
+帮助优化器在无索引列上做更好的执行计划选择：
+
+```sql
+-- 创建直方图（扫描全表，将数据分布统计到 N 个桶）
+ANALYZE TABLE employee UPDATE HISTOGRAM ON salary WITH 100 BUCKETS;
+
+-- 查看直方图信息
+SELECT * FROM information_schema.COLUMN_STATISTICS
+WHERE TABLE_NAME = 'employee';
+
+-- 删除直方图
+ANALYZE TABLE employee DROP HISTOGRAM ON salary;
+```
+
+> **关联知识点**：不可见索引 → 4.2 索引优化 / 降序索引 → 4.3 EXPLAIN（避免 filesort）/ 直方图 → 索引选择性
+
+---
+
+**追问链**：`窗口函数 vs GROUP BY 核心区别 → ROW_NUMBER/RANK/DENSE_RANK 对比 → NTILE 分桶 → LAG/LEAD 前后行访问 → 帧边界子句 ROWS/RANGE → 非递归 CTE 替代子查询 → WITH RECURSIVE 树形查询 → 递归终止条件 → Hash Join Build+Probe 两阶段 → Hash Join vs NLJ 选型 → 不可见索引安全测试 → 降序索引避免 filesort → 直方图辅助优化器`
+
+---
+
+## 4.12 字符集陷阱与排序规则
+
+**一句话原理**：MySQL 的 `utf8` 是伪 UTF-8（实际是 utf8mb3，最多 3 字节），存储 emoji/生僻字必须用 `utf8mb4`。排序规则的选择影响字符串比较和 ORDER BY 结果。
+
+---
+
+#### utf8 陷阱
+
+| 字符集 | 最大字节 | 覆盖范围 | 说明 |
+|--------|:-------:|---------|------|
+| `utf8` / `utf8mb3` | 3 字节 | Unicode BMP（U+0000 至 U+FFFF）| 不支持 4 字节字符（emoji、生僻汉字）|
+| `utf8mb4` | 4 字节 | 完整 Unicode（U+0000 至 U+10FFFF）| utf8 的超集，兼容所有字符 |
+
+**问题场景**：用户输入 emoji（如 👍）、生僻汉字（如 𠮟），写入 `utf8` 列时报错：
+
+```sql
+-- 表使用 utf8 字符集
+CREATE TABLE user (name VARCHAR(100)) DEFAULT CHARSET=utf8;
+INSERT INTO user VALUES ('用户👍');  -- ❌ Error: Incorrect string value
+```
+
+**解决方案**：
+
+```sql
+ALTER TABLE user CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- 或创建时指定
+CREATE TABLE user (name VARCHAR(100)) DEFAULT CHARSET=utf8mb4;
+```
+
+**MySQL 8.0 的变化**：默认字符集从 `latin1` 改为 `utf8mb4`（MySQL 8.0.1+），默认排序规则为 `utf8mb4_0900_ai_ci`。
+
+> **常见陷阱**：`utf8mb4` 是 `utf8` 的超集，从 `utf8` 改为 `utf8mb4` 不会丢失数据；但反过来（`utf8mb4` → `utf8`）可能因 4 字节字符无法截断而失败。VARCHAR 字段改为 utf8mb4 后字符数上限降低（4 字节占更多空间），但 MySQL 实际按字节存储，影响已存在的数据行长度。
+
+---
+
+#### 排序规则选型
+
+| 排序规则 | 版本 | 特点 | 性能 |
+|---------|:----:|------|:----:|
+| `utf8mb4_general_ci` | MySQL 4.1+ | 排序算法简单，Unicode 支持不完整（如 ß 和 ss 视为不同） | 最快 |
+| `utf8mb4_unicode_ci` | MySQL 5.0+ | 基于 Unicode 标准排序规则（UCA 4.0），准确完整 | 稍慢 |
+| `utf8mb4_0900_ai_ci` | MySQL 8.0+ | 基于 Unicode 9.0（UCA 9.0），`ai`=不区分重音，`ci`=不区分大小写 | 与 unicode_ci 接近 |
+
+**后缀含义**：
+
+| 后缀 | 含义 | 示例对比 |
+|------|------|---------|
+| `_bin` | 二进制比较（按字节值）| 'a' != 'A' |
+| `_ci` | Case Insensitive，不区分大小写 | 'a' = 'A' |
+| `_ai_ci` | Accent Insensitive + Case Insensitive | 'a' = 'á' = 'A' |
+| `_as` | Accent Sensitive，区分重音 | 'a' != 'á' |
+| `_cs` | Case Sensitive，区分大小写 | 'a' != 'A' |
+
+**选择建议**：MySQL 8.0 新项目用默认的 `utf8mb4_0900_ai_ci`；MySQL 5.7 迁移项目用 `utf8mb4_unicode_ci`（兼容性更好）；需要精确二进制比较用 `_bin`；需要严格大小写区分用 `_cs`。
+
+> **常见陷阱**：排序规则不一致的字段 JOIN 可能导致索引失效（隐式转换）；更改排序规则后已有数据的 ORDER BY 结果可能变化；utf8mb4 的索引长度限制比 utf8 更严格（最大 767 字节 / 4 = 191 字符）。
+
+> **关联知识点**：字符集 → 4.7 SQL 优化（隐式类型转换导致索引失效的类似逻辑）
+
+---
+
+**追问链**：`utf8 陷阱(实际是 utf8mb3) → 4字节字符(emoji)写入报错 → utf8mb4 完整 UTF-8 → MySQL 8.0 默认 utf8mb4 → 排序规则三种对比(general/unicode/0900) → 后缀含义(bin/ci/ai_ci/as/cs) → 排序规则不一致导致索引失效 → 索引长度限制`
+
+---
+
+## 4.13 Online DDL
+
+**一句话原理**：MySQL 8.0 支持三种 DDL 算法：INSTANT（仅改元数据，秒级完成）、INPLACE（原表修改，允许并发 DML）、COPY（临时表复制，最重）。选择合适的算法可以避免生产环境 DDL 阻塞写入。
+
+---
+
+#### ALGORITHM 三种模式
+
+| 算法 | 版本 | 原理 | 并发 DML | 磁盘空间 |
+|------|:----:|------|:--------:|:--------:|
+| `INSTANT` | 8.0.12+ | 只修改数据字典元数据 | 允许 | 无额外空间 |
+| `INPLACE` | 5.6+ | 原表直接修改，逐条记录处理 | 允许（LOCK=NONE）| 重建索引时需额外空间 |
+| `COPY` | 始终 | 创建临时新表，拷贝数据，RENAME 替换 | 不允许 | 双倍空间 |
+
+```sql
+-- 显式指定 ALGORITHM 和 LOCK
+ALTER TABLE employee ADD COLUMN age INT DEFAULT 0,
+    ALGORITHM=INSTANT,
+    LOCK=NONE;
+```
+
+**INSTANT（8.0.12+）**：
+- 仅修改数据字典中的元信息，不操作数据文件，操作秒级完成
+- 8.0.12 仅支持 ADD COLUMN（顺序加列，不能指定位置）
+- 8.0.29 增加支持 INSTANT DROP COLUMN
+- **限制**：不支持压缩表、全文索引表、临时表；一行最多 64 次 INSTANT 变更（超过自动使用 INPLACE）
+
+**INPLACE**：
+- 原表直接修改（不拷贝临时表），通过 Row Log 记录变更
+- 支持并发 DML（LOCK=NONE 时），DDL 期间允许读写
+- 加二级索引时，需要建立排序文件用于索引构建
+- 需要额外的 undo/redo log 空间（取决于并发 DML 量）
+
+**COPY**：
+- `CREATE TABLE new` → 逐条拷贝数据 → RENAME 替换原表
+- 需要双倍磁盘空间
+- 全程不能有并发 DML（LOCK=EXCLUSIVE）
+- 目前已经是大多数 DDL 操作的退路选项
+
+---
+
+#### LOCK 配置
+
+| LOCK 模式 | 允许并发读 | 允许并发写 | 适用场景 |
+|-----------|:---------:|:---------:|---------|
+| `NONE` | 是 | 是 | 生产环境核心表 DDL |
+| `SHARED` | 是 | 否 | 允许只读场景 |
+| `EXCLUSIVE` | 否 | 否 | 紧急修复、初始化 |
+
+---
+
+#### 常见 DDL 操作支持矩阵
+
+| DDL 操作 | 最低 ALGORITHM | 推荐 LOCK | 说明 |
+|---------|:-------------:|:---------:|------|
+| ADD COLUMN | INSTANT（8.0.12+）| NONE | 只能顺序加列，不能指定位置 |
+| DROP COLUMN | INSTANT（8.0.29+）| NONE | 无需重建表 |
+| ADD INDEX | INPLACE | NONE | 需构建排序文件 |
+| DROP INDEX | INPLACE | NONE | 仅修改元数据 |
+| CHANGE COLUMN | COPY | EXCLUSIVE | 重命名+类型变更需 COPY |
+| ADD FULLTEXT INDEX | COPY | SHARED | 不支持 INPLACE |
+| 修改列默认值 | INSTANT | NONE | 仅改元数据 |
+| RENAME TABLE | INSTANT | NONE | 仅改元数据 |
+| ALTER INDEX INVISIBLE | INSTANT | NONE | 仅改元数据 |
+
+> **常见陷阱**：
+> - `ALGORITHM=INSTANT` 不是万能药——加 NOT NULL DEFAULT 列仍需要扫描行，INSTANT 只处理元数据
+> - 8.0 之前 Online DDL 会通过临时表空间记录并发 DML 变更，大事务并发时可能导致临时表空间撑爆
+> - Online DDL 过程中 `ALTER TABLE ... WAIT N` 设置等待锁超时，超时后回滚 DDL 不影响业务
+
+> **关联知识点**：DDL 锁 → 4.6 InnoDB 锁机制 / 索引构建 → 4.1 B+Tree 重建
+
+---
+
+**追问链**：`DDL 三种算法(INSTANT/INPLACE/COPY) → INSTANT 原理(改元数据) → INSTANT 限制(64次/不支持压缩表) → INPLACE 逐条处理+Row Log → COPY 双倍空间 → LOCK 四种配置(NONE/SHARED/EXCLUSIVE) → ADD COLUMN INSTANT → ADD INDEX INPLACE+NONE → CHANGE COLUMN COPY → INSTANT NOT NULL DEFAULT 陷阱 → WAIT N 超时控制`
+
+---
+
+## 4.14 MySQL 自增锁
+
+**一句话原理**：`innodb_autoinc_lock_mode` 控制自增主键的加锁策略：传统模式（表级锁）→ 连续模式（互斥锁+表级锁）→ 交错模式（纯互斥锁，最高并发）。自增值 MySQL 8.0 通过 redo log 持久化。
+
+---
+
+#### innodb_autoinc_lock_mode 三种模式
+
+| 模式 | 名称 | simple insert | bulk insert | 连续性 | 并发度 |
+|:----:|:----:|:------------:|:----------:|:-----:|:-----:|
+| 0 | 传统模式 | 表级锁（AUTO-INC 锁） | 表级锁 | 最高 | 最低 |
+| 1 | 连续模式（默认） | 轻量互斥锁（mutex） | 表级锁 | 高 | 中 |
+| 2 | 交错模式 | 轻量互斥锁 | 轻量互斥锁 | 不保证连续 | 最高 |
+
+**simple insert vs bulk insert**：
+
+| 插入类型 | 说明 | 示例 |
+|---------|------|------|
+| simple insert | 插入行数预先可知 | `INSERT INTO t VALUES(1), (2), (3)` |
+| bulk insert | 插入行数预先不知 | `INSERT ... SELECT`、`LOAD DATA`、`INSERT ... ON DUPLICATE KEY UPDATE` |
+
+**模式 1（连续，MySQL 默认）**：simple insert 使用轻量级互斥锁（`AUTO-INC 互斥量`），语句开始时获取，分配完自增值立即释放。bulk insert 使用表级 AUTO-INC 锁，整个语句期间保持，结束后释放。保证每个语句内的自增值是连续的。**这是 MySQL 5.1-8.0 的默认模式**。
+
+**模式 2（交错）**：所有 INSERT-like 操作都使用轻量互斥锁，无表级锁。并发最高，但 `INSERT ... SELECT` 这种 bulk insert 会预先申请一批自增值，实际插入的行数少于申请的数量，导致空洞。
+
+```text
+模式 1 → simple insert: 互斥锁（快，不影响并发）
+          bulk insert: 表级锁（串行，保证语句级连续）
+模式 2 → 全部互斥锁（最高并发，但自增号可能乱序/空洞）
+```
+
+> **常见陷阱**：模式 2 在 statement-based 复制下不安全（从库自增值与主库不一致），MySQL 8.0 推荐 binlog_format=ROW 时使用模式 2 获取更高并发。
+
+---
+
+#### 自增值不连续的原因
+
+| 原因 | 说明 |
+|------|------|
+| 事务回滚 | 自增值不回退（已分配的 ID 即使事务回滚也不会重新使用）|
+| 唯一键冲突 | INSERT 失败前已分配的自增值被消耗 |
+| 批量插入预留 | `INSERT ... SELECT` 预申请多个 ID，实际插入少于申请数 |
+| MySQL 5.7 重启 | 每次重启取 `MAX(id) + 1` 作为初始值（可能覆盖之前预分配的 ID）|
+
+---
+
+#### MySQL 8.0 自增持久化改进
+
+**MySQL 5.7 的问题**：自增值存储在内存中，重启后通过 `SELECT MAX(id) + 1` 恢复。如果重启前有预分配但未使用的自增值，重启后会丢失。
+
+**MySQL 8.0 的改进**：自增值通过 **redo log** 持久化，重启后可以从 redo log 恢复自增值状态，不会丢失未使用的预分配值。每次自增值变更都写入 redolog：
+
+```sql
+-- 查看当前自增值
+SHOW CREATE TABLE employee\G
+-- AUTO_INCREMENT=1001 显示当前自增值
+
+-- 修改自增值（仅能改大不能改小）
+ALTER TABLE employee AUTO_INCREMENT = 2000;
+```
+
+> **常见陷阱**：自增值大于 `MAX(id)` 是正常的（已分配但未使用或已回滚）。如果自增值回卷（`MAX(id)` 接近 `AUTO_INCREMENT`），需要手动 `ALTER TABLE ... AUTO_INCREMENT = MAX(id) + 1` 修复。设置自增值不能小于当前 `MAX(id)`。
+
+> **关联知识点**：自增锁 → 4.6 锁机制（表级锁 vs 行级锁对比）/ redo log 持久化 → 4.10 InnoDB 内存结构 / 自增主键 → 4.1 聚簇索引（B+Tree 顺序写入优化）
+
+---
+
+**追问链**：`innodb_autoinc_lock_mode 三种模式(0/1/2) → simple insert vs bulk insert 区别 → 模式 1 连续模式(simple互斥锁+bulk表级锁) → 模式 2 交错模式(全部互斥锁) → statement-based 复制不安全 → 自增不连续四大原因(事务回滚/键冲突/批量预留/重启) → MySQL 8.0 redo log 持久化 → 自增值手动修改`
+
+---
+
+**整体追问链（方向四 更新）**：`B+Tree 三层结构 → 聚簇 vs 二级索引 → 最左前缀失效 → 覆盖索引 Using index → ICP 下推 → MRR 顺序 I/O → EXPLAIN type/key_len/Extra → ACID 四特性底层机制 → 四种隔离级别 → 三类并发问题 → MVCC Undo Log 版本链 → ReadView 可见性判定 → RC vs RR ReadView 差异 → 快照读 vs 当前读 → Record Lock/Gap Lock/Next-Key Lock → 锁退化规则 → 慢查询定位 → SQL 改写 → 深分页游标 → 分库分表 ShardingSphere → 主从复制 Binlog 三格式 → Buffer Pool LRU 变种 → Redo Log WAL → 两阶段提交 → 窗口函数 ROW_NUMBER/RANK/DENSE_RANK → CTE 递归查询 → Hash Join Build+Probe → 不可见索引安全测试 → 直方图统计 → utf8mb3 陷阱→排序规则选型(0900/unicode/general) → Online DDL INSTANT/INPLACE/COPY → LOCK 配置(NONE/SHARED/EXCLUSIVE) → 自增锁三种模式(0 表级锁/1 连续/2 交错) → 自增不连续原因 → 8.0 redo log 持久化 → 与 @Transactional 及 MyBatis 缓存的跨层关联`
