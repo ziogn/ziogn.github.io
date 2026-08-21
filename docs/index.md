@@ -23,6 +23,7 @@ hero:
 - [GSD-Core 配置文件完整解读](gsd-core-配置文件解读.md)
 - [GSD-gsd-core Agent↔Model 配置实战教程](GSD-gsd-core 模型解析与 Agent 模型切换.md)
 - [Nginx 配置实战指南](nginx配置实战指南.md)
+- [OpenSpec 结合 Reasonix 使用指南](OpenSpec 结合 Reasonix 使用指南.md)
 - [Sidecar 机制详解](sidecar机制详解.md)
 - [Tauri2打包react移动端应用调研](Tauri2打包react移动端应用调研.md)
 - [docker-compose 使用教程](docker-compose使用教程.md)
