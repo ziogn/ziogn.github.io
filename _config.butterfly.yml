@@ -1,0 +1,200 @@
+# ======================================================
+# Butterfly 主题站点级覆盖配置
+# 未在此覆盖的选项继承主题自带 _config.yml
+# 文档: https://butterfly.js.org/
+# ======================================================
+
+# ---------------- 导航 ----------------
+nav:
+  logo: /img/butterfly-icon.png
+  display_title: true
+  fixed: false
+
+menu:
+  首页: / || fas fa-home
+  归档: /archives/ || fas fa-archive
+  标签: /tags/ || fas fa-tags
+  分类: /categories/ || fas fa-folder-open
+
+favicon: /img/favicon.ico
+
+avatar:
+  img: /img/butterfly-icon.png
+  effect: false
+
+# ---------------- 首页 ----------------
+index_site_info_top: 35%
+subtitle:
+  enable: true
+  effect: true
+  sub: 个人技术文档知识库 · 技术调研与知识规划
+
+# 文章卡片布局: 3 = 左右交替
+index_layout: 3
+
+# 首页文章摘要显示方式: 3 = description
+index_post_content:
+  method: 3
+  length: 500
+
+# ---------------- 文章页 ----------------
+post_meta:
+  page:
+    date_type: created
+    date_format: date
+    categories: true
+    tags: false
+    label: true
+  post:
+    position: left
+    date_type: both
+    date_format: date
+    categories: true
+    tags: true
+    label: true
+
+toc:
+  post: true
+  page: false
+  number: true
+  expand: false
+  style_simple: false
+  scroll_percent: true
+
+# 上一篇/下一篇
+post_pagination: 1
+
+# 版权声明(文章底部)
+post_copyright:
+  enable: true
+  decode: false
+  author_href: https://github.com/ziogn
+
+# ---------------- 社交 ----------------
+social:
+  fab fa-github: https://github.com/ziogn || GitHub || '#24292e'
+
+# ---------------- 页脚 ----------------
+footer:
+  owner:
+    enable: true
+    since: 2025
+  copyright:
+    enable: true
+    version: true
+  custom_text:
+
+# ---------------- 侧边栏 ----------------
+aside:
+  enable: true
+  hide: false
+  button: true
+  mobile: true
+  position: right
+  display:
+    archive: true
+    tag: true
+    category: true
+  card_author:
+    enable: true
+    description: 个人技术文档知识库
+    button:
+      enable: true
+      icon: fab fa-github
+      text: GitHub
+      link: https://github.com/ziogn
+  card_announcement:
+    enable: true
+    content: 记录技术调研与知识规划。
+  card_recent_post:
+    enable: true
+    limit: 6
+    sort: date
+    sort_order: 1
+  card_categories:
+    enable: true
+    limit: 8
+    expand: none
+  card_tags:
+    enable: true
+    limit: 40
+    color: false
+  card_archives:
+    enable: true
+    type: monthly
+    order: -1
+    limit: 6
+  card_webinfo:
+    enable: true
+    post_count: true
+    last_push_date: true
+    runtime_date: 2025/11/26 00:00:00
+
+# ---------------- 暗色模式 ----------------
+darkmode:
+  enable: true
+  button: true
+  autoChangeMode: false
+
+# ---------------- 搜索(本地) ----------------
+search:
+  use: local_search
+  placeholder: 搜索文档
+  local_search:
+    preload: true
+    top_n_per_article: 1
+    unescape: false
+    pagination:
+      enable: false
+      hitsPerPage: 8
+    CDN:
+
+# ---------------- Mermaid ----------------
+mermaid:
+  enable: true
+  code_write: true
+  theme:
+    light: default
+    dark: dark
+  open_in_new_tab: true
+  zoom_pan: true
+
+# ---------------- 品牌色 (靛蓝 #6366f1) ----------------
+theme_color:
+  enable: true
+  main: "#6366f1"
+  paginator: "#6366f1"
+  button_hover: "#4f46e5"
+  text_selection: "#6366f1"
+  link_color: "#6366f1"
+  meta_color: "#858585"
+  hr_color: "#A5B4FC"
+  code_foreground: "#6366f1"
+  code_background: "rgba(99, 102, 241, .08)"
+  toc_color: "#6366f1"
+  blockquote_padding_color: "#6366f1"
+  blockquote_background_color: "#6366f1"
+  scrollbar_color: "#6366f1"
+  meta_theme_color_light: "ffffff"
+  meta_theme_color_dark: "#0d0d0d"
+
+# ---------------- 404 ----------------
+error_404:
+  enable: true
+  subtitle: 页面未找到
+  background: /img/error-page.png
+
+# ---------------- 注入自定义 CSS ----------------
+inject:
+  head:
+    - <link rel="stylesheet" href="/css/custom.css">
+  bottom:
+
+# ---------------- 其他 ----------------
+anchor:
+  enable: true
+wordcount:
+  enable: true
+  post_wordcount: true
+  min2read: true
+  total_wordcount: true
