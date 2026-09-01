@@ -20,7 +20,7 @@ source/
   tags/index.md        # 标签页
   categories/index.md  # 分类页
   css/custom.css       # 自定义样式
-  ../../404.md               # 404 页面
+  404.md             # 404 页面
 scaffolds/             # 新建文章/页面模板
 scripts/mermaid-tag.js # Mermaid 代码块 → 主题容器转换
 tools/migrate.mjs      # 内容迁移脚本（VitePress docs → Hexo _posts，可复用）
