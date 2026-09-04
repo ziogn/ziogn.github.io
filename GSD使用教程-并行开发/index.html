@@ -1,0 +1,1908 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>GSD 使用教程-并行开发 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="GSD 并行开发实践教程，涵盖 Wave 波浪式执行、Workstreams、Workspace、Thread、Autonomous、Manager 六大并行能力">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GSD 使用教程-并行开发">
+<meta property="og:url" content="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="GSD 并行开发实践教程，涵盖 Wave 波浪式执行、Workstreams、Workspace、Thread、Autonomous、Manager 六大并行能力">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-05-28T00:48:00.000Z">
+<meta property="article:modified_time" content="2026-07-02T02:45:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="@opengsd&#x2F;gsd-core">
+<meta property="article:tag" content="AI编程">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="GSD">
+<meta property="article:tag" content="open-gsd">
+<meta property="article:tag" content="并行开发">
+<meta property="article:tag" content="项目工作流">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "GSD 使用教程-并行开发",
+  "url": "https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-05-28T00:48:00.000Z",
+  "dateModified": "2026-07-02T02:45:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'GSD 使用教程-并行开发',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">GSD 使用教程-并行开发</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">GSD 使用教程-并行开发</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-28T00:48:00.000Z" title="发表于 2026-05-28 08:48:00">2026-05-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-02T02:45:00.000Z" title="更新于 2026-07-02 10:45:00">2026-07-02</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">11.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>44分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="GSD-使用教程-并行开发"><a href="#GSD-使用教程-并行开发" class="headerlink" title="GSD 使用教程-并行开发"></a>GSD 使用教程-并行开发</h1><blockquote>
+<p>GSD（Get Shit Done）提供了丰富的并行开发能力，帮助开发者同时推进多条开发线，最大化 AI 编程效率。本教程详细介绍 GSD 的六大并行能力：Wave、Workstreams、Workspace、Thread、Autonomous 和 Manager。</p>
+</blockquote>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E6%A6%82%E8%BF%B0">并行开发概述</a></li>
+<li><a href="#2-wave-%E6%B3%A2%E6%B5%AA%E5%BC%8F%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C">Wave 波浪式并行执行</a></li>
+<li><a href="#3-workstreams-%E5%B9%B6%E8%A1%8C%E5%B7%A5%E4%BD%9C%E6%B5%81">Workstreams 并行工作流</a></li>
+<li><a href="#4-workspace-%E9%9A%94%E7%A6%BB%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4">Workspace 隔离工作空间</a></li>
+<li><a href="#5-thread-%E8%B7%A8%E4%BC%9A%E8%AF%9D%E7%BA%BF%E7%A8%8B">Thread 跨会话线程</a></li>
+<li><a href="#6-autonomous-%E8%87%AA%E4%B8%BB%E6%A8%A1%E5%BC%8F">Autonomous 自主模式</a></li>
+<li><a href="#7-manager-%E5%91%BD%E4%BB%A4%E4%B8%AD%E5%BF%83">Manager 命令中心</a></li>
+<li><a href="#8-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">并行开发最佳实践</a></li>
+<li><a href="#9-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98-faq">常见问题 FAQ</a></li>
+</ol>
+<hr>
+<h2 id="1-并行开发概述"><a href="#1-并行开发概述" class="headerlink" title="1. 并行开发概述"></a>1. 并行开发概述</h2><h3 id="1-1-为什么需要并行开发"><a href="#1-1-为什么需要并行开发" class="headerlink" title="1.1 为什么需要并行开发"></a>1.1 为什么需要并行开发</h3><p>单线程开发模式存在明显的效率瓶颈：</p>
+<ul>
+<li><strong>等待浪费</strong>：AI 执行一个计划时，开发者只能等待，无法同时推进其他工作</li>
+<li><strong>多任务需求</strong>：真实项目往往需要前后端同步开发、多个模块并行推进</li>
+<li><strong>配额限制</strong>：单线程执行无法充分利用 API 配额，并行可以显著提升吞吐量</li>
+</ul>
+<p>并行开发的核心思想是：<strong>让多个 AI 代理同时工作，每个代理独立执行不同的任务</strong>。</p>
+<h3 id="1-2-GSD-并行能力全景图"><a href="#1-2-GSD-并行能力全景图" class="headerlink" title="1.2 GSD 并行能力全景图"></a>1.2 GSD 并行能力全景图</h3><p>GSD 提供了六大并行能力，从轻量到重量，覆盖不同的并行场景：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    subgraph 并行能力
+        W[&quot;Wave 波浪式并行&quot;]
+        WS[&quot;Workstreams 工作流&quot;]
+        WK[&quot;Workspace 工作空间&quot;]
+        T[&quot;Thread 跨会话线程&quot;]
+        A[&quot;Autonomous 自主模式&quot;]
+        M[&quot;Manager 命令中心&quot;]
+    end
+
+<pre><code>subgraph 隔离级别
+    L1[&amp;quot;计划级别&amp;quot;]
+    L2[&amp;quot;规划状态级别&amp;quot;]
+    L3[&amp;quot;代码库级别&amp;quot;]
+    L4[&amp;quot;知识存储&amp;quot;]
+    L5[&amp;quot;阶段批量&amp;quot;]
+    L6[&amp;quot;交互管理&amp;quot;]
+end
+
+W --&amp;gt; L1
+WS --&amp;gt; L2
+WK --&amp;gt; L3
+T --&amp;gt; L4
+A --&amp;gt; L5
+M --&amp;gt; L6
+
+style W fill:#e3f2fd,stroke:#1565c0
+style WS fill:#e8f5e9,stroke:#2e7d32
+style WK fill:#fff3e0,stroke:#e65100
+style T fill:#fce4ec,stroke:#c2185b
+style A fill:#f3e5f5,stroke:#7b1fa2
+style M fill:#e0f7fa,stroke:#00838f&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>能力层级说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>隔离级别</th>
+<th>适用场景</th>
+<th>重量级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Wave</strong></td>
+<td>计划级别</td>
+<td>同一阶段内多个独立计划并行执行</td>
+<td>最轻量</td>
+</tr>
+<tr>
+<td><strong>Workstreams</strong></td>
+<td>规划状态级别</td>
+<td>同一项目的不同功能域并行开发</td>
+<td>轻量</td>
+</tr>
+<tr>
+<td><strong>Workspace</strong></td>
+<td>代码库级别</td>
+<td>需要完全隔离的开发环境</td>
+<td>重量</td>
+</tr>
+<tr>
+<td><strong>Thread</strong></td>
+<td>知识存储</td>
+<td>跨会话的知识积累和上下文保持</td>
+<td>最轻量</td>
+</tr>
+<tr>
+<td><strong>Autonomous</strong></td>
+<td>阶段批量</td>
+<td>批量自动执行多个阶段</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>Manager</strong></td>
+<td>交互管理</td>
+<td>集中管理多个阶段的并行工作</td>
+<td>中等</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-并行策略选择决策树"><a href="#1-3-并行策略选择决策树" class="headerlink" title="1.3 并行策略选择决策树"></a>1.3 并行策略选择决策树</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    Start[&quot;需要并行开发&quot;] --&gt; Q1{&quot;是否同一代码库？&quot;}
+    Q1 --&gt;|&quot;否&quot;| WK[&quot;使用 Workspace&quot;]
+    Q1 --&gt;|&quot;是&quot;| Q2{&quot;是否同一阶段？&quot;}
+    Q2 --&gt;|&quot;是&quot;| W[&quot;使用 Wave&quot;]
+    Q2 --&gt;|&quot;否&quot;| Q3{&quot;需要批量执行？&quot;}
+    Q3 --&gt;|&quot;是&quot;| A[&quot;使用 Autonomous&quot;]
+    Q3 --&gt;|&quot;否&quot;| Q4{&quot;需要隔离规划状态？&quot;}
+    Q4 --&gt;|&quot;是&quot;| WS[&quot;使用 Workstreams&quot;]
+    Q4 --&gt;|&quot;否&quot;| Q5{&quot;跨会话知识积累？&quot;}
+    Q5 --&gt;|&quot;是&quot;| T[&quot;使用 Thread&quot;]
+    Q5 --&gt;|&quot;否&quot;| M[&quot;使用 Manager&quot;]
+
+<pre><code>style Start fill:#e3f2fd,stroke:#1565c0
+style W fill:#e8f5e9,stroke:#2e7d32
+style WS fill:#e8f5e9,stroke:#2e7d32
+style WK fill:#fff3e0,stroke:#e65100
+style T fill:#fce4ec,stroke:#c2185b
+style A fill:#f3e5f5,stroke:#7b1fa2
+style M fill:#e0f7fa,stroke:#00838f&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<h3 id="1-4-并行开发适用场景"><a href="#1-4-并行开发适用场景" class="headerlink" title="1.4 并行开发适用场景"></a>1.4 并行开发适用场景</h3><table>
+<thead>
+<tr>
+<th>适合并行</th>
+<th>不适合并行</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>独立的 CRUD 模块</td>
+<td>有强依赖的顺序任务</td>
+</tr>
+<tr>
+<td>无耦合的前端页面</td>
+<td>需要人工逐步确认的流程</td>
+</tr>
+<tr>
+<td>独立的测试编写</td>
+<td>共享状态的并发修改</td>
+</tr>
+<tr>
+<td>前后端同步开发</td>
+<td>需要实时协调的紧密协作</td>
+</tr>
+<tr>
+<td>多个独立功能域</td>
+<td>单一功能的深度开发</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-Wave-波浪式并行执行"><a href="#2-Wave-波浪式并行执行" class="headerlink" title="2. Wave 波浪式并行执行"></a>2. Wave 波浪式并行执行</h2><p>Wave 是 GSD 最基础的并行能力，也是其他并行能力的基础。它在执行阶段时，将计划按依赖关系分组为”波浪”，同波浪内的计划并行执行，波浪间顺序执行。</p>
+<h3 id="2-1-核心机制"><a href="#2-1-核心机制" class="headerlink" title="2.1 核心机制"></a>2.1 核心机制</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart LR
+    subgraph Wave1[&quot;Wave 1（并行）&quot;]
+        P1[&quot;Plan A&lt;br&#x2F;&gt;无依赖&quot;]
+        P2[&quot;Plan B&lt;br&#x2F;&gt;无依赖&quot;]
+    end
+
+<pre><code>subgraph Wave2[&amp;quot;Wave 2（并行）&amp;quot;]
+    P3[&amp;quot;Plan C&amp;lt;br&amp;#x2F;&amp;gt;依赖 A&amp;quot;]
+    P4[&amp;quot;Plan D&amp;lt;br&amp;#x2F;&amp;gt;依赖 B&amp;quot;]
+end
+
+subgraph Wave3[&amp;quot;Wave 3（并行）&amp;quot;]
+    P5[&amp;quot;Plan E&amp;lt;br&amp;#x2F;&amp;gt;依赖 C, D&amp;quot;]
+end
+
+Wave1 --&amp;gt; Wave2 --&amp;gt; Wave3
+
+style Wave1 fill:#e3f2fd,stroke:#1565c0
+style Wave2 fill:#e8f5e9,stroke:#2e7d32
+style Wave3 fill:#fff3e0,stroke:#e65100&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>依赖分组逻辑</strong>：</p>
+<ol>
+<li><strong>无依赖的计划</strong> → Wave 1（最先执行）</li>
+<li><strong>有依赖的计划</strong> → wave &#x3D; max(依赖计划的 wave) + 1</li>
+<li><strong>文件重叠的计划</strong> → 同 wave 内检测到重叠时覆盖为顺序执行（安全网机制）</li>
+<li>wave 编号预计算并存储在 plan frontmatter 中</li>
+</ol>
+<p><strong>执行规则</strong>：</p>
+<ul>
+<li>同一 wave 内的所有计划<strong>并行执行</strong>（每个计划由独立的 AI 代理完成）</li>
+<li>不同 wave 之间<strong>顺序执行</strong>（前一个 wave 完成后才开始下一个）</li>
+<li>阶段验证和完成仅在所有 wave 都执行完后触发</li>
+</ul>
+<h3 id="2-2-–wave-参数详解"><a href="#2-2-–wave-参数详解" class="headerlink" title="2.2 –wave 参数详解"></a>2.2 –wave 参数详解</h3><p>使用 <code>--wave N</code> 参数可以控制执行节奏，仅执行第 N 个波浪：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-execute-phase 1</code></td>
+<td>执行全部波浪</td>
+<td>默认模式，自动按 Wave 1→2→3 顺序执行</td>
+</tr>
+<tr>
+<td><code>/gsd-execute-phase 1 --wave 1</code></td>
+<td>仅执行 Wave 1</td>
+<td>分阶段上线、控制配额</td>
+</tr>
+<tr>
+<td><code>/gsd-execute-phase 1 --wave 2</code></td>
+<td>仅执行 Wave 2</td>
+<td>需 Wave 1 已完成</td>
+</tr>
+<tr>
+<td><code>/gsd-execute-phase 1 --wave 3</code></td>
+<td>仅执行 Wave 3</td>
+<td>需 Wave 1、2 已完成</td>
+</tr>
+</tbody></table>
+<p><strong>使用场景</strong>：</p>
+<ul>
+<li><strong>分阶段上线</strong>：先执行 Wave 1 部署，验证后再执行 Wave 2</li>
+<li><strong>配额管理</strong>：API 配额有限时，分批执行避免超限</li>
+<li><strong>风险控制</strong>：先执行低风险的 Wave 1，观察效果后再继续</li>
+</ul>
+<p><strong>安全检查</strong>：执行 <code>--wave N</code> 前，GSD 会自动检查所有 wave &lt; N 的计划是否已完成，确保依赖关系不被破坏。</p>
+<h3 id="2-3-安全机制"><a href="#2-3-安全机制" class="headerlink" title="2.3 安全机制"></a>2.3 安全机制</h3><p>GSD 为 Wave 并行提供了四项安全机制：</p>
+<p><strong>1. <code>--no-verify</code> 提交</strong></p>
+<p>并行代理使用 <code>--no-verify</code> 跳过 pre-commit hooks，避免多个代理同时触发构建导致锁竞争。每个 wave 完成后，编排器会统一运行 <code>git hook run pre-commit</code> 进行验证。</p>
+<p><strong>2. <code>STATE.md</code> 文件锁</strong></p>
+<p><code>writeStateMd()</code> 使用基于 lockfile 的互斥锁（<code>STATE.md.lock</code>），防止多个代理并发写入 STATE.md 时产生竞争条件。</p>
+<p><strong>3. 波浪内文件重叠检查</strong></p>
+<p>同一 wave 内如果检测到两个计划修改相同的文件，GSD 会将该 wave 的并行执行覆盖为顺序执行（parallelization overridden to false），作为规划缺陷的安全网。</p>
+<p><strong>4. 低波浪安全检查</strong></p>
+<p>使用 <code>--wave N</code> 执行前，GSD 会检查所有 wave &lt; N 的计划是否已完成，确保依赖关系不被破坏。</p>
+<h3 id="2-4-并行度建议"><a href="#2-4-并行度建议" class="headerlink" title="2.4 并行度建议"></a>2.4 并行度建议</h3><p><strong>垂直切片优先于水平分层</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>示例</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>垂直切片</strong></td>
+<td>Plan A: 用户注册（Model + API + UI）</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td><strong>水平分层</strong></td>
+<td>Plan A: 所有 Model；Plan B: 所有 API</td>
+<td>不推荐</td>
+</tr>
+</tbody></table>
+<p>垂直切片的优势：</p>
+<ul>
+<li>每个计划是端到端的完整功能，独立可测试</li>
+<li>减少计划间的依赖关系，提高并行度</li>
+<li>更容易验证和回滚</li>
+</ul>
+<p><strong>并行度参考</strong>：</p>
+<ul>
+<li>每个 executor agent 拥有独立的 200K token 上下文窗口（大模型可达 1M）</li>
+<li>建议同一 wave 内并行 2-4 个计划</li>
+<li>适合并行的任务：独立的 CRUD 模块、无耦合的前端页面、独立的测试编写</li>
+</ul>
+<h3 id="2-5-上下文压力保护"><a href="#2-5-上下文压力保护" class="headerlink" title="2.5 上下文压力保护"></a>2.5 上下文压力保护</h3><blockquote>
+<p>适用于 GSD v1.6.0+</p>
+</blockquote>
+<p>在执行 wave 之前，GSD 编排器会主动评估上下文窗口压力，防止因上下文耗尽导致执行质量下降。该功能通过 <code>workflow.context_guard_mode</code> 配置控制：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>行为</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>warn</code>（默认）</td>
+<td>检测到 POOR 等级时发出告警，推荐执行 <code>/gsd:pause-work</code></td>
+<td>大部分场景</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>自动执行 <code>/gsd:pause-work</code> 暂停下一 wave，保存上下文</td>
+<td>全自主&#x2F;无人值守运行</td>
+</tr>
+<tr>
+<td><code>off</code></td>
+<td>禁用压力检查</td>
+<td>大上下文模型（1M+ tokens）</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置为自动模式</span></span><br><span class="line">gsd config-set workflow.context_guard_mode auto</span><br></pre></td></tr></table></figure>
+
+<p><strong>自适应上下文增强</strong>：对于支持 500K+ tokens 上下文窗口的模型，executor 代理在执行 wave 时会自动接收前一个 wave 的 <code>SUMMARY.md</code> 和 <code>CONTEXT.md</code> 文件，实现跨计划的知识传递。这确保了有依赖关系的计划之间不会丢失上下文，即使它们在不同的 wave 中执行。</p>
+<h3 id="2-6-实战示例"><a href="#2-6-实战示例" class="headerlink" title="2.6 实战示例"></a>2.6 实战示例</h3><p>以”用户管理模块”阶段为例，展示 Wave 并行执行的完整流程：</p>
+<p><strong>阶段计划结构</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.planning/phases/phase-2/</span><br><span class="line">├── plan-1-user-model.md        # 用户数据模型（无依赖）</span><br><span class="line">├── plan-2-auth-api.md          # 认证 API（无依赖）</span><br><span class="line">├── plan-3-user-api.md          # 用户 API（依赖 plan-1）</span><br><span class="line">├── plan-4-login-ui.md          # 登录页面（依赖 plan-2）</span><br><span class="line">└── plan-5-user-list-ui.md      # 用户列表（依赖 plan-1, plan-3）</span><br></pre></td></tr></table></figure>
+
+<p><strong>Wave 分组结果</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Wave</th>
+<th>计划</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Wave 1</td>
+<td>plan-1, plan-2</td>
+<td>无依赖，并行执行</td>
+</tr>
+<tr>
+<td>Wave 2</td>
+<td>plan-3, plan-4</td>
+<td>分别依赖 Wave 1 的计划</td>
+</tr>
+<tr>
+<td>Wave 3</td>
+<td>plan-5</td>
+<td>依赖 Wave 1 和 Wave 2</td>
+</tr>
+</tbody></table>
+<p><strong>执行命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方式 1：自动执行全部波浪</span></span><br><span class="line">/gsd-execute-phase 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式 2：分波浪执行</span></span><br><span class="line">/gsd-execute-phase 2 --wave 1   <span class="comment"># 执行 Wave 1</span></span><br><span class="line"><span class="comment"># 验证 Wave 1 结果...</span></span><br><span class="line">/gsd-execute-phase 2 --wave 2   <span class="comment"># 执行 Wave 2</span></span><br><span class="line"><span class="comment"># 验证 Wave 2 结果...</span></span><br><span class="line">/gsd-execute-phase 2 --wave 3   <span class="comment"># 执行 Wave 3</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>sequenceDiagram
+    participant O as 编排器
+    participant A as Agent A
+    participant B as Agent B
+
+<pre><code>Note over O: Wave 1 开始
+O-&amp;gt;&amp;gt;A: 执行 plan-1-user-model
+O-&amp;gt;&amp;gt;B: 执行 plan-2-auth-api
+A--&amp;gt;&amp;gt;O: plan-1 完成
+B--&amp;gt;&amp;gt;O: plan-2 完成
+
+Note over O: Wave 2 开始
+O-&amp;gt;&amp;gt;A: 执行 plan-3-user-api
+O-&amp;gt;&amp;gt;B: 执行 plan-4-login-ui
+A--&amp;gt;&amp;gt;O: plan-3 完成
+B--&amp;gt;&amp;gt;O: plan-4 完成
+
+Note over O: Wave 3 开始
+O-&amp;gt;&amp;gt;A: 执行 plan-5-user-list-ui
+A--&amp;gt;&amp;gt;O: plan-5 完成
+
+Note over O: 阶段验证&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<hr>
+<h2 id="3-Workstreams-并行工作流"><a href="#3-Workstreams-并行工作流" class="headerlink" title="3. Workstreams 并行工作流"></a>3. Workstreams 并行工作流</h2><p>Workstreams 允许在同一代码库中隔离不同功能域的规划状态，实现轻量级并行开发。</p>
+<h3 id="3-1-核心概念"><a href="#3-1-核心概念" class="headerlink" title="3.1 核心概念"></a>3.1 核心概念</h3><p>Workstreams 的本质是<strong>隔离规划状态，共享代码库</strong>。每个 workstream 有独立的 ROADMAP.md、STATE.md 和 phases&#x2F; 目录，但共享同一个 Git 仓库。</p>
+<p><strong>目录结构</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">.planning/</span><br><span class="line">├── PROJECT.md              # 共享</span><br><span class="line">├── config.json             # 共享</span><br><span class="line">├── milestones/             # 共享</span><br><span class="line">├── codebase/               # 共享</span><br><span class="line">└── workstreams/</span><br><span class="line">    ├── feature-a/          # 工作流 A 的隔离状态</span><br><span class="line">    │   ├── STATE.md</span><br><span class="line">    │   ├── ROADMAP.md</span><br><span class="line">    │   ├── REQUIREMENTS.md</span><br><span class="line">    │   └── phases/</span><br><span class="line">    └── feature-b/          # 工作流 B 的隔离状态</span><br><span class="line">        ├── STATE.md</span><br><span class="line">        ├── ROADMAP.md</span><br><span class="line">        ├── REQUIREMENTS.md</span><br><span class="line">        └── phases/</span><br></pre></td></tr></table></figure>
+
+<p><strong>隔离 vs 共享</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>内容</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>隔离</strong></td>
+<td>STATE.md, ROADMAP.md, phases&#x2F;</td>
+<td>每个工作流独立</td>
+</tr>
+<tr>
+<td><strong>共享</strong></td>
+<td>PROJECT.md, config.json, milestones&#x2F;, codebase&#x2F;</td>
+<td>所有工作流共享</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-命令详解"><a href="#3-2-命令详解" class="headerlink" title="3.2 命令详解"></a>3.2 命令详解</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>关键说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workstreams create &lt;name&gt;</code></td>
+<td>创建新工作流</td>
+<td>初始化隔离目录</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams switch &lt;name&gt;</code></td>
+<td>切换活动工作流</td>
+<td>后续 GSD 命令操作该工作流</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams list</code></td>
+<td>列出所有工作流</td>
+<td>显示状态和进度</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams status &lt;name&gt;</code></td>
+<td>查看详细状态</td>
+<td>特定工作流的阶段详情</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams progress</code></td>
+<td>跨工作流进度汇总</td>
+<td>全局视图</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams complete &lt;name&gt;</code></td>
+<td>归档完成的工作流</td>
+<td>移入 milestones&#x2F;</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams resume &lt;name&gt;</code></td>
+<td>恢复暂停的工作流</td>
+<td>继续开发</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-Workstreams-vs-Workspace-对比"><a href="#3-3-Workstreams-vs-Workspace-对比" class="headerlink" title="3.3 Workstreams vs Workspace 对比"></a>3.3 Workstreams vs Workspace 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Workstreams</th>
+<th>Workspace</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>隔离级别</strong></td>
+<td>仅规划状态</td>
+<td>代码库 + 规划状态</td>
+</tr>
+<tr>
+<td><strong>Git 历史</strong></td>
+<td>共享</td>
+<td>独立（worktree&#x2F;clone）</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>同一项目的不同功能域</td>
+<td>完全独立的开发环境</td>
+</tr>
+<tr>
+<td><strong>重量级</strong></td>
+<td>轻量</td>
+<td>重量</td>
+</tr>
+<tr>
+<td><strong>创建速度</strong></td>
+<td>快（仅创建目录）</td>
+<td>慢（需要 worktree&#x2F;clone）</td>
+</tr>
+<tr>
+<td><strong>冲突风险</strong></td>
+<td>低（状态隔离）</td>
+<td>无（代码隔离）</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议</strong>：</p>
+<ul>
+<li>同一项目的不同功能域 → <strong>Workstreams</strong></li>
+<li>需要独立代码库或不同分支 → <strong>Workspace</strong></li>
+</ul>
+<h3 id="3-4-实战示例"><a href="#3-4-实战示例" class="headerlink" title="3.4 实战示例"></a>3.4 实战示例</h3><p>以后端 API + 前端 Dashboard 并行开发为例：</p>
+<p><strong>步骤 1：创建两个 workstreams</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建后端 API 工作流</span></span><br><span class="line">/gsd-workstreams create backend-api</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建前端 Dashboard 工作流</span></span><br><span class="line">/gsd-workstreams create frontend-dashboard</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 2：并行推进</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 切换到后端 API 工作流</span></span><br><span class="line">/gsd-workstreams switch backend-api</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到前端 Dashboard 工作流</span></span><br><span class="line">/gsd-workstreams switch frontend-dashboard</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 交替执行（或使用不同会话并行）</span></span><br><span class="line">/gsd-workstreams switch backend-api</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line">/gsd-workstreams switch frontend-dashboard</span><br><span class="line">/gsd-execute-phase 1</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 3：查看进度</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有工作流进度</span></span><br><span class="line">/gsd-workstreams progress</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看特定工作流状态</span></span><br><span class="line">/gsd-workstreams status backend-api</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 4：完成归档</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 完成后端 API 工作流</span></span><br><span class="line">/gsd-workstreams complete backend-api</span><br><span class="line"></span><br><span class="line"><span class="comment"># 完成前端 Dashboard 工作流</span></span><br><span class="line">/gsd-workstreams complete frontend-dashboard</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-Workspace-隔离工作空间"><a href="#4-Workspace-隔离工作空间" class="headerlink" title="4. Workspace 隔离工作空间"></a>4. Workspace 隔离工作空间</h2><p>Workspace 通过 git worktree 或 clone 创建完全隔离的开发环境，适合需要独立代码库的场景。</p>
+<h3 id="4-1-核心概念"><a href="#4-1-核心概念" class="headerlink" title="4.1 核心概念"></a>4.1 核心概念</h3><p>Workspace 的本质是<strong>隔离代码库 + 规划状态</strong>。每个 workspace 有独立的工作树和 <code>.planning/</code> 目录，完全互不干扰。</p>
+<p><strong>目录结构</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">~/gsd-workspaces/&lt;workspace-name&gt;/</span><br><span class="line">├── .planning/          # 独立的 GSD 状态</span><br><span class="line">├── WORKSPACE.md        # 清单文件（名称、创建日期、策略、成员仓库）</span><br><span class="line">└── &lt;repo-name&gt;/        # Git worktree 或 clone</span><br></pre></td></tr></table></figure>
+
+<p><strong>WORKSPACE.md 示例</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">feature-payment</span></span><br><span class="line"><span class="attr">created:</span> <span class="number">2026-05-28</span></span><br><span class="line"><span class="attr">strategy:</span> <span class="string">worktree</span></span><br><span class="line"><span class="attr">repos:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">be-star</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">star-app</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-worktree-vs-clone-策略选择"><a href="#4-2-worktree-vs-clone-策略选择" class="headerlink" title="4.2 worktree vs clone 策略选择"></a>4.2 worktree vs clone 策略选择</h3><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>worktree</strong>（默认）</td>
+<td>轻量、共享 .git、快速创建、节省空间</td>
+<td>子模块路径不安全、某些运行时不支持</td>
+<td>同一仓库的不同分支开发</td>
+</tr>
+<tr>
+<td><strong>clone</strong></td>
+<td>完全独立、无干扰、兼容性好</td>
+<td>占用更多空间、创建慢</td>
+<td>不同版本&#x2F;不同仓库</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议</strong>：</p>
+<ul>
+<li>同一仓库的不同功能分支 → <strong>worktree</strong></li>
+<li>需要不同版本的代码库 → <strong>clone</strong></li>
+<li>项目使用子模块 → <strong>clone</strong>（worktree 下子模块路径不安全）</li>
+</ul>
+<h3 id="4-3-命令详解"><a href="#4-3-命令详解" class="headerlink" title="4.3 命令详解"></a>4.3 命令详解</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>关键参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workspace --new</code></td>
+<td>创建隔离工作空间</td>
+<td><code>--name</code>, <code>--repos</code>, <code>--path</code>, <code>--strategy worktree|clone</code>, <code>--branch</code>, <code>--auto</code></td>
+</tr>
+<tr>
+<td><code>/gsd-workspace --list</code></td>
+<td>列出所有工作空间</td>
+<td>扫描 <code>~/gsd-workspaces/</code> 下的 <code>WORKSPACE.md</code></td>
+</tr>
+<tr>
+<td><code>/gsd-workspace --remove &lt;name&gt;</code></td>
+<td>移除工作空间</td>
+<td>安全检查：有未提交更改时拒绝删除</td>
+</tr>
+</tbody></table>
+<p><strong>参数说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--name</code></td>
+<td>工作空间名称</td>
+<td><code>--name feature-payment</code></td>
+</tr>
+<tr>
+<td><code>--repos</code></td>
+<td>包含的仓库</td>
+<td><code>--repos be-star,star-app</code></td>
+</tr>
+<tr>
+<td><code>--path</code></td>
+<td>自定义路径</td>
+<td><code>--path ~/my-workspaces/payment</code></td>
+</tr>
+<tr>
+<td><code>--strategy</code></td>
+<td>创建策略</td>
+<td><code>--strategy worktree</code> 或 <code>--strategy clone</code></td>
+</tr>
+<tr>
+<td><code>--branch</code></td>
+<td>分支名称</td>
+<td><code>--branch feature/payment</code></td>
+</tr>
+<tr>
+<td><code>--auto</code></td>
+<td>跳过交互式问答，使用默认值</td>
+<td><code>--auto</code></td>
+</tr>
+</tbody></table>
+<h3 id="4-4-Git-Worktree-注意事项"><a href="#4-4-Git-Worktree-注意事项" class="headerlink" title="4.4 Git Worktree 注意事项"></a>4.4 Git Worktree 注意事项</h3><p>使用 worktree 策略时需要注意：</p>
+<ol>
+<li><strong>子模块限制</strong>：涉及子模块路径的计划在 worktree 中不安全，GSD 会自动回退到主工作树顺序执行</li>
+<li><strong>运行时兼容性</strong>：某些运行时（如 Codex）不支持 worktree 隔离</li>
+<li><strong>配置禁用</strong>：可通过 <code>workflow.use_worktrees</code> 配置项禁用 worktree</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;workflow&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;use_worktrees&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-实战示例"><a href="#4-5-实战示例" class="headerlink" title="4.5 实战示例"></a>4.5 实战示例</h3><p>以多仓库并行开发为例，展示完整的 workspace 工作流：</p>
+<p><strong>步骤 1：创建隔离工作空间</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建支付功能的工作空间</span></span><br><span class="line">/gsd-workspace --new --name feature-payment --repos be-star,star-app --strategy worktree --branch feature/payment</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 2：在隔离环境中开发</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 切换到工作空间目录</span></span><br><span class="line"><span class="built_in">cd</span> ~/gsd-workspaces/feature-payment</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化 GSD 项目</span></span><br><span class="line">/gsd-new-project</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常执行 GSD 流程</span></span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 3：查看所有工作空间</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/gsd-workspace --list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出示例：</span></span><br><span class="line"><span class="comment"># NAME              STRATEGY  BRANCH              STATUS</span></span><br><span class="line"><span class="comment"># feature-payment   worktree  feature/payment     active</span></span><br><span class="line"><span class="comment"># hotfix-auth       clone     hotfix/auth         active</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 4：合并回主仓库</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在工作空间中完成开发后，提交代码</span></span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">&quot;feat: 实现支付功能&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 回到主仓库合并</span></span><br><span class="line"><span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">git merge feature/payment</span><br><span class="line"></span><br><span class="line"><span class="comment"># 移除工作空间</span></span><br><span class="line">/gsd-workspace --remove feature-payment</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-Thread-跨会话线程"><a href="#5-Thread-跨会话线程" class="headerlink" title="5. Thread 跨会话线程"></a>5. Thread 跨会话线程</h2><p>Thread 是轻量级的跨会话知识存储，用于不属于特定阶段但需要跨会话保持的工作。</p>
+<h3 id="5-1-核心概念"><a href="#5-1-核心概念" class="headerlink" title="5.1 核心概念"></a>5.1 核心概念</h3><p>Thread 仅存储<strong>知识</strong>，不涉及阶段状态。每个线程包含四个核心部分：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Goal</strong></td>
+<td>线程的目标是什么</td>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td>当前已知的信息</td>
+</tr>
+<tr>
+<td><strong>References</strong></td>
+<td>相关的文件、链接、代码位置</td>
+</tr>
+<tr>
+<td><strong>Next Steps</strong></td>
+<td>下一步要做什么</td>
+</tr>
+</tbody></table>
+<p><strong>文件格式</strong>（<code>.planning/threads/{slug}.md</code>）：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line"><span class="section">status: open | in<span class="emphasis">_progress | resolved</span></span></span><br><span class="line"><span class="emphasis"><span class="section">---</span></span></span><br><span class="line"><span class="emphasis"><span class="section"></span></span></span><br><span class="line"><span class="emphasis"><span class="section"># Thread: &#123;title&#125;</span></span></span><br><span class="line"><span class="emphasis"><span class="section"></span></span></span><br><span class="line"><span class="emphasis"><span class="section">## Goal</span></span></span><br><span class="line"><span class="emphasis"><span class="section">调查用户登录失败的问题</span></span></span><br><span class="line"><span class="emphasis"><span class="section"></span></span></span><br><span class="line"><span class="emphasis"><span class="section">## Context</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- 用户报告在 Safari 浏览器登录时偶尔失败</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- 后端日志显示 token 验证超时</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- 已排除网络问题</span></span></span><br><span class="line"><span class="emphasis"><span class="section"></span></span></span><br><span class="line"><span class="emphasis"><span class="section">## References</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- 后端日志: /var/log/auth-service.log</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- 相关代码: src/auth/token-validator.ts</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- Issue: #123</span></span></span><br><span class="line"><span class="emphasis"><span class="section"></span></span></span><br><span class="line"><span class="emphasis"><span class="section">## Next Steps</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- [ ] 复现 Safari 登录问题</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- [ ] 检查 token 过期时间配置</span></span></span><br><span class="line"><span class="emphasis"><span class="section">- [ ] 测试 Safari 特定的 cookie 行为</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-命令详解"><a href="#5-2-命令详解" class="headerlink" title="5.2 命令详解"></a>5.2 命令详解</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-thread &quot;描述&quot;</code></td>
+<td>创建新线程</td>
+<td>自动生成 slug 和文件</td>
+</tr>
+<tr>
+<td><code>/gsd-thread list</code></td>
+<td>列出所有线程</td>
+<td>显示状态和摘要</td>
+</tr>
+<tr>
+<td><code>/gsd-thread list --open</code></td>
+<td>仅列出未解决的</td>
+<td>过滤已关闭的线程</td>
+</tr>
+<tr>
+<td><code>/gsd-thread list --resolved</code></td>
+<td>仅列出已解决的</td>
+<td>查看历史线程</td>
+</tr>
+<tr>
+<td><code>/gsd-thread &lt;slug&gt;</code></td>
+<td>恢复线程</td>
+<td>加载上下文到当前会话</td>
+</tr>
+<tr>
+<td><code>/gsd-thread status &lt;slug&gt;</code></td>
+<td>查看线程状态</td>
+<td>详细信息</td>
+</tr>
+<tr>
+<td><code>/gsd-thread close &lt;slug&gt;</code></td>
+<td>标记为已解决</td>
+<td>关闭线程</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-Thread-vs-pause-work-对比"><a href="#5-3-Thread-vs-pause-work-对比" class="headerlink" title="5.3 Thread vs pause-work 对比"></a>5.3 Thread vs pause-work 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Thread</th>
+<th>pause-work &#x2F; resume-work</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>存储内容</strong></td>
+<td>知识（Goal、Context、References、Next Steps）</td>
+<td>完整的阶段状态和计划上下文</td>
+</tr>
+<tr>
+<td><strong>使用场景</strong></td>
+<td>跨会话的知识积累</td>
+<td>暂停&#x2F;恢复阶段内的工作</td>
+</tr>
+<tr>
+<td><strong>重量级</strong></td>
+<td>最轻量</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>文件位置</strong></td>
+<td><code>.planning/threads/</code></td>
+<td><code>.planning/phases/</code></td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>可长期保持</td>
+<td>阶段完成后自动清理</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议</strong>：</p>
+<ul>
+<li>需要跨会话保持的调查&#x2F;研究 → <strong>Thread</strong></li>
+<li>阶段执行中途需要暂停 → <strong>pause-work</strong></li>
+</ul>
+<h3 id="5-4-线程晋升路径"><a href="#5-4-线程晋升路径" class="headerlink" title="5.4 线程晋升路径"></a>5.4 线程晋升路径</h3><p>线程成熟后可以晋升为正式的开发任务：</p>
+<p><strong>晋升为阶段</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 线程积累了足够的信息，晋升为新阶段</span></span><br><span class="line">/gsd-phase</span><br><span class="line"></span><br><span class="line"><span class="comment"># GSD 会基于线程内容创建新的阶段文件</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>晋升为积压项</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 线程记录的需求暂不开发，放入积压</span></span><br><span class="line">/gsd-capture --backlog</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-实战示例"><a href="#5-5-实战示例" class="headerlink" title="5.5 实战示例"></a>5.5 实战示例</h3><p>以跨会话调查 bug 为例：</p>
+<p><strong>会话 1：创建线程</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 发现一个需要深入调查的问题</span></span><br><span class="line">/gsd-thread <span class="string">&quot;调查 Safari 登录失败问题&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 线程创建后，记录初步信息</span></span><br><span class="line"><span class="comment"># Goal: 找到 Safari 登录失败的根本原因</span></span><br><span class="line"><span class="comment"># Context: 用户报告 Safari 浏览器偶尔登录失败</span></span><br><span class="line"><span class="comment"># References: 后端日志路径、相关代码文件</span></span><br><span class="line"><span class="comment"># Next Steps: 复现问题、检查日志</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>会话 2：恢复线程继续调查</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下次会话恢复线程</span></span><br><span class="line">/gsd-thread safari-login-failure</span><br><span class="line"></span><br><span class="line"><span class="comment"># 继续调查，更新 Context</span></span><br><span class="line"><span class="comment"># 新发现：Safari 的 ITP 策略导致 cookie 被清除</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>会话 3：线程晋升</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 调查完成，确认需要修复</span></span><br><span class="line">/gsd-thread close safari-login-failure</span><br><span class="line"></span><br><span class="line"><span class="comment"># 晋升为新阶段</span></span><br><span class="line">/gsd-phase</span><br><span class="line"><span class="comment"># 基于线程内容创建 &quot;修复 Safari 登录问题&quot; 阶段</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-Autonomous-自主模式"><a href="#6-Autonomous-自主模式" class="headerlink" title="6. Autonomous 自主模式"></a>6. Autonomous 自主模式</h2><p>Autonomous 模式自动运行里程碑中的所有剩余阶段，每个阶段执行 discuss → plan → execute 流程。</p>
+<h3 id="6-1-工作原理"><a href="#6-1-工作原理" class="headerlink" title="6.1 工作原理"></a>6.1 工作原理</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    Start[&quot;&#x2F;gsd-autonomous&quot;] --&gt; A[&quot;分析 ROADMAP.md&quot;]
+    A --&gt; B[&quot;识别未完成阶段&quot;]
+    B --&gt; C[&quot;Smart Discuss&quot;]
+    C --&gt; D[&quot;Plan&quot;]
+    D --&gt; E[&quot;Execute&quot;]
+    E --&gt; F{&quot;还有阶段？&quot;}
+    F --&gt;|&quot;是&quot;| C
+    F --&gt;|&quot;否&quot;| G[&quot;里程碑生命周期&quot;]
+    G --&gt; H[&quot;审计&quot;]
+    H --&gt; I[&quot;完成&quot;]
+    I --&gt; J[&quot;清理&quot;]
+
+<pre><code>style Start fill:#e3f2fd,stroke:#1565c0
+style C fill:#fff3e0,stroke:#e65100
+style D fill:#e8f5e9,stroke:#2e7d32
+style E fill:#fce4ec,stroke:#c2185b
+style G fill:#f3e5f5,stroke:#7b1fa2&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>Smart Discuss</strong>：自主优化的讨论，批量提出灰色地带答案供用户确认，减少交互次数。</p>
+<h3 id="6-2-参数详解"><a href="#6-2-参数详解" class="headerlink" title="6.2 参数详解"></a>6.2 参数详解</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-autonomous</code></td>
+<td>从头运行到尾</td>
+<td>批量执行所有剩余阶段</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --from 3</code></td>
+<td>从第 3 阶段开始</td>
+<td>跳过已完成的阶段</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --to 5</code></td>
+<td>运行到第 5 阶段停止</td>
+<td>分段执行</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --from 3 --to 6</code></td>
+<td>从第 3 阶段执行到第 6 阶段</td>
+<td>指定范围</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --only 4</code></td>
+<td>仅执行第 4 阶段</td>
+<td>单阶段自动执行</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --interactive</code></td>
+<td>内联顺序执行，带用户确认点</td>
+<td>小阶段或 bug 修复，低 token 消耗</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous --converge</code></td>
+<td>将规划路由到 plan-review 收敛循环</td>
+<td>需要交叉验证的高风险阶段</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：<code>--converge</code> 标志在 v1.5.0+ 真正生效（此前被忽略），v1.6.1 修复了 <code>--only</code> 跳过已延迟阶段的问题。</p>
+</blockquote>
+<p><strong>参数组合示例</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从第 3 阶段执行到第 6 阶段</span></span><br><span class="line">/gsd-autonomous --from 3 --to 6</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内联顺序执行（低 token 消耗，适合小阶段或 bug 修复）</span></span><br><span class="line">/gsd-autonomous --interactive</span><br><span class="line"></span><br><span class="line"><span class="comment"># 带交叉验证的收敛模式</span></span><br><span class="line">/gsd-autonomous --from 3 --converge --max-cycles 3</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-检查点机制"><a href="#6-3-检查点机制" class="headerlink" title="6.3 检查点机制"></a>6.3 检查点机制</h3><p>Autonomous 模式下有三类检查点，处理方式各不相同：</p>
+<table>
+<thead>
+<tr>
+<th>检查点类型</th>
+<th>自动模式行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>checkpoint:human-verify</code></td>
+<td>自动批准</td>
+<td>包合法性验证除外</td>
+</tr>
+<tr>
+<td><code>checkpoint:decision</code></td>
+<td>自动选择第一个选项</td>
+<td>快速推进</td>
+</tr>
+<tr>
+<td><code>checkpoint:human-action</code></td>
+<td>仍需手动干预</td>
+<td>如 2FA 验证码等</td>
+</tr>
+</tbody></table>
+<p><strong>注意</strong>：<code>checkpoint:human-action</code> 无法自动处理，需要开发者手动完成后再继续。</p>
+<h3 id="6-4-失败处理"><a href="#6-4-失败处理" class="headerlink" title="6.4 失败处理"></a>6.4 失败处理</h3><p>执行过程中遇到失败时，GSD 提供三种处理策略：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Fix and retry</strong></td>
+<td>重新运行当前阶段的失败步骤</td>
+<td>临时性错误</td>
+</tr>
+<tr>
+<td><strong>Skip this phase</strong></td>
+<td>跳过当前阶段，继续下一个</td>
+<td>非关键阶段失败</td>
+</tr>
+<tr>
+<td><strong>Stop autonomous mode</strong></td>
+<td>显示进度摘要并退出</td>
+<td>严重错误需要人工介入</td>
+</tr>
+</tbody></table>
+<h3 id="6-5-实战示例"><a href="#6-5-实战示例" class="headerlink" title="6.5 实战示例"></a>6.5 实战示例</h3><p>以批量执行剩余阶段为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前进度</span></span><br><span class="line">/gsd-progress</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出：</span></span><br><span class="line"><span class="comment"># Phase 1: ✅ 完成</span></span><br><span class="line"><span class="comment"># Phase 2: ✅ 完成</span></span><br><span class="line"><span class="comment"># Phase 3: ⏳ 待执行</span></span><br><span class="line"><span class="comment"># Phase 4: ⏳ 待执行</span></span><br><span class="line"><span class="comment"># Phase 5: ⏳ 待执行</span></span><br><span class="line"><span class="comment"># Phase 6: ⏳ 待执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 从第 3 阶段开始自动执行到第 6 阶段</span></span><br><span class="line">/gsd-autonomous --from 3 --to 6</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行过程：</span></span><br><span class="line"><span class="comment"># [Phase 3] Smart Discuss... Plan... Execute... ✅</span></span><br><span class="line"><span class="comment"># [Phase 4] Smart Discuss... Plan... Execute... ✅</span></span><br><span class="line"><span class="comment"># [Phase 5] Smart Discuss... Plan... Execute... ❌ (失败)</span></span><br><span class="line"><span class="comment"># → 选择 &quot;Fix and retry&quot;</span></span><br><span class="line"><span class="comment"># [Phase 5] Smart Discuss... Plan... Execute... ✅</span></span><br><span class="line"><span class="comment"># [Phase 6] Smart Discuss... Plan... Execute... ✅</span></span><br><span class="line"><span class="comment"># 里程碑完成！</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-Manager-命令中心"><a href="#7-Manager-命令中心" class="headerlink" title="7. Manager 命令中心"></a>7. Manager 命令中心</h2><p><code>/gsd-manager</code> 提供仪表盘式的交互界面，集中管理多个阶段的并行工作。</p>
+<h3 id="7-1-仪表盘功能"><a href="#7-1-仪表盘功能" class="headerlink" title="7.1 仪表盘功能"></a>7.1 仪表盘功能</h3><p>Manager 仪表盘显示以下信息：</p>
+<table>
+<thead>
+<tr>
+<th>信息</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>里程碑版本</strong></td>
+<td>当前里程碑的版本和名称</td>
+</tr>
+<tr>
+<td><strong>阶段状态</strong></td>
+<td>每个阶段的 D&#x2F;P&#x2F;E 状态（Discuss&#x2F;Plan&#x2F;Execute）</td>
+</tr>
+<tr>
+<td><strong>进度条</strong></td>
+<td>整体完成百分比</td>
+</tr>
+<tr>
+<td><strong>后台活动</strong></td>
+<td>正在执行的后台代理</td>
+</tr>
+<tr>
+<td><strong>排队预览</strong></td>
+<td>等待执行的阶段</td>
+</tr>
+</tbody></table>
+<p><strong>状态指示器</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>D</code></td>
+<td>Discuss 阶段</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>Plan 阶段</td>
+</tr>
+<tr>
+<td><code>E</code></td>
+<td>Execute 阶段</td>
+</tr>
+<tr>
+<td><code>✅</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td><code>⏳</code></td>
+<td>待执行</td>
+</tr>
+<tr>
+<td><code>🔄</code></td>
+<td>执行中</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-后台代理调度"><a href="#7-2-后台代理调度" class="headerlink" title="7.2 后台代理调度"></a>7.2 后台代理调度</h3><p>Manager 的核心特性是智能调度后台代理：</p>
+<ul>
+<li><strong>discuss 任务</strong>：内联执行（允许用户输入）</li>
+<li><strong>plan&#x2F;execute 任务</strong>：作为后台代理执行</li>
+<li><strong>自动刷新</strong>：默认 60 秒刷新一次，可配置</li>
+<li><strong>通知机制</strong>：后台代理完成或出错时通知用户</li>
+</ul>
+<h4 id="新增功能（v1-5-0-）"><a href="#新增功能（v1-5-0-）" class="headerlink" title="新增功能（v1.5.0+）"></a>新增功能（v1.5.0+）</h4><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--analyze-deps</code></td>
+<td>扫描 <code>ROADMAP</code> 中阶段间的依赖关系，在并行执行前识别冲突</td>
+<td>v1.5.0</td>
+</tr>
+<tr>
+<td><strong>Checkpoint Heartbeat</strong></td>
+<td>后台 <code>execute-phase</code> 在 wave 和 plan 边界输出 <code>[checkpoint]</code> 标记，防止流空闲超时，并在出错时报告部分进度</td>
+<td>v1.5.0</td>
+</tr>
+<tr>
+<td><strong>Passthrough Flags</strong></td>
+<td>在 <code>config.json</code> 中设置 <code>manager.flags</code>，为每个动态分发的命令添加自定义标志</td>
+<td>v1.5.0</td>
+</tr>
+<tr>
+<td><strong>内联执行修复</strong></td>
+<td>Manager 在 Claude Code 上不再静默跳过 worktree 隔离和独立验证——plan&#x2F;execute 在 Claude Code 上改为内联执行，仅在支持嵌套子代理的运行时使用后台分发</td>
+<td>v1.5.0</td>
+</tr>
+</tbody></table>
+<p><strong>配置 passthrough flags 示例</strong>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;manager&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;flags&quot;</span><span class="punctuation">:</span> <span class="string">&quot;--wave 1 --no-verify&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>调度逻辑</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    M[&quot;Manager 仪表盘&quot;] --&gt; D{&quot;任务类型？&quot;}
+    D --&gt;|&quot;discuss&quot;| DI[&quot;内联执行&lt;br&#x2F;&gt;允许用户输入&quot;]
+    D --&gt;|&quot;plan&quot;| P[&quot;后台代理执行&quot;]
+    D --&gt;|&quot;execute&quot;| E[&quot;后台代理执行&quot;]
+
+<pre><code>P --&amp;gt; N[&amp;quot;完成通知&amp;quot;]
+E --&amp;gt; N
+DI --&amp;gt; R[&amp;quot;等待用户确认&amp;quot;]
+R --&amp;gt; N
+
+N --&amp;gt; M
+
+style M fill:#e3f2fd,stroke:#1565c0
+style DI fill:#fff3e0,stroke:#e65100
+style P fill:#e8f5e9,stroke:#2e7d32
+style E fill:#fce4ec,stroke:#c2185b&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<h3 id="7-3-实战示例"><a href="#7-3-实战示例" class="headerlink" title="7.3 实战示例"></a>7.3 实战示例</h3><p>以管理多阶段并行为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动 Manager</span></span><br><span class="line">/gsd-manager</span><br><span class="line"></span><br><span class="line"><span class="comment"># 仪表盘显示（text 格式）：</span></span><br><span class="line"><span class="comment"># ═══════════════════════════════════════════</span></span><br><span class="line"><span class="comment">#  Milestone v1.0 - 用户管理系统</span></span><br><span class="line"><span class="comment"># ═══════════════════════════════════════════</span></span><br><span class="line"><span class="comment">#  Phase 1: 认证模块      [D] [P] [E] ✅</span></span><br><span class="line"><span class="comment">#  Phase 2: 用户管理      [D] [P] [E] 🔄</span></span><br><span class="line"><span class="comment">#  Phase 3: 权限系统      [D] [P] [E] ⏳</span></span><br><span class="line"><span class="comment">#  Phase 4: 审计日志      [D] [P] [E] ⏳</span></span><br><span class="line"><span class="comment"># ───────────────────────────────────────────</span></span><br><span class="line"><span class="comment">#  进度: ████████░░░░░░░░ 50%</span></span><br><span class="line"><span class="comment"># ───────────────────────────────────────────</span></span><br><span class="line"><span class="comment">#  后台: Phase 2 Execute 运行中...</span></span><br><span class="line"><span class="comment">#  推荐: 等待 Phase 2 完成，或开始 Phase 3 Discuss</span></span><br><span class="line"><span class="comment"># ═══════════════════════════════════════════</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 交互操作：</span></span><br><span class="line"><span class="comment"># - 输入 &quot;3&quot; → 开始 Phase 3 Discuss</span></span><br><span class="line"><span class="comment"># - 输入 &quot;status 2&quot; → 查看 Phase 2 详情</span></span><br><span class="line"><span class="comment"># - 输入 &quot;refresh&quot; → 手动刷新</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-并行开发最佳实践"><a href="#8-并行开发最佳实践" class="headerlink" title="8. 并行开发最佳实践"></a>8. 并行开发最佳实践</h2><h3 id="8-1-策略选择指南"><a href="#8-1-策略选择指南" class="headerlink" title="8.1 策略选择指南"></a>8.1 策略选择指南</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同一阶段内多个独立 plan</td>
+<td><strong>Wave</strong></td>
+<td>自动依赖分组，并行执行</td>
+</tr>
+<tr>
+<td>同一项目的不同功能域</td>
+<td><strong>Workstreams</strong></td>
+<td>轻量级状态隔离</td>
+</tr>
+<tr>
+<td>需要独立代码库</td>
+<td><strong>Workspace</strong></td>
+<td>完全隔离，互不干扰</td>
+</tr>
+<tr>
+<td>跨会话知识积累</td>
+<td><strong>Thread</strong></td>
+<td>轻量持久化，随时恢复</td>
+</tr>
+<tr>
+<td>批量执行剩余阶段</td>
+<td><strong>Autonomous</strong></td>
+<td>全自动，减少交互</td>
+</tr>
+<tr>
+<td>集中管理多个阶段</td>
+<td><strong>Manager</strong></td>
+<td>仪表盘式交互，智能调度</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-场景详细示例"><a href="#8-2-场景详细示例" class="headerlink" title="8.2 场景详细示例"></a>8.2 场景详细示例</h3><p>以下每个场景包含：背景描述（什么时候用）、具体步骤（带完整命令）、预期结果、注意事项。</p>
+<h4 id="场景-1：前后端并行开发"><a href="#场景-1：前后端并行开发" class="headerlink" title="场景 1：前后端并行开发"></a>场景 1：前后端并行开发</h4><p><strong>背景</strong>：项目需要同时开发后端 API 和前端页面，两者有接口约定但开发工作相互独立。适合团队中有人负责后端、有人负责前端，或者开发者交替推进两条线。</p>
+<p><strong>适用策略</strong>：Workstreams（轻量级状态隔离，共享代码库）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：创建两个 workstreams</span></span><br><span class="line">/gsd-workstreams create backend-api</span><br><span class="line">/gsd-workstreams create frontend-dashboard</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：后端——讨论并规划第 1 阶段</span></span><br><span class="line">/gsd-workstreams switch backend-api</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论用户管理模块的 API 设计...</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"><span class="comment"># 生成 plan-1-user-model、plan-2-auth-api、plan-3-user-api</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：前端——讨论并规划第 1 阶段</span></span><br><span class="line">/gsd-workstreams switch frontend-dashboard</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论 Dashboard 页面布局和组件设计...</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"><span class="comment"># 生成 plan-1-layout、plan-2-user-list、plan-3-login-page</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 4：后端——执行第 1 阶段（Wave 自动并行）</span></span><br><span class="line">/gsd-workstreams switch backend-api</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"><span class="comment"># Wave 1: plan-1-user-model + plan-2-auth-api 并行执行</span></span><br><span class="line"><span class="comment"># Wave 2: plan-3-user-api 执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 5：前端——执行第 1 阶段</span></span><br><span class="line">/gsd-workstreams switch frontend-dashboard</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"><span class="comment"># Wave 1: plan-1-layout 执行</span></span><br><span class="line"><span class="comment"># Wave 2: plan-2-user-list + plan-3-login-page 并行执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 6：查看全局进度</span></span><br><span class="line">/gsd-workstreams progress</span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Workstreams Progress:</span><br><span class="line">┌─────────────────────┬─────────┬───────────┬──────────┐</span><br><span class="line">│ Workstream          │ Status  │ Phase     │ Progress │</span><br><span class="line">├─────────────────────┼─────────┼───────────┼──────────┤</span><br><span class="line">│ backend-api         │ active  │ Phase 1   │ 100%     │</span><br><span class="line">│ frontend-dashboard  │ active  │ Phase 1   │ 100%     │</span><br><span class="line">└─────────────────────┴─────────┴───────────┴──────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>两个 workstream 共享代码库，如果同时修改同一个文件（如接口类型定义文件），合并时可能产生 Git 冲突</li>
+<li>建议前后端通过接口文档（如 OpenAPI spec）对齐，减少代码层面的耦合</li>
+<li>如果前后端需要完全隔离代码库（如使用不同分支），应改用 Workspace</li>
+</ul>
+<h4 id="场景-2：多模块并行开发"><a href="#场景-2：多模块并行开发" class="headerlink" title="场景 2：多模块并行开发"></a>场景 2：多模块并行开发</h4><p><strong>背景</strong>：一个阶段包含多个独立的 CRUD 模块（如用户管理、订单管理、商品管理），每个模块之间无依赖关系，可以同时推进。</p>
+<p><strong>适用策略</strong>：Wave（自动依赖分组，无需手动管理）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：正常讨论和规划阶段</span></span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论结果：需要实现用户、订单、商品三个独立模块</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"><span class="comment"># GSD 自动生成 6 个 plan，按依赖关系自动分组</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：查看 Wave 分组情况</span></span><br><span class="line"><span class="built_in">cat</span> .planning/phases/phase-1/plan-1-user-model.md</span><br><span class="line"><span class="comment"># frontmatter: wave: 1, depends_on: []</span></span><br><span class="line"><span class="built_in">cat</span> .planning/phases/phase-1/plan-3-order-model.md</span><br><span class="line"><span class="comment"># frontmatter: wave: 1, depends_on: []</span></span><br><span class="line"><span class="built_in">cat</span> .planning/phases/phase-1/plan-5-order-api.md</span><br><span class="line"><span class="comment"># frontmatter: wave: 2, depends_on: [plan-3-order-model]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：执行阶段（Wave 自动并行）</span></span><br><span class="line">/gsd-execute-phase 1</span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Executing Phase 1...</span><br><span class="line">├── Wave 1 (parallel):</span><br><span class="line">│   ├── Agent A: plan-1-user-model     ✅ (12s)</span><br><span class="line">│   ├── Agent B: plan-2-user-api       ✅ (15s)</span><br><span class="line">│   ├── Agent C: plan-3-order-model    ✅ (10s)</span><br><span class="line">│   └── Agent D: plan-4-product-model  ✅ (11s)</span><br><span class="line">├── Wave 2 (parallel):</span><br><span class="line">│   ├── Agent A: plan-5-order-api      ✅ (14s)</span><br><span class="line">│   └── Agent B: plan-6-product-api    ✅ (13s)</span><br><span class="line">└── Phase 1 verification: ✅ PASSED</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>规划时尽量采用”垂直切片”策略——每个 plan 包含一个模块的 Model + API + UI，而非按层拆分</li>
+<li>同一 Wave 内如果检测到文件重叠，GSD 会自动将并行降级为顺序执行</li>
+<li>建议同一 Wave 内并行 2-4 个计划，过多并行可能导致上下文窗口不足</li>
+</ul>
+<h4 id="场景-3：热修复-功能开发并行"><a href="#场景-3：热修复-功能开发并行" class="headerlink" title="场景 3：热修复 + 功能开发并行"></a>场景 3：热修复 + 功能开发并行</h4><p><strong>背景</strong>：线上出现紧急 bug 需要立即修复，同时团队正在开发新功能。两者需要在不同分支上独立进行，互不干扰。</p>
+<p><strong>适用策略</strong>：Workspace（完全隔离的代码库 + 独立分支）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：创建工作空间——热修复</span></span><br><span class="line">/gsd-workspace --new \</span><br><span class="line">  --name hotfix-auth \</span><br><span class="line">  --repos be-star \</span><br><span class="line">  --strategy worktree \</span><br><span class="line">  --branch hotfix/auth-bypass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：创建工作空间——功能开发</span></span><br><span class="line">/gsd-workspace --new \</span><br><span class="line">  --name feature-payment \</span><br><span class="line">  --repos be-star,star-app \</span><br><span class="line">  --strategy worktree \</span><br><span class="line">  --branch feature/payment</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：在热修复工作空间中开发</span></span><br><span class="line"><span class="built_in">cd</span> ~/gsd-workspaces/hotfix-auth</span><br><span class="line">/gsd-new-project</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论认证绕过漏洞的修复方案</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"><span class="comment"># 快速完成修复，验证通过</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 4：在功能开发工作空间中继续</span></span><br><span class="line"><span class="built_in">cd</span> ~/gsd-workspaces/feature-payment</span><br><span class="line">/gsd-new-project</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论支付模块的架构设计</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 5：热修复完成后合并并清理</span></span><br><span class="line"><span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">git checkout main</span><br><span class="line">git merge hotfix/auth-bypass</span><br><span class="line">git push origin main</span><br><span class="line">/gsd-workspace --remove hotfix-auth</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 6：功能开发完成后合并</span></span><br><span class="line">git merge feature/payment</span><br><span class="line">/gsd-workspace --remove feature-payment</span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ /gsd-workspace --list</span><br><span class="line">NAME              STRATEGY  BRANCH                STATUS</span><br><span class="line">hotfix-auth       worktree  hotfix/auth-bypass    active</span><br><span class="line">feature-payment   worktree  feature/payment       active</span><br><span class="line"></span><br><span class="line"># 两个工作空间完全隔离，各自有独立的 .planning/ 和代码分支</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>热修复完成后应立即合并到 main 并部署，不要等待功能开发完成</li>
+<li>如果热修复的改动影响到功能开发的代码（如修改了共享的认证模块），合并后需要在功能工作空间中 rebase</li>
+<li>worktree 策略下子模块路径不安全，如果项目使用子模块请改用 <code>--strategy clone</code></li>
+</ul>
+<h4 id="场景-4：批量执行剩余阶段"><a href="#场景-4：批量执行剩余阶段" class="headerlink" title="场景 4：批量执行剩余阶段"></a>场景 4：批量执行剩余阶段</h4><p><strong>背景</strong>：项目已经完成了前几个阶段的讨论和规划，剩余阶段（如测试、文档、部署）流程明确，希望自动批量执行以节省时间。</p>
+<p><strong>适用策略</strong>：Autonomous（全自动执行，减少交互）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：查看当前进度</span></span><br><span class="line">/gsd-progress</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出：</span></span><br><span class="line"><span class="comment"># Phase 1: 用户模块      ✅ 完成</span></span><br><span class="line"><span class="comment"># Phase 2: 订单模块      ✅ 完成</span></span><br><span class="line"><span class="comment"># Phase 3: 商品模块      ✅ 完成</span></span><br><span class="line"><span class="comment"># Phase 4: 集成测试      ⏳ 待执行</span></span><br><span class="line"><span class="comment"># Phase 5: 性能优化      ⏳ 待执行</span></span><br><span class="line"><span class="comment"># Phase 6: 部署配置      ⏳ 待执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：启动自主模式</span></span><br><span class="line">/gsd-autonomous --from 4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行过程：</span></span><br><span class="line"><span class="comment"># [Phase 4] Smart Discuss... → 批量确认测试策略 → Plan... → Execute... ✅</span></span><br><span class="line"><span class="comment"># [Phase 5] Smart Discuss... → 批量确认优化指标 → Plan... → Execute... ✅</span></span><br><span class="line"><span class="comment"># [Phase 6] Smart Discuss... → 批量确认部署配置 → Plan... → Execute... ✅</span></span><br><span class="line"><span class="comment"># 里程碑完成！审计 → 完成 → 清理</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3（可选）：如果只想执行到某个阶段</span></span><br><span class="line">/gsd-autonomous --from 4 --to 5</span><br><span class="line"><span class="comment"># 仅执行 Phase 4 和 Phase 5，Phase 6 需要手动执行</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Autonomous Mode: Phase 4 → Phase 6</span><br><span class="line">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><br><span class="line">[Phase 4] 集成测试</span><br><span class="line">  Discuss: 3 个灰色地带自动确认 ✅</span><br><span class="line">  Plan: 4 plans generated ✅</span><br><span class="line">  Execute: Wave 1 (2p) → Wave 2 (2p) ✅</span><br><span class="line"></span><br><span class="line">[Phase 5] 性能优化</span><br><span class="line">  Discuss: 2 个灰色地带自动确认 ✅</span><br><span class="line">  Plan: 3 plans generated ✅</span><br><span class="line">  Execute: Wave 1 (3p) ✅</span><br><span class="line"></span><br><span class="line">[Phase 6] 部署配置</span><br><span class="line">  Discuss: 5 个灰色地带自动确认 ✅</span><br><span class="line">  Plan: 2 plans generated ✅</span><br><span class="line">  Execute: Wave 1 (2p) ✅</span><br><span class="line"></span><br><span class="line">Milestone lifecycle: Audit → Complete → Cleanup ✅</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>使用 <code>--interactive</code> 参数可以在 discuss 步骤暂停让你确认，适合灰色地带较多的阶段</li>
+<li>如果某个阶段执行失败，可以选择 “Fix and retry”（重试）、”Skip this phase”（跳过）或 “Stop”（停止）</li>
+<li><code>checkpoint:human-action</code> 类型的检查点无法自动处理，会暂停等待人工操作</li>
+<li>建议先用 <code>--only N</code> 测试单个阶段，确认无误后再用 <code>--from N</code> 批量执行</li>
+</ul>
+<h4 id="场景-5：大型重构-功能开发并行"><a href="#场景-5：大型重构-功能开发并行" class="headerlink" title="场景 5：大型重构 + 功能开发并行"></a>场景 5：大型重构 + 功能开发并行</h4><p><strong>背景</strong>：项目需要进行大型代码重构（如数据库迁移、框架升级、架构调整），同时不能阻塞正在进行的功能开发。重构涉及大量文件改动，需要在独立分支上进行。</p>
+<p><strong>适用策略</strong>：Workspace（代码隔离） + Autonomous（批量执行重构阶段）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：创建重构工作空间</span></span><br><span class="line">/gsd-workspace --new \</span><br><span class="line">  --name refactor-db-migration \</span><br><span class="line">  --repos be-star \</span><br><span class="line">  --strategy worktree \</span><br><span class="line">  --branch refactor/migrate-to-postgres</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：在主仓库继续功能开发（使用 Workstreams）</span></span><br><span class="line">/gsd-workstreams create feature-notification</span><br><span class="line">/gsd-workstreams switch feature-notification</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：在重构工作空间中规划重构</span></span><br><span class="line"><span class="built_in">cd</span> ~/gsd-workspaces/refactor-db-migration</span><br><span class="line">/gsd-new-project</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论数据库迁移方案：MySQL → PostgreSQL</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"><span class="comment"># 生成多个 plan：schema 迁移、ORM 配置、数据迁移脚本、测试适配</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 4：使用 Autonomous 批量执行重构阶段</span></span><br><span class="line">/gsd-autonomous --from 1 --to 3</span><br><span class="line"><span class="comment"># Phase 1: Schema 迁移（表结构、索引、约束）</span></span><br><span class="line"><span class="comment"># Phase 2: ORM 配置和数据访问层适配</span></span><br><span class="line"><span class="comment"># Phase 3: 数据迁移脚本和验证</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 5：主仓库中用 Thread 追踪重构进度</span></span><br><span class="line">/gsd-thread <span class="string">&quot;追踪 DB 重构进度——等待重构完成后合并&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 6：重构完成，合并回主仓库</span></span><br><span class="line"><span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">git checkout main</span><br><span class="line">git merge refactor/migrate-to-postgres</span><br><span class="line"><span class="comment"># 解决可能的冲突...</span></span><br><span class="line">git push origin main</span><br><span class="line">/gsd-workspace --remove refactor-db-migration</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 7：关闭追踪线程</span></span><br><span class="line">/gsd-thread close refactor-db-progress</span><br></pre></td></tr></table></figure>
+
+<p><strong>流程示意图</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>gantt
+    title 重构 + 功能并行时间线
+    dateFormat  YYYY-MM-DD
+    section 主仓库
+    feature-notification Phase 1    :active, fn1, 2026-05-28, 3d
+    feature-notification Phase 2    :fn2, after fn1, 3d
+    section 重构工作空间
+    Schema 迁移                      :rf1, 2026-05-28, 4d
+    ORM 适配                         :rf2, after rf1, 3d
+    数据迁移脚本                     :rf3, after rf2, 2d
+    section 合并
+    合并重构分支                     :milestone, m1, after rf3, 0d</pre></div>
+
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>重构分支生命周期较长，需要定期从 main 合并最新代码，避免最终合并时冲突过多</li>
+<li>使用 Thread 记录重构的关键决策和进展，方便跨会话追踪</li>
+<li>如果重构涉及数据库 schema 变更，建议在重构工作空间中也运行完整的测试套件</li>
+<li>合并前务必在重构分支上执行完整的验证流程</li>
+</ul>
+<h4 id="场景-6：多团队-多功能域并行"><a href="#场景-6：多团队-多功能域并行" class="headerlink" title="场景 6：多团队&#x2F;多功能域并行"></a>场景 6：多团队&#x2F;多功能域并行</h4><p><strong>背景</strong>：项目有多个独立的功能域（如用户系统、内容系统、推荐系统），由不同团队或开发者负责，各自有独立的迭代节奏。需要在同一代码库中并行推进，但规划状态互不干扰。</p>
+<p><strong>适用策略</strong>：Workstreams（轻量级状态隔离） + Manager（集中管理进度）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：为每个功能域创建 workstream</span></span><br><span class="line">/gsd-workstreams create user-system</span><br><span class="line">/gsd-workstreams create content-system</span><br><span class="line">/gsd-workstreams create recommend-system</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：用户系统团队——独立推进</span></span><br><span class="line">/gsd-workstreams switch user-system</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论用户权限系统的重构方案</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：内容系统团队——独立推进</span></span><br><span class="line">/gsd-workstreams switch content-system</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论内容审核模块的新需求</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 4：推荐系统团队——独立推进</span></span><br><span class="line">/gsd-workstreams switch recommend-system</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论推荐算法的优化方案</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 5：使用 Manager 集中查看全局进度</span></span><br><span class="line">/gsd-manager</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 6：查看跨工作流进度</span></span><br><span class="line">/gsd-workstreams progress</span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ /gsd-workstreams progress</span><br><span class="line">┌───────────────────┬─────────┬───────────┬──────────┬──────────────────────┐</span><br><span class="line">│ Workstream        │ Status  │ Phase     │ Progress │ Last Activity        │</span><br><span class="line">├───────────────────┼─────────┼───────────┼──────────┼──────────────────────┤</span><br><span class="line">│ user-system       │ active  │ Phase 2   │ 60%      │ 2 hours ago          │</span><br><span class="line">│ content-system    │ active  │ Phase 1   │ 100%     │ 30 min ago           │</span><br><span class="line">│ recommend-system  │ active  │ Phase 1   │ 45%      │ 1 hour ago           │</span><br><span class="line">└───────────────────┴─────────┴───────────┴──────────┴──────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>多个 workstream 共享代码库，需要约定好文件和模块的归属，避免两个团队同时修改同一个文件</li>
+<li>建议在项目初期就划分好功能域边界，每个功能域有独立的目录结构</li>
+<li>使用 <code>/gsd-workstreams progress</code> 定期检查全局进度，及时发现依赖和冲突</li>
+<li>完成的功能域使用 <code>/gsd-workstreams complete &lt;name&gt;</code> 归档，保持活跃 workstream 数量合理</li>
+</ul>
+<h4 id="场景-7：紧急-bug-修复-常规迭代并行"><a href="#场景-7：紧急-bug-修复-常规迭代并行" class="headerlink" title="场景 7：紧急 bug 修复 + 常规迭代并行"></a>场景 7：紧急 bug 修复 + 常规迭代并行</h4><p><strong>背景</strong>：团队正在进行常规功能迭代，突然收到线上紧急 bug 报告。需要快速响应修复 bug，同时不中断正在进行的迭代工作。修复完成后需要同时部署 hotfix 和继续迭代。</p>
+<p><strong>适用策略</strong>：Workspace（隔离 hotfix） + Thread（记录上下文） + Autonomous（快速执行 hotfix）</p>
+<p><strong>具体步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 1：暂停当前迭代工作，记录上下文</span></span><br><span class="line">/gsd-thread <span class="string">&quot;暂停功能迭代——待 hotfix 完成后恢复&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2：创建 hotfix 工作空间</span></span><br><span class="line">/gsd-workspace --new \</span><br><span class="line">  --name hotfix-payment-crash \</span><br><span class="line">  --repos be-star \</span><br><span class="line">  --strategy worktree \</span><br><span class="line">  --branch hotfix/payment-crash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 3：在 hotfix 工作空间中快速修复</span></span><br><span class="line"><span class="built_in">cd</span> ~/gsd-workspaces/hotfix-payment-crash</span><br><span class="line">/gsd-new-project</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"><span class="comment"># 讨论支付崩溃 bug 的根因和修复方案</span></span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"><span class="comment"># 生成修复计划</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 4：使用 Autonomous 快速执行修复</span></span><br><span class="line">/gsd-autonomous --only 1</span><br><span class="line"><span class="comment"># 自动完成 discuss → plan → execute，最少交互</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 5：验证修复</span></span><br><span class="line"><span class="comment"># 运行测试、检查日志...</span></span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">&quot;fix: 修复支付模块空指针崩溃&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 6：合并 hotfix 并部署</span></span><br><span class="line"><span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">git checkout main</span><br><span class="line">git merge hotfix/payment-crash</span><br><span class="line">git push origin main</span><br><span class="line"><span class="comment"># 触发 CI/CD 部署 hotfix...</span></span><br><span class="line">/gsd-workspace --remove hotfix-payment-crash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 7：恢复迭代工作</span></span><br><span class="line">/gsd-thread list --open</span><br><span class="line">/gsd-thread resume-feature-iteration</span><br><span class="line"><span class="comment"># 上下文恢复，继续之前的迭代工作</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>流程示意图</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>sequenceDiagram
+    participant Dev as 开发者
+    participant Main as 主仓库
+    participant WS as Hotfix 工作空间
+    participant Thread as 线程
+
+<pre><code>Note over Dev: 收到紧急 bug 报告
+Dev-&amp;gt;&amp;gt;Thread: 创建线程，暂停迭代上下文
+Dev-&amp;gt;&amp;gt;WS: 创建 hotfix 工作空间
+Dev-&amp;gt;&amp;gt;WS: &amp;#x2F;gsd-autonomous --only 1
+WS--&amp;gt;&amp;gt;Dev: 修复完成
+Dev-&amp;gt;&amp;gt;Main: 合并 hotfix 分支
+Main--&amp;gt;&amp;gt;Dev: 部署完成
+Dev-&amp;gt;&amp;gt;Thread: 恢复迭代线程
+Note over Dev: 继续功能迭代&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>hotfix 工作空间应尽量小——只修复 bug，不引入额外改动</li>
+<li>使用 <code>--only 1</code> 参数让 Autonomous 仅执行一个阶段，快速完成</li>
+<li>修复完成后务必在 hotfix 分支上运行完整的测试套件</li>
+<li>合并 hotfix 后，如果正在进行的功能分支受影响，需要 rebase 到最新的 main</li>
+</ul>
+<h3 id="8-3-场景选择速查表"><a href="#8-3-场景选择速查表" class="headerlink" title="8.3 场景选择速查表"></a>8.3 场景选择速查表</h3><p>当面对具体的并行开发需求时，使用下表快速匹配推荐策略：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+<th>关键命令</th>
+<th>重量级</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同一阶段内多个独立模块</td>
+<td><strong>Wave</strong></td>
+<td><code>/gsd-execute-phase N</code></td>
+<td>最轻</td>
+<td>自动依赖分组，无需手动管理</td>
+</tr>
+<tr>
+<td>前后端&#x2F;多端并行开发</td>
+<td><strong>Workstreams</strong></td>
+<td><code>/gsd-workstreams create/switch</code></td>
+<td>轻</td>
+<td>状态隔离，代码共享</td>
+</tr>
+<tr>
+<td>热修复 + 功能开发并行</td>
+<td><strong>Workspace</strong></td>
+<td><code>/gsd-workspace --new</code></td>
+<td>重</td>
+<td>完全隔离，独立分支</td>
+</tr>
+<tr>
+<td>大型重构 + 日常迭代并行</td>
+<td><strong>Workspace + Autonomous</strong></td>
+<td><code>/gsd-workspace --new</code> + <code>/gsd-autonomous</code></td>
+<td>重</td>
+<td>隔离重构，批量执行</td>
+</tr>
+<tr>
+<td>多团队&#x2F;多功能域并行</td>
+<td><strong>Workstreams + Manager</strong></td>
+<td><code>/gsd-workstreams</code> + <code>/gsd-manager</code></td>
+<td>轻</td>
+<td>独立规划，集中管理</td>
+</tr>
+<tr>
+<td>紧急 bug + 常规迭代</td>
+<td><strong>Workspace + Thread + Autonomous</strong></td>
+<td>组合使用</td>
+<td>重</td>
+<td>隔离修复 + 上下文保持 + 快速执行</td>
+</tr>
+<tr>
+<td>批量执行剩余阶段</td>
+<td><strong>Autonomous</strong></td>
+<td><code>/gsd-autonomous --from N</code></td>
+<td>中</td>
+<td>全自动，最少交互</td>
+</tr>
+<tr>
+<td>跨会话 bug 调查</td>
+<td><strong>Thread</strong></td>
+<td><code>/gsd-thread &quot;描述&quot;</code></td>
+<td>最轻</td>
+<td>知识积累，随时恢复</td>
+</tr>
+<tr>
+<td>集中管理多阶段进度</td>
+<td><strong>Manager</strong></td>
+<td><code>/gsd-manager</code></td>
+<td>中</td>
+<td>仪表盘式交互</td>
+</tr>
+</tbody></table>
+<p><strong>策略组合建议</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart LR
+    subgraph 轻量组合
+        W[&quot;Wave&quot;] --&gt; WS[&quot;Workstreams&quot;]
+    end
+
+<pre><code>subgraph 中量组合
+    T[&amp;quot;Thread&amp;quot;] --&amp;gt; A[&amp;quot;Autonomous&amp;quot;]
+end
+
+subgraph 重量组合
+    WK[&amp;quot;Workspace&amp;quot;] --&amp;gt; T2[&amp;quot;Thread&amp;quot;] --&amp;gt; A2[&amp;quot;Autonomous&amp;quot;]
+end
+
+轻量组合 --&amp;gt;|&amp;quot;需要更多隔离&amp;quot;| 中量组合
+中量组合 --&amp;gt;|&amp;quot;需要代码隔离&amp;quot;| 重量组合
+
+style 轻量组合 fill:#e8f5e9,stroke:#2e7d32
+style 中量组合 fill:#fff3e0,stroke:#e65100
+style 重量组合 fill:#fce4ec,stroke:#c2185b&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<h3 id="8-4-冲突处理"><a href="#8-4-冲突处理" class="headerlink" title="8.4 冲突处理"></a>8.4 冲突处理</h3><p><strong>文件冲突</strong>：</p>
+<ul>
+<li>Wave 并行：GSD 自动检测文件重叠，将并行覆盖为顺序执行</li>
+<li>Workstreams：状态隔离，代码共享，需要注意 Git 冲突</li>
+<li>Workspace：完全隔离，无文件冲突</li>
+</ul>
+<p><strong>状态冲突</strong>：</p>
+<ul>
+<li>Wave：使用 STATE.md 文件锁防止并发写入</li>
+<li>Workstreams：每个 workstream 有独立的 STATE.md</li>
+<li>Workspace：完全独立的状态</li>
+</ul>
+<p><strong>Git 冲突</strong>：</p>
+<ul>
+<li>Wave：同一分支，使用 <code>--no-verify</code> 避免 hook 冲突</li>
+<li>Workstreams：同一分支，需要注意合并时机</li>
+<li>Workspace：独立分支，合并时需要解决冲突</li>
+</ul>
+<h3 id="8-5-Git-工作流建议"><a href="#8-5-Git-工作流建议" class="headerlink" title="8.5 Git 工作流建议"></a>8.5 Git 工作流建议</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    subgraph 主仓库
+        M[&quot;main 分支&quot;]
+    end
+
+<pre><code>subgraph 并行开发
+    W1[&amp;quot;Workspace A&amp;lt;br&amp;#x2F;&amp;gt;feature&amp;#x2F;payment&amp;quot;]
+    W2[&amp;quot;Workspace B&amp;lt;br&amp;#x2F;&amp;gt;hotfix&amp;#x2F;auth&amp;quot;]
+    WS1[&amp;quot;Workstream&amp;lt;br&amp;#x2F;&amp;gt;backend-api&amp;quot;]
+    WS2[&amp;quot;Workstream&amp;lt;br&amp;#x2F;&amp;gt;frontend-ui&amp;quot;]
+end
+
+W1 --&amp;gt;|&amp;quot;合并&amp;quot;| M
+W2 --&amp;gt;|&amp;quot;合并&amp;quot;| M
+WS1 --&amp;gt;|&amp;quot;共享分支&amp;quot;| M
+WS2 --&amp;gt;|&amp;quot;共享分支&amp;quot;| M
+
+style M fill:#e3f2fd,stroke:#1565c0
+style W1 fill:#fff3e0,stroke:#e65100
+style W2 fill:#fff3e0,stroke:#e65100
+style WS1 fill:#e8f5e9,stroke:#2e7d32
+style WS2 fill:#e8f5e9,stroke:#2e7d32&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>建议</strong>：</p>
+<ul>
+<li>Workspace 使用独立分支，开发完成后合并到 main</li>
+<li>Workstreams 共享分支，注意提交顺序和冲突解决</li>
+<li>Wave 在同一分支内并行，使用 <code>--no-verify</code> 避免 hook 冲突</li>
+</ul>
+<hr>
+<h2 id="9-常见问题-FAQ"><a href="#9-常见问题-FAQ" class="headerlink" title="9. 常见问题 FAQ"></a>9. 常见问题 FAQ</h2><h3 id="9-1-Wave-相关"><a href="#9-1-Wave-相关" class="headerlink" title="9.1 Wave 相关"></a>9.1 Wave 相关</h3><p><strong>Q: Wave 执行失败后如何恢复？</strong></p>
+<p>使用 <code>--wave N</code> 参数重新执行失败的 wave：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重新执行 Wave 2</span></span><br><span class="line">/gsd-execute-phase 1 --wave 2</span><br></pre></td></tr></table></figure>
+
+<p>GSD 会自动检查低波浪是否已完成，只重新执行失败的 wave。</p>
+<p><strong>Q: 如何查看当前的 Wave 分组情况？</strong></p>
+<p>Wave 分组信息存储在 plan 的 frontmatter 中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看阶段的计划文件</span></span><br><span class="line"><span class="built_in">cat</span> .planning/phases/phase-1/plan-1-*.md</span><br><span class="line"></span><br><span class="line"><span class="comment"># frontmatter 中包含：</span></span><br><span class="line"><span class="comment"># wave: 1</span></span><br><span class="line"><span class="comment"># depends_on: []</span></span><br><span class="line"><span class="comment"># files_modified: [&quot;src/models/user.ts&quot;]</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Q: 文件重叠的 plan 会被强制顺序执行吗？</strong></p>
+<p>是的。同一 wave 内如果检测到两个 plan 修改相同的文件，GSD 会将该 wave 的并行执行覆盖为顺序执行，作为规划缺陷的安全网。</p>
+<h3 id="9-2-Workstreams-相关"><a href="#9-2-Workstreams-相关" class="headerlink" title="9.2 Workstreams 相关"></a>9.2 Workstreams 相关</h3><p><strong>Q: Workstreams 之间会互相影响吗？</strong></p>
+<p>规划状态完全隔离，不会互相影响。但代码库是共享的，所以如果两个 workstream 修改了相同的文件，可能会产生 Git 冲突。</p>
+<p><strong>Q: 如何在 workstreams 之间共享代码？</strong></p>
+<p>由于 workstreams 共享同一个代码库，一个 workstream 的代码变更会自动对其他 workstream 可见。无需额外操作。</p>
+<p><strong>Q: 完成的 workstream 去哪了？</strong></p>
+<p>使用 <code>/gsd-workstreams complete &lt;name&gt;</code> 归档后，workstream 会移动到 <code>.planning/milestones/</code> 目录，作为项目里程碑记录保留。</p>
+<h3 id="9-3-Workspace-相关"><a href="#9-3-Workspace-相关" class="headerlink" title="9.3 Workspace 相关"></a>9.3 Workspace 相关</h3><p><strong>Q: worktree 和 clone 哪个更快？</strong></p>
+<p>worktree 更快。它只创建一个新的工作树，共享 <code>.git</code> 目录，通常几秒钟就能完成。clone 需要完整复制仓库，时间取决于仓库大小。</p>
+<p><strong>Q: workspace 删除后数据还能恢复吗？</strong></p>
+<p>使用 <code>/gsd-workspace --remove &lt;name&gt;</code> 删除时，GSD 会检查未提交的更改。如果确认删除，数据将无法恢复。建议删除前确保所有更改已提交或合并。</p>
+<p><strong>Q: 子模块项目为什么不能用 worktree？</strong></p>
+<p>Git worktree 对子模块的支持不完善，子模块的路径在 worktree 中可能指向错误的位置。GSD 会自动检测这种情况并回退到主工作树执行，或建议使用 clone 策略。</p>
+<h3 id="9-4-Thread-相关"><a href="#9-4-Thread-相关" class="headerlink" title="9.4 Thread 相关"></a>9.4 Thread 相关</h3><p><strong>Q: Thread 和 pause-work 到底有什么区别？</strong></p>
+<p>Thread 是轻量级的知识存储，只保存 Goal&#x2F;Context&#x2F;References&#x2F;Next Steps。pause-work 是完整的阶段状态暂停&#x2F;恢复，包含所有计划和执行状态。</p>
+<p><strong>Q: 线程可以自动晋升为阶段吗？</strong></p>
+<p>不能自动晋升，需要手动执行 <code>/gsd-phase</code> 或 <code>/gsd-capture --backlog</code>。这是设计如此，因为线程到阶段的转换需要人工判断。</p>
+<p><strong>Q: 线程有数量限制吗？</strong></p>
+<p>没有硬性限制。但建议保持线程数量合理，定期关闭已解决的线程，保持 <code>.planning/threads/</code> 目录整洁。</p>
+<h3 id="9-5-Autonomous-相关"><a href="#9-5-Autonomous-相关" class="headerlink" title="9.5 Autonomous 相关"></a>9.5 Autonomous 相关</h3><p><strong>Q: Autonomous 模式下如何处理需要人工确认的步骤？</strong></p>
+<p>检查点类型决定了处理方式：</p>
+<ul>
+<li><code>checkpoint:human-verify</code>：自动批准</li>
+<li><code>checkpoint:decision</code>：自动选择第一个选项</li>
+<li><code>checkpoint:human-action</code>：暂停等待人工处理</li>
+</ul>
+<p><strong>Q: 执行失败会自动重试吗？</strong></p>
+<p>不会自动重试。失败时 GSD 会暂停并提供三个选项：Fix and retry、Skip this phase、Stop autonomous mode。选择 “Fix and retry” 才会重试。</p>
+<p><strong>Q: 可以中途暂停 autonomous 模式吗？</strong></p>
+<p>可以。按 <code>Ctrl+C</code> 或在交互提示时选择 “Stop autonomous mode”。GSD 会显示当前进度摘要，已完成的阶段不会丢失。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/">https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GSD/">GSD</a><a class="post-meta__tags" href="/tags/%E9%A1%B9%E7%9B%AE%E5%B7%A5%E4%BD%9C%E6%B5%81/">项目工作流</a><a class="post-meta__tags" href="/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/tags/AI%E7%BC%96%E7%A8%8B/">AI编程</a><a class="post-meta__tags" href="/tags/open-gsd/">open-gsd</a><a class="post-meta__tags" href="/tags/opengsd-gsd-core/">@opengsd/gsd-core</a><a class="post-meta__tags" href="/tags/%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/">并行开发</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/GSD-gsd-tools%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="GSD gsd-tools 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">GSD gsd-tools 使用教程</div></div><div class="info-2"><div class="info-item-1">GSD gsd-tools 使用教程1. 引言与定位1.1 gsd-tools 是什么gsd-tools（全名 gsd-tools.cjs）是 open-gsd&#x2F;gsd-core 仓库中的核心 CLI 引擎，承担 GSD 五大阶段循环（Specify → Plan → Execute → Verify → Ship）的”后端 CLI”角色。在 GSD 的整体架构中，上层的所有 /gsd-* 斜杠命令、workflow Markdown 文档、agent Prompt 模板，最终都通过 Bash 工具调用 node gsd-tools.cjs ... 来完成实际的 STATE.md 读写、phase 目录操作、配置管理、artifact 验证、commit 提交等动作。 换句话说，gsd-tools 是 GSD 体系的”操作系统内核”：  上层 /gsd-* 命令 &#x3D; 用户接口（shell-like UI） 中层 workflows/*.md &#x3D; 编排逻辑（DSL） 底层 gsd-tools.cjs + lib/*.cjs &#x3D; 真正干活的工具...</div></div></div></a><a class="pagination-related" href="/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="Nginx 配置实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Nginx 配置实战指南</div></div><div class="info-2"><div class="info-item-1">Nginx 配置实战指南本教程以实际项目配置为基础，覆盖 Nginx 的两大核心场景：静态站点部署与反向代理配置。所有配置示例均来自生产环境实践，可直接复用。 1. Nginx 基础概念1.1 配置文件结构Nginx 的配置体系由主配置文件和站点配置目录组成：    路径 用途    /etc/nginx/nginx.conf 主配置文件，定义全局设置（user、worker_processes、events、http 块）   /etc/nginx/sites-available/ 站点配置文件存放目录   /etc/nginx/sites-enabled/ 已启用站点的符号链接目录   /var/log/nginx/ 默认日志目录   主配置文件中通过 include 指令加载站点配置： 12345# nginx.conf 中的关键 include 行http &#123;    # ...    include /etc/nginx/sites-enabled/*;&#125;  站点启用机制：将配置文件放在 sites-available/，然后创建符号链接到 sites...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/" title="GSD 使用教程-实战故事"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">GSD 使用教程-实战故事</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-实战故事 用”小明开发电商项目”的故事，串联所有 16 大类别的实际应用场景。  目录 故事背景 1.1 版本说明   11.1 项目立项 11.2 需求讨论 11.3 制定计划 11.4 评审计划 11.5 执行开发 11.6 设计前端 11.7 验证质量 11.8 自动修复问题 11.9 调试疑难杂症 11.10 紧急插入任务 11.11 多线并行开发 11.12 临时中断去修 Bug 11.13 上下文线程 11.14 快速临时任务 11.15 AI 集成选型 11.16 知识图谱与情报 11.17 里程碑冲刺 11.18 完成里程碑 11.19 代码审查 11.20 UI 视觉审计 11.21 自主执行 11.22 导入外部计划 11.23 扫描代码库 11.24 代码库地图 11.25 更新文档 11.26 提取经验教训 11.27 创建 PR 11.28 查看进度 11.29 团队评审积压 11.30 回滚错误 11.31 健康检查 11.32 清理归档 11.33 配置个性化 11.34 行为分析生成配置 11.35 团队集成配置 11.36 摄入...</div></div></div></a><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/" title="GSD 使用教程 - 命令速查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">GSD 使用教程 - 命令速查</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程 - 命令速查 本手册覆盖 GSD 项目内部版本 v1.35.0+（预发布 v1.43.0-rc2），从 v1.6.0 全面更新。命令体系经历大幅重构：新增 7 个统一命令、6 个命名空间元技能、25+ 个旧命令被合并或移除。 版本号说明：v1.35.0+ 为项目内部版本号（对应旧包 get-shit-done-cc），新包 @opengsd/gsd-core 采用独立版本号体系（当前 latest 为 1.2.0，但代码已包含 v1.35.0+ 的全部特性）。  目录 概述与仓库迁移 命名空间元技能速查 旧命令迁移对照表 新命令详解 现有命令新增标志速查 Package Legitimacy Gate 跨 AI 评审 MVP 与 TDD 规划模式 多运行时支持 版本演进关键里程碑 附录：快速命令索引   1. 概述与仓库迁移版本跨度   项目 旧值 新值    项目内部版本 v1.6.0 v1.35.0（稳定）&#x2F; v1.43.0-rc2（预发布）   仓库 gsd-build/get-shit-done open-gsd/gsd-core   npm ...</div></div></div></a><a class="pagination-related" href="/deepseek-v4-flash-gsd-core-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-23</div><div class="info-item-2">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版） 本文是一份面向”要不要用 DeepSeek V4 Flash 接 Claude Code、靠 GSD-Core 工作流压幻觉”这一决策的实战调研报告。写作顺序遵循 先结论 → 可抄配置 → 原理 → 决策树 → 排错 FAQ 的教程风格，不是原理参考书。读者可以直接跳到 §7 抄配置、跳到 §9 做选型。 第 2 版更新（2026-06-24）：通过 DeepWiki 深入 GSD-Core 源码，大幅扩充了 §3 GSD-Core 工作机制（新增 3.4 专业 Agent 系统、3.5 Model Profiles 分层模型配置、3.6 Wave-Based 并行执行与 Workspace 隔离、3.7 Hook 系统与 CLI 工具），同时对 §5 和 §7 做了相应增强。   1. 一句话定论先给你 4 句话的结论，剩下的章节都是在论证它。    你的疑问 一句话结论    V4 Flash 是什么？ 284B 总参 &#x2F; 激活 1...</div></div></div></a><a class="pagination-related" href="/GSD-gsd-tools%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="GSD gsd-tools 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-13</div><div class="info-item-2">GSD gsd-tools 使用教程</div></div><div class="info-2"><div class="info-item-1">GSD gsd-tools 使用教程1. 引言与定位1.1 gsd-tools 是什么gsd-tools（全名 gsd-tools.cjs）是 open-gsd&#x2F;gsd-core 仓库中的核心 CLI 引擎，承担 GSD 五大阶段循环（Specify → Plan → Execute → Verify → Ship）的”后端 CLI”角色。在 GSD 的整体架构中，上层的所有 /gsd-* 斜杠命令、workflow Markdown 文档、agent Prompt 模板，最终都通过 Bash 工具调用 node gsd-tools.cjs ... 来完成实际的 STATE.md 读写、phase 目录操作、配置管理、artifact 验证、commit 提交等动作。 换句话说，gsd-tools 是 GSD 体系的”操作系统内核”：  上层 /gsd-* 命令 &#x3D; 用户接口（shell-like UI） 中层 workflows/*.md &#x3D; 编排逻辑（DSL） 底层 gsd-tools.cjs + lib/*.cjs &#x3D; 真正干活的工具...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#GSD-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91"><span class="toc-number">1.</span> <span class="toc-text">GSD 使用教程-并行开发</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E6%A6%82%E8%BF%B0"><span class="toc-number">1.2.</span> <span class="toc-text">1. 并行开发概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 为什么需要并行开发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-GSD-%E5%B9%B6%E8%A1%8C%E8%83%BD%E5%8A%9B%E5%85%A8%E6%99%AF%E5%9B%BE"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 GSD 并行能力全景图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%B9%B6%E8%A1%8C%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 并行策略选择决策树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.4.</span> <span class="toc-text">1.4 并行开发适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Wave-%E6%B3%A2%E6%B5%AA%E5%BC%8F%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C"><span class="toc-number">1.3.</span> <span class="toc-text">2. Wave 波浪式并行执行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 核心机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E2%80%93wave-%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 –wave 参数详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 安全机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%B9%B6%E8%A1%8C%E5%BA%A6%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 并行度建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E5%8A%9B%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.3.5.</span> <span class="toc-text">2.5 上下文压力保护</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.3.6.</span> <span class="toc-text">2.6 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Workstreams-%E5%B9%B6%E8%A1%8C%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">1.4.</span> <span class="toc-text">3. Workstreams 并行工作流</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 命令详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Workstreams-vs-Workspace-%E5%AF%B9%E6%AF%94"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 Workstreams vs Workspace 对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Workspace-%E9%9A%94%E7%A6%BB%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4"><span class="toc-number">1.5.</span> <span class="toc-text">4. Workspace 隔离工作空间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-worktree-vs-clone-%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 worktree vs clone 策略选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 命令详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Git-Worktree-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4 Git Worktree 注意事项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.5.5.</span> <span class="toc-text">4.5 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Thread-%E8%B7%A8%E4%BC%9A%E8%AF%9D%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.6.</span> <span class="toc-text">5. Thread 跨会话线程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 命令详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Thread-vs-pause-work-%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 Thread vs pause-work 对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E7%BA%BF%E7%A8%8B%E6%99%8B%E5%8D%87%E8%B7%AF%E5%BE%84"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.4 线程晋升路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.5 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Autonomous-%E8%87%AA%E4%B8%BB%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.7.</span> <span class="toc-text">6. Autonomous 自主模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 参数详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%A3%80%E6%9F%A5%E7%82%B9%E6%9C%BA%E5%88%B6"><span class="toc-number">1.7.3.</span> <span class="toc-text">6.3 检查点机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86"><span class="toc-number">1.7.4.</span> <span class="toc-text">6.4 失败处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.7.5.</span> <span class="toc-text">6.5 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-Manager-%E5%91%BD%E4%BB%A4%E4%B8%AD%E5%BF%83"><span class="toc-number">1.8.</span> <span class="toc-text">7. Manager 命令中心</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%BB%AA%E8%A1%A8%E7%9B%98%E5%8A%9F%E8%83%BD"><span class="toc-number">1.8.1.</span> <span class="toc-text">7.1 仪表盘功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%90%8E%E5%8F%B0%E4%BB%A3%E7%90%86%E8%B0%83%E5%BA%A6"><span class="toc-number">1.8.2.</span> <span class="toc-text">7.2 后台代理调度</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B0%E5%A2%9E%E5%8A%9F%E8%83%BD%EF%BC%88v1-5-0-%EF%BC%89"><span class="toc-number">1.8.2.1.</span> <span class="toc-text">新增功能（v1.5.0+）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.8.3.</span> <span class="toc-text">7.3 实战示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.9.</span> <span class="toc-text">8. 并行开发最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 策略选择指南</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%9C%BA%E6%99%AF%E8%AF%A6%E7%BB%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 场景详细示例</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9A%E5%89%8D%E5%90%8E%E7%AB%AF%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91"><span class="toc-number">1.9.2.1.</span> <span class="toc-text">场景 1：前后端并行开发</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9A%E5%A4%9A%E6%A8%A1%E5%9D%97%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91"><span class="toc-number">1.9.2.2.</span> <span class="toc-text">场景 2：多模块并行开发</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-3%EF%BC%9A%E7%83%AD%E4%BF%AE%E5%A4%8D-%E5%8A%9F%E8%83%BD%E5%BC%80%E5%8F%91%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.9.2.3.</span> <span class="toc-text">场景 3：热修复 + 功能开发并行</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-4%EF%BC%9A%E6%89%B9%E9%87%8F%E6%89%A7%E8%A1%8C%E5%89%A9%E4%BD%99%E9%98%B6%E6%AE%B5"><span class="toc-number">1.9.2.4.</span> <span class="toc-text">场景 4：批量执行剩余阶段</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-5%EF%BC%9A%E5%A4%A7%E5%9E%8B%E9%87%8D%E6%9E%84-%E5%8A%9F%E8%83%BD%E5%BC%80%E5%8F%91%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.9.2.5.</span> <span class="toc-text">场景 5：大型重构 + 功能开发并行</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-6%EF%BC%9A%E5%A4%9A%E5%9B%A2%E9%98%9F-%E5%A4%9A%E5%8A%9F%E8%83%BD%E5%9F%9F%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.9.2.6.</span> <span class="toc-text">场景 6：多团队&#x2F;多功能域并行</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-7%EF%BC%9A%E7%B4%A7%E6%80%A5-bug-%E4%BF%AE%E5%A4%8D-%E5%B8%B8%E8%A7%84%E8%BF%AD%E4%BB%A3%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.9.2.7.</span> <span class="toc-text">场景 7：紧急 bug 修复 + 常规迭代并行</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%9C%BA%E6%99%AF%E9%80%89%E6%8B%A9%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.9.3.</span> <span class="toc-text">8.3 场景选择速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E5%86%B2%E7%AA%81%E5%A4%84%E7%90%86"><span class="toc-number">1.9.4.</span> <span class="toc-text">8.4 冲突处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-Git-%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.9.5.</span> <span class="toc-text">8.5 Git 工作流建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98-FAQ"><span class="toc-number">1.10.</span> <span class="toc-text">9. 常见问题 FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-Wave-%E7%9B%B8%E5%85%B3"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 Wave 相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Workstreams-%E7%9B%B8%E5%85%B3"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 Workstreams 相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-Workspace-%E7%9B%B8%E5%85%B3"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 Workspace 相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-Thread-%E7%9B%B8%E5%85%B3"><span class="toc-number">1.10.4.</span> <span class="toc-text">9.4 Thread 相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-Autonomous-%E7%9B%B8%E5%85%B3"><span class="toc-number">1.10.5.</span> <span class="toc-text">9.5 Autonomous 相关</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

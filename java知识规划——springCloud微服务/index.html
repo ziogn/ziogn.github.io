@@ -1,0 +1,1187 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>java知识规划——springCloud微服务 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="Spring Cloud 微服务面试知识规划，覆盖 Nacos 注册配置、Gateway 路由、Sentinel 限流熔断、Dubbo RPC、Seata 分布式事务、RocketMQ 消息、链路追踪、OpenFeign 九大组件，附知识点追问链与跨域知识关联。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java知识规划——springCloud微服务">
+<meta property="og:url" content="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="Spring Cloud 微服务面试知识规划，覆盖 Nacos 注册配置、Gateway 路由、Sentinel 限流熔断、Dubbo RPC、Seata 分布式事务、RocketMQ 消息、链路追踪、OpenFeign 九大组件，附知识点追问链与跨域知识关联。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-17T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-04T11:54:40.803Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="guide">
+<meta property="article:tag" content="interview">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="microservices">
+<meta property="article:tag" content="research">
+<meta property="article:tag" content="spring">
+<meta property="article:tag" content="spring-cloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java知识规划——springCloud微服务",
+  "url": "https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-17T14:00:00.000Z",
+  "dateModified": "2026-09-04T11:54:40.803Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'java知识规划——springCloud微服务',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">java知识规划——springCloud微服务</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">java知识规划——springCloud微服务</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-17T14:00:00.000Z" title="发表于 2026-07-17 22:00:00">2026-07-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-04T11:54:40.803Z" title="更新于 2026-09-04 19:54:40">2026-09-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>19分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="java知识规划——springCloud微服务"><a href="#java知识规划——springCloud微服务" class="headerlink" title="java知识规划——springCloud微服务"></a>java知识规划——springCloud微服务</h1><blockquote>
+<p>本文档覆盖 Spring Cloud 微服务知识体系，按”Nacos → Gateway → Sentinel → Dubbo → Seata → RocketMQ → 链路追踪 → OpenFeign → Bootstrap 上下文”层层递进。每节末尾标注与 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/">Spring</a>、<a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/">Java 核心</a> 及 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/">MySQL</a> 方向的知识关联。</p>
+</blockquote>
+<hr>
+<h2 id="3-1-Nacos：注册中心-配置中心"><a href="#3-1-Nacos：注册中心-配置中心" class="headerlink" title="3.1 Nacos：注册中心 + 配置中心"></a>3.1 Nacos：注册中心 + 配置中心</h2><p><strong>注册中心原理</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">服务启动 → 向 Nacos Server 注册</span><br><span class="line">  → Nacos 维护服务注册表</span><br><span class="line">  → 消费者从 Nacos 拉取服务列表（定时 10s 拉取 + UDP 长轮询推送变更）</span><br><span class="line">  → 服务实例每 5s 发送心跳维持健康状态</span><br><span class="line">  → Nacos 15s 未收到心跳标记为不健康，30s 彻底移除</span><br></pre></td></tr></table></figure>
+
+<p><strong>CAP 权衡</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>一致性</th>
+<th>可用性</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AP（默认）</td>
+<td>最终一致</td>
+<td>优先</td>
+<td>注册中心</td>
+</tr>
+<tr>
+<td>CP</td>
+<td>强一致</td>
+<td>次优先</td>
+<td>配置中心</td>
+</tr>
+</tbody></table>
+<p><strong>配置中心结构</strong>：<code>Namespace（环境隔离）→ Group（逻辑分组）→ DataId（具体配置）</code></p>
+<p><strong>配置动态刷新</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式一：@RefreshScope（Bean 重新初始化）</span></span><br><span class="line"><span class="meta">@RefreshScope</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = &quot;order&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderProperties</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Integer timeout;</span><br><span class="line">    <span class="keyword">private</span> Boolean retryEnabled;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>配置中心长轮询原理</strong>：<br>客户端请求携带所有配置项 MD5 → 服务端逐批比对（每批 3000 个配置项），无变化则挂起请求 30s → 有变更立即返回变更 Key → 客户端再逐个拉取新值。对比纯 WebSocket 推送，长轮询在连接数管理上更轻量，Nacos 2.0 才引入 gRPC 双工通信改善实时性。</p>
+<p><strong>灰度配置（Beta 发布）</strong>：<br>在 Nacos 控制台对单个配置开启 Beta 发布，指定目标 IP 列表 → 灰度配置定向推送到指定客户端 → 验证通过后一键全量发布或停止 Beta。IP 粒度的定向推送，适合灰度验证场景。</p>
+<p><strong>Nacos 2.0 gRPC 改进</strong>：<br>2.0 引入 gRPC 长连接替代 1.x 的 HTTP 长轮询 + UDP 推送，实现服务端主动推送，配置变更实时性从秒级提升到毫秒级。</p>
+<p><strong>临时实例 vs 持久化实例</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>健康检查</th>
+<th>心跳超时处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>临时实例（默认）</td>
+<td>心跳上报</td>
+<td>15s 不健康 → 30s 剔除</td>
+</tr>
+<tr>
+<td>持久化实例</td>
+<td>服务端主动探测</td>
+<td>不会被自动剔除</td>
+</tr>
+</tbody></table>
+<p><strong>注册中心 CAP 对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>注册中心</th>
+<th>CAP 模型</th>
+<th>一致性协议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nacos</td>
+<td>AP（注册）&#x2F; CP（配置）</td>
+<td>Distro &#x2F; Raft</td>
+</tr>
+<tr>
+<td>Eureka</td>
+<td>AP（纯可用性优先）</td>
+<td>自保护模式</td>
+</tr>
+<tr>
+<td>Consul</td>
+<td>CP</td>
+<td>Raft</td>
+</tr>
+<tr>
+<td>Zookeeper</td>
+<td>CP</td>
+<td>ZAB</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关联知识点</strong>：长轮询挂起 → HTTP 连接池管理 &#x2F; Nacos 2.0 gRPC → Netty 网络编程 &#x2F; 注册中心 CAP → 分布式理论</p>
+</blockquote>
+<p><strong>追问链</strong>：<code>Nacos 注册中心原理 → 心跳机制 → CAP 权衡(AP/CP) → 配置中心长轮询原理(30s挂起+MD5分片) → 灰度配置Beta发布 → Nacos 2.0 gRPC改进 → 临时vs持久化实例 → 注册中心CAP对比(Nacos/Eureka/Consul/ZK)</code></p>
+<hr>
+<h2 id="3-2-Gateway-路由网关"><a href="#3-2-Gateway-路由网关" class="headerlink" title="3.2 Gateway 路由网关"></a>3.2 Gateway 路由网关</h2><p>Spring Cloud Gateway 基于 Spring WebFlux（Reactor），核心三要素：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">user-service</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://user-service</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/api/users/**</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Method=GET,POST</span></span><br><span class="line">          <span class="attr">filters:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">StripPrefix=1</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">AddRequestHeader=X-Request-Id,</span> <span class="number">123456</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>执行流程</strong>：<code>客户端请求 → 匹配 Route → 进入 Filter 链 → 转发到目标服务 → 返回响应</code></p>
+<p><strong>常用 Predicate 工厂</strong>：Path、Method、Header、Query、Cookie、Before&#x2F;After</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：Gateway 基于 WebFlux，Filter 中不能使用阻塞 API（如 JDBC、Thread.sleep）；全局 Filter 对所有 Route 生效。</p>
+</blockquote>
+<p><strong>自定义 GatewayFilter 工厂</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 继承 AbstractGatewayFilterFactory&lt;Config&gt;，yaml 中 name 为类名前缀</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CheckAuthGatewayFilterFactory</span></span><br><span class="line">    <span class="keyword">extends</span> <span class="title class_">AbstractGatewayFilterFactory</span>&lt;CheckAuthGatewayFilterFactory.Config&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">public</span> <span class="title function_">CheckAuthGatewayFilterFactory</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(Config.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">GatewayFilter</span> <span class="title function_">apply</span><span class="params">(Config config)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (exchange, chain) -&gt; &#123;</span><br><span class="line">            <span class="comment">// 非阻塞验证，不能使用 JDBC/Thread.sleep</span></span><br><span class="line">            <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> exchange.getRequest().getHeaders()</span><br><span class="line">                .getFirst(config.getTokenHeader());</span><br><span class="line">            <span class="keyword">if</span> (token == <span class="literal">null</span> || !token.startsWith(<span class="string">&quot;Bearer &quot;</span>)) &#123;</span><br><span class="line">                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);</span><br><span class="line">                <span class="keyword">return</span> exchange.getResponse().setComplete();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> chain.filter(exchange);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Data</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Config</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">String</span> <span class="variable">tokenHeader</span> <span class="operator">=</span> <span class="string">&quot;Authorization&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GlobalFilter</strong>：实现 <code>GlobalFilter</code> + <code>Ordered</code> 接口，对所有路由生效，常用于鉴权、日志记录、TraceId 注入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Order(-1)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AuthGlobalFilter</span> <span class="keyword">implements</span> <span class="title class_">GlobalFilter</span>, Ordered &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">Mono</span>&lt;Void&gt; <span class="title function_">filter</span><span class="params">(ServerWebExchange exchange, GatewayFilterChain chain)</span> &#123;</span><br><span class="line">        <span class="type">ServerHttpRequest</span> <span class="variable">request</span> <span class="operator">=</span> exchange.getRequest().mutate()</span><br><span class="line">            .header(<span class="string">&quot;X-Trace-Id&quot;</span>, UUID.randomUUID().toString())</span><br><span class="line">            .build();</span><br><span class="line">        <span class="keyword">return</span> chain.filter(exchange.mutate().request(request).build());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>CORS 配置</strong>：Gateway 层通过 <code>GlobalCorsProperties</code> 配置，区别于 MVC 层的 <code>@CrossOrigin</code>。Gateway CORS 作用于网关入口层，MVC CORS 作用于具体服务。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">globalcors:</span></span><br><span class="line">        <span class="attr">cors-configurations:</span></span><br><span class="line">          <span class="string">&#x27;[/**]&#x27;</span><span class="string">:</span></span><br><span class="line">            <span class="attr">allowedOrigins:</span> <span class="string">&quot;https://example.com&quot;</span></span><br><span class="line">            <span class="attr">allowedMethods:</span> <span class="string">&quot;*&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>RequestRateLimiter 限流</strong>：基于 Redis+Lua 令牌桶实现，由 <code>KeyResolver</code> 确定限流维度（IP&#x2F;用户&#x2F;URL）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">KeyResolver</span> <span class="title function_">userKeyResolver</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> exchange -&gt; Mono.just(</span><br><span class="line">        exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">filters:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">RequestRateLimiter</span></span><br><span class="line">    <span class="attr">args:</span></span><br><span class="line">      <span class="attr">redis-rate-limiter.replenishRate:</span> <span class="number">10</span></span><br><span class="line">      <span class="attr">redis-rate-limiter.burstCapacity:</span> <span class="number">20</span></span><br><span class="line">      <span class="attr">key-resolver:</span> <span class="string">&quot;#&#123;@userKeyResolver&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Gateway vs Zuul 1.x 对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Gateway</th>
+<th>Zuul 1.x</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层</td>
+<td>WebFlux（Netty，非阻塞）</td>
+<td>Servlet（Tomcat，阻塞 IO）</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>高（约 1.6x Zuul）</td>
+<td>中</td>
+</tr>
+<tr>
+<td>长连接</td>
+<td>原生支持</td>
+<td>需额外配置</td>
+</tr>
+<tr>
+<td>限流</td>
+<td>内置 RequestRateLimiter</td>
+<td>需自行实现</td>
+</tr>
+</tbody></table>
+<p><strong>动态路由</strong>：结合 Nacos 配置中心，通过 <code>RouteDefinitionLocator</code> + <code>ApplicationEventPublisher</code> 实现路由动态刷新，无需重启 Gateway。</p>
+<blockquote>
+<p><strong>常见陷阱补充</strong>：RequestRateLimiter 依赖 Redis，Redis 不可用时所有请求默认被拒绝（需配置 fallback）；WebFlux 非阻塞模型禁止阻塞 API。</p>
+</blockquote>
+<p><strong>追问链</strong>：<code>Gateway 路由三要素 → Predicate 匹配 → Filter 链 → 自定义GatewayFilter工厂 → GlobalFilter鉴权日志 → RequestRateLimiter Redis+Lua → Gateway vs Zuul 1.x → 动态路由 → WebFlux非阻塞限制</code></p>
+<hr>
+<h2 id="3-3-Sentinel-限流与熔断"><a href="#3-3-Sentinel-限流与熔断" class="headerlink" title="3.3 Sentinel 限流与熔断"></a>3.3 Sentinel 限流与熔断</h2><p>Sentinel 以”资源”为粒度进行流量控制。</p>
+<p><strong>流量控制规则</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">FlowRule</span> <span class="variable">rule</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FlowRule</span>();</span><br><span class="line">rule.setResource(<span class="string">&quot;GET:/api/orders&quot;</span>);</span><br><span class="line">rule.setGrade(RuleConstant.FLOW_GRADE_QPS);</span><br><span class="line">rule.setCount(<span class="number">100</span>);</span><br><span class="line">FlowRuleManager.loadRules(Collections.singletonList(rule));</span><br></pre></td></tr></table></figure>
+
+<p><strong>熔断状态机</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Closed（关闭，正常状态）</span><br><span class="line">  → 异常比例/慢调用比例超过阈值 → Open（开启，直接拒绝请求）</span><br><span class="line">  → 经过 timeWindow 时间后 → Half-Open（半开，放行少量试探请求）</span><br><span class="line">  → 试探成功 → Closed</span><br><span class="line">  → 试探失败 → Open（重新计时）</span><br></pre></td></tr></table></figure>
+
+<p><strong>限流算法对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>特点</th>
+<th>Sentinel 使用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>滑动窗口</td>
+<td>将时间窗分为多个小格，逐格统计</td>
+<td>默认 QPS 限流</td>
+</tr>
+<tr>
+<td>令牌桶</td>
+<td>固定速率放令牌，桶内积累令牌应对突发</td>
+<td>Warm Up 模式</td>
+</tr>
+<tr>
+<td>漏桶</td>
+<td>固定速率处理请求，超出丢弃</td>
+<td>排队等待模式</td>
+</tr>
+</tbody></table>
+<p><strong>@SentinelResource 注解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>作用</th>
+<th>区别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>value</td>
+<td>资源名称</td>
+<td>唯一标识</td>
+</tr>
+<tr>
+<td>blockHandler</td>
+<td>限流&#x2F;熔断降级处理方法</td>
+<td>处理 FlowException&#x2F;DegradeException</td>
+</tr>
+<tr>
+<td>fallback</td>
+<td>业务异常兜底</td>
+<td>处理业务异常（非限流异常）</td>
+</tr>
+<tr>
+<td>blockHandlerClass</td>
+<td>统一处理类</td>
+<td>静态方法在指定类中</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SentinelResource(</span></span><br><span class="line"><span class="meta">    value = &quot;createOrder&quot;,</span></span><br><span class="line"><span class="meta">    blockHandler = &quot;createOrderBlockHandler&quot;,</span></span><br><span class="line"><span class="meta">    fallback = &quot;createOrderFallback&quot;,</span></span><br><span class="line"><span class="meta">    blockHandlerClass = OrderBlockHandler.class</span></span><br><span class="line"><span class="meta">)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Order</span> <span class="title function_">createOrder</span><span class="params">(OrderCreateDTO dto)</span> &#123;</span><br><span class="line">    <span class="comment">// 业务逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>blockHandler 处理限流异常，fallback 处理业务异常，两者可独立配置互不干扰。</p>
+</blockquote>
+<p><strong>热点参数限流</strong>：基于 LRU + 滑动窗口统计热点参数 QPS，支持参数例外项（特定参数值单独阈值），仅支持 QPS 模式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ParamFlowRule</span> <span class="variable">rule</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ParamFlowRule</span>(<span class="string">&quot;createOrder&quot;</span>)</span><br><span class="line">    .setParamIdx(<span class="number">0</span>)</span><br><span class="line">    .setCount(<span class="number">100</span>)</span><br><span class="line">    .setParamFlowItemList(Collections.singletonList(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ParamFlowItem</span>().setObject(<span class="string">&quot;1001&quot;</span>).setCount(<span class="number">50</span>)</span><br><span class="line">    ));</span><br><span class="line">ParamFlowRuleManager.loadRules(Collections.singletonList(rule));</span><br></pre></td></tr></table></figure>
+
+<p><strong>系统自适应保护</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Load</td>
+<td>系统负载（BBR 算法）</td>
+<td>仅 Linux 有效</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>CPU 使用率</td>
+<td>1.5.0+</td>
+</tr>
+<tr>
+<td>RT</td>
+<td>平均响应时间</td>
+<td>—</td>
+</tr>
+<tr>
+<td>入口 QPS</td>
+<td>总 QPS</td>
+<td>—</td>
+</tr>
+<tr>
+<td>并发线程数</td>
+<td>总线程数</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p><strong>规则持久化三种模式</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>存储</th>
+<th>变更推送</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原始模式</td>
+<td>内存</td>
+<td>—</td>
+<td>简单</td>
+<td>重启丢失</td>
+</tr>
+<tr>
+<td>Push</td>
+<td>Nacos&#x2F;ZK</td>
+<td>配置中心监听实时生效</td>
+<td>实时可靠</td>
+<td>架构复杂</td>
+</tr>
+<tr>
+<td>Pull</td>
+<td>本地文件&#x2F;DB</td>
+<td>客户端定期轮询（30s）</td>
+<td>实现简单</td>
+<td>有延迟</td>
+</tr>
+</tbody></table>
+<p><strong>RestTemplate&#x2F;Feign 整合 Sentinel</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@SentinelRestTemplate(</span></span><br><span class="line"><span class="meta">    fallback = &quot;fallback&quot;,</span></span><br><span class="line"><span class="meta">    blockHandler = &quot;blockHandler&quot;,</span></span><br><span class="line"><span class="meta">    blockHandlerClass = SentinelUtil.class</span></span><br><span class="line"><span class="meta">)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">RestTemplate</span> <span class="title function_">restTemplate</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RestTemplate</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.yml</span></span><br><span class="line"><span class="attr">feign:</span></span><br><span class="line">  <span class="attr">sentinel:</span></span><br><span class="line">    <span class="attr">enabled:</span> <span class="literal">true</span>  <span class="comment"># Feign 调用自动接入 Sentinel</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Sentinel Slot 链（ProcessorSlotChain）</strong>：每个资源进入 Sentinel 时依次经过以下 Slot：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">NodeSelectorSlot（构建调用树）</span><br><span class="line">  → ClusterBuilderSlot（创建集群统计节点）</span><br><span class="line">    → StatisticSlot（统计实时指标）</span><br><span class="line">      → FlowSlot（流控规则校验）</span><br><span class="line">        → DegradeSlot（熔断降级规则校验）</span><br><span class="line">          → SystemSlot（系统自适应保护校验）</span><br></pre></td></tr></table></figure>
+
+<p><strong>追问链</strong>：<code>@SentinelResource 详解 → blockHandler/fallback 区别 → 热点参数限流(LRU+滑动窗口) → 系统自适应保护(Load/CPU/RT) → 规则持久化Push vs Pull → RestTemplate/Feign 整合 → Slot 链各节点职责</code></p>
+<hr>
+<h2 id="3-4-Dubbo-RPC-框架"><a href="#3-4-Dubbo-RPC-框架" class="headerlink" title="3.4 Dubbo RPC 框架"></a>3.4 Dubbo RPC 框架</h2><p>Dubbo 是阿里巴巴开源的高性能 Java RPC 框架，基于 TCP 长连接 + NIO 多路复用实现高效远程调用，与 Spring Cloud Alibaba 生态深度集成。</p>
+<p><strong>Dubbo 协议特点</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">TCP 长连接 + Netty NIO 多路复用 + Hessian2 二进制序列化</span><br><span class="line">  → 适合小数据量（&lt;100KB）、高并发场景</span><br><span class="line">  → 单一长连接承载大量请求，减少连接建立开销</span><br><span class="line">  → 不适合传大包（&gt;100KB 建议切 HTTP）</span><br></pre></td></tr></table></figure>
+
+<p><strong>Dubbo vs OpenFeign 对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Dubbo</th>
+<th>OpenFeign</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通信协议</td>
+<td>TCP 长连接</td>
+<td>HTTP 短连接</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td>Hessian2 二进制</td>
+<td>JSON 文本</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>高（TCP 复用 + 二进制）</td>
+<td>中（HTTP 解析开销）</td>
+</tr>
+<tr>
+<td>侵入性</td>
+<td>需要 Dubbo 接口契约</td>
+<td>标准 HTTP 接口</td>
+</tr>
+<tr>
+<td>跨语言</td>
+<td>需多语言 SDK</td>
+<td>天然跨语言</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>内部服务间高频调用</td>
+<td>对外 REST API</td>
+</tr>
+</tbody></table>
+<p><strong>负载均衡策略</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>算法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Random（默认）</td>
+<td>加权随机</td>
+<td>按权重分配</td>
+</tr>
+<tr>
+<td>RoundRobin</td>
+<td>加权轮询</td>
+<td>平滑加权轮询</td>
+</tr>
+<tr>
+<td>LeastActive</td>
+<td>最少活跃数</td>
+<td>选当前请求数最少的节点</td>
+</tr>
+<tr>
+<td>ConsistentHash</td>
+<td>一致性哈希</td>
+<td>相同参数路由到同一节点</td>
+</tr>
+</tbody></table>
+<p><strong>集群容错策略</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Failover（默认）</td>
+<td>失败重试其他节点</td>
+<td>读操作、幂等写</td>
+</tr>
+<tr>
+<td>Failfast</td>
+<td>立即失败</td>
+<td>非幂等写操作</td>
+</tr>
+<tr>
+<td>Failsafe</td>
+<td>异常静默忽略</td>
+<td>日志上报等非核心</td>
+</tr>
+<tr>
+<td>Forking</td>
+<td>并行调用多个，取第一个成功</td>
+<td>实时性要求极高</td>
+</tr>
+<tr>
+<td>Broadcast</td>
+<td>广播所有节点</td>
+<td>状态同步</td>
+</tr>
+</tbody></table>
+<p><strong>Dubbo SPI 扩展机制</strong>：微内核 + 插件化架构，可自定义协议、序列化、过滤器、注册中心等。相比 Java SPI，Dubbo SPI 增加了按需加载（ExtensionLoader）、自适应扩展（@Adaptive）、条件激活（@Activate）等能力。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">java SPI：ServiceLoader 加载所有实现（全量加载、无选择）</span><br><span class="line">dubbo SPI：ExtensionLoader 按需加载 + 自适应扩展</span><br><span class="line">  → @SPI(&quot;dubbo&quot;) 指定默认实现名</span><br><span class="line">  → @Adaptive 运行时动态选择实现</span><br><span class="line">  → @Activate 条件激活（按参数匹配）</span><br></pre></td></tr></table></figure>
+
+<p><strong>多协议支持</strong>：Dubbo 协议（默认 TCP）→ Triple（HTTP&#x2F;2，云原生兼容 gRPC）、gRPC、Thrift、REST。3.x 推荐 Triple 协议适配 gRPC 生态。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：Dubbo 协议传大包（&gt;100KB）性能急剧下降；TCP 长连接线程池耗尽可能导致服务雪崩，需合理配置线程池参数。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：<a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#16-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">JDK Proxy vs CGLIB</a> AOP 代理 &#x2F; OpenFeign 声明式调用的 HTTP 方案对比</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Dubbo 服务暴露</span></span><br><span class="line"><span class="meta">@DubboService</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">UserService</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">User</span> <span class="title function_">findById</span><span class="params">(Long id)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> userMapper.selectById(id);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Dubbo 服务引用</span></span><br><span class="line"><span class="meta">@DubboReference</span></span><br><span class="line"><span class="keyword">private</span> UserService userService;</span><br></pre></td></tr></table></figure>
+
+<p><strong>追问链</strong>：<code>Dubbo 协议特点 → TCP 长连接 NIO → vs OpenFeign 选型 → 负载均衡五种策略 → ConsistentHash 场景 → 集群容错五种策略 → Failover vs Failfast → SPI 扩展机制 vs Java SPI → Triple 协议云原生</code></p>
+<hr>
+<h2 id="3-5-Seata-分布式事务"><a href="#3-5-Seata-分布式事务" class="headerlink" title="3.5 Seata 分布式事务"></a>3.5 Seata 分布式事务</h2><p>Seata 是阿里巴巴开源的分布式事务解决方案，提供四种事务模式覆盖不同一致性需求。</p>
+<p><strong>AT 模式</strong>（Auto Transaction，自动模式）：无侵入方案，通过 DataSourceProxy 自动拦截 SQL。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">一阶段：业务 SQL → Seata 代理 DataSource 拦截 → 记录 before image + after image</span><br><span class="line">  → 插入 undo_log 表 → 获取全局锁 → 提交本地事务</span><br><span class="line">二阶段 Commit：清除 undo_log → 释放全局锁</span><br><span class="line">二阶段 Rollback：读取 undo_log before image → 生成反向 SQL 回滚数据 → 清除 undo_log</span><br></pre></td></tr></table></figure>
+
+<p><strong>AT 模式写隔离</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">事务 A 获取全局锁（Table:PK）→ 提交本地事务释放本地锁</span><br><span class="line">事务 B 尝试获取同一全局锁 → 获取超时后本地事务回滚（默认不重试，需业务层设计重试策略）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>AT 模式下获取全局锁失败默认抛异常回滚本地事务，不会阻塞等待重试。业务层需通过重试机制（如 AOP 重试 + 回退）处理全局锁竞争。</p>
+</blockquote>
+<p><strong>AT 模式读隔离</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">快照读（普通 SELECT）：不加全局锁，可能读到全局锁未提交的数据，存在脏读风险</span><br><span class="line">当前读（SELECT FOR UPDATE）：触发全局锁，实现严格读隔离，但性能下降</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>面试追问方向：快照读 vs 当前读的选择策略是什么？AT 模式读隔离与 InnoDB MVCC 读隔离的区别？</p>
+</blockquote>
+<p><strong>TCC 模式</strong>（Try-Confirm-Cancel）：侵入式方案，需手动实现三阶段：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>行为</th>
+<th>需解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Try</td>
+<td>资源预留（如冻结库存）</td>
+<td>空回滚、幂等</td>
+</tr>
+<tr>
+<td>Confirm</td>
+<td>确认提交</td>
+<td>幂等</td>
+</tr>
+<tr>
+<td>Cancel</td>
+<td>补偿回滚</td>
+<td>幂等、防悬挂</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>空回滚：Try 未执行但 Cancel 被调用；悬挂：Cancel 比 Try 先到达。需通过事务记录表状态判断。</p>
+</blockquote>
+<p><strong>Saga 模式</strong>：状态机编排，一阶段直接提交本地事务，失败后执行补偿事务。正向恢复（重试）vs 反向恢复（补偿）。</p>
+<p><strong>XA 模式</strong>：基于 X&#x2F;Open XA 规范，通过分支事务 + 全局锁实现强一致性。实现简单但性能最低。</p>
+<p><strong>四种模式对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>一致性</th>
+<th>性能</th>
+<th>侵入性</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>XA</td>
+<td>强一致</td>
+<td>低</td>
+<td>低</td>
+<td>银行转账等</td>
+</tr>
+<tr>
+<td>AT</td>
+<td>最终一致</td>
+<td>中</td>
+<td>低</td>
+<td>大部分微服务</td>
+</tr>
+<tr>
+<td>TCC</td>
+<td>最终一致</td>
+<td>高</td>
+<td>高</td>
+<td>高并发核心链路</td>
+</tr>
+<tr>
+<td>Saga</td>
+<td>最终一致</td>
+<td>高</td>
+<td>中</td>
+<td>长事务</td>
+</tr>
+</tbody></table>
+<p><strong>架构三角色</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TC（Transaction Coordinator）：独立部署的事务协调器，维护全局事务状态</span><br><span class="line">TM（Transaction Manager）：发起方，开启/提交/回滚全局事务（@GlobalTransactional）</span><br><span class="line">RM（Resource Manager）：参与方，注册分支事务 → 报告分支状态</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关联知识点</strong>：AT 模式 undo_log → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#43-redo-log--bin-log--undo-log">MySQL 事务日志</a> &#x2F; 隔离级别 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#45-mvcc-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86undo-log--readview">MySQL MVCC</a></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GlobalTransactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">createOrder</span><span class="params">(OrderCreateDTO dto)</span> &#123;</span><br><span class="line">    orderService.create(dto);       <span class="comment">// 本地事务</span></span><br><span class="line">    accountService.deduct(dto);      <span class="comment">// 远程调用 → RM 参与全局事务</span></span><br><span class="line">    inventoryService.lock(dto);      <span class="comment">// 远程调用 → RM 参与全局事务</span></span><br><span class="line">    <span class="comment">// 任一 RM 失败 → TC 协调全部回滚</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>追问链</strong>：<code>@GlobalTransactional → AT 模式二阶段流程 → undo_log 前后镜像 → 全局锁写隔离 → 获取全局锁失败不回滚 → TCC Try/Confirm/Cancel → 空回滚/幂等/悬挂 → Saga 状态机编排 → XA 强一致 → 四种模式对比选型 → TC/TM/RM 架构</code></p>
+<hr>
+<h2 id="3-6-RocketMQ-消息中间件"><a href="#3-6-RocketMQ-消息中间件" class="headerlink" title="3.6 RocketMQ 消息中间件"></a>3.6 RocketMQ 消息中间件</h2><p>RocketMQ 是阿里巴巴开源的分布式消息中间件，提供高可靠、高吞吐的消息能力，与 Spring Cloud Alibaba 生态深度集成。</p>
+<p><strong>核心角色</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Producer（消息生产者）→ NameServer（无状态路由注册中心，节点之间不通信）</span><br><span class="line">  → Broker（消息存储转发，主从部署）</span><br><span class="line">  → Consumer（消息消费者，消费组负载均衡）</span><br></pre></td></tr></table></figure>
+
+<p>NameServer 节点间不通信，Producer&#x2F;Consumer 从任一 NameServer 获取全量 Broker 路由信息。</p>
+<p><strong>事务消息</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">① Producer 发送半消息（Half Message，对 Consumer 不可见）</span><br><span class="line">② Broker 存储半消息，返回 OK</span><br><span class="line">③ Producer 执行本地事务</span><br><span class="line">④ 本地事务成功 → 发送 COMMIT → Consumer 可见</span><br><span class="line">⑤ 本地事务失败 → 发送 ROLLBACK → 半消息删除</span><br><span class="line">⑥ 本地事务无结果 → Broker 回查 Producer（6s 间隔，最多 15 次）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>回查最小间隔 6s，频繁回查有性能开销；回查接口必须幂等；事务消息不支持延迟&#x2F;批量&#x2F;定时。</p>
+</blockquote>
+<p><strong>顺序消息</strong>：分区顺序通过 <code>MessageQueueSelector</code> 将相同 sharding key 的消息投递到同一 Queue，消费端使用 <code>MessageListenerOrderly</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 发送端 — 订单 ID 作为分区键</span></span><br><span class="line">producer.send(message, <span class="keyword">new</span> <span class="title class_">MessageQueueSelector</span>() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">MessageQueue</span> <span class="title function_">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> &#123;</span><br><span class="line">        <span class="type">Long</span> <span class="variable">orderId</span> <span class="operator">=</span> (Long) arg;</span><br><span class="line">        <span class="keyword">return</span> mqs.get(orderId.intValue() % mqs.size());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, orderId);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费端 — 有序消费</span></span><br><span class="line">consumer.registerMessageListener((MessageListenerOrderly) (msgs, context) -&gt; &#123;</span><br><span class="line">    <span class="comment">// 串行消费同一 Queue</span></span><br><span class="line">    <span class="keyword">return</span> ConsumeOrderlyStatus.SUCCESS;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>延迟消息</strong>：18 个固定延迟级别（1s&#x2F;5s&#x2F;10s&#x2F;30s&#x2F;1m&#x2F;2m&#x2F;3m&#x2F;4m&#x2F;5m&#x2F;6m&#x2F;7m&#x2F;8m&#x2F;9m&#x2F;10m&#x2F;20m&#x2F;30m&#x2F;1h&#x2F;2h），通过延迟队列 <code>SCHEDULE_TOPIC_XXXX</code> 实现定时调度。</p>
+<p><strong>消息可靠性保障</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>保障措施</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>生产端</td>
+<td>同步发送 + 重试（默认 2 次）+ 发送回调确认</td>
+</tr>
+<tr>
+<td>Broker 端</td>
+<td>同步刷盘（SYNC_FLUSH）+ 同步复制（SYNC_MASTER）</td>
+</tr>
+<tr>
+<td>消费端</td>
+<td>业务处理完手动 CONSUME_SUCCESS，异常重试 16 次</td>
+</tr>
+</tbody></table>
+<p><strong>消息幂等性</strong>：RocketMQ 投递语义为 at-least-once，消费端可能收到重复消息，需业务方自行幂等。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方案一：唯一键去重</span></span><br><span class="line"><span class="keyword">if</span> (redis.setIfAbsent(<span class="string">&quot;order:paid:&quot;</span> + orderId, <span class="string">&quot;1&quot;</span>, <span class="number">10</span>, TimeUnit.SECONDS)) &#123;</span><br><span class="line">    processOrder(orderId);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方案二：状态机判断</span></span><br><span class="line"><span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> db.update(<span class="string">&quot;UPDATE orders SET status=&#x27;PAID&#x27; WHERE id=? AND status=&#x27;UNPAID&#x27;&quot;</span>, orderId);</span><br><span class="line"><span class="keyword">if</span> (rows &gt; <span class="number">0</span>) &#123; <span class="comment">// 未处理过</span></span><br><span class="line">    doPostProcess();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">**消息堆积处理策略**：</span><br><span class="line"></span><br><span class="line">堆积原因：消费能力跟不上生产速度（消费耗时 &gt; 生产速率），或 Consumer 数量不足、处理逻辑过于重量级。</span><br><span class="line"></span><br><span class="line">临时处理方案：</span><br><span class="line"><span class="number">1.</span> 创建新 Topic，扩容 Queue 数量（Queue 是消费并发单元）</span><br><span class="line"><span class="number">2.</span> 部署<span class="string">&quot;搬运 Consumer&quot;</span>：从原 Topic 批量拉取并转发到新 Topic</span><br><span class="line"><span class="number">3.</span> 业务 Consumer 从新 Topic 消费，并行度提高</span><br><span class="line"></span><br><span class="line">预防方案：监控 Consumer 堆积深度 → 动态扩容 Consumer（Rebalance 自动分配）→ 避免非核心业务与核心业务混用线程池。</span><br><span class="line"></span><br><span class="line">&gt; **常见陷阱**：事务消息回查接口必须幂等；消息堆积时不可随意跳过需确认不丢业务；at-least-once 意味着消费端必须在业务侧做幂等。</span><br><span class="line"></span><br><span class="line">&gt; **关联知识点**：事务消息 → [Seata AT 模式](#<span class="number">35</span>-seata-分布式事务) 分布式事务对比 / 消息堆积 → [线程池机制](/java%E7%<span class="number">9F</span>%A5%E8%AF%<span class="number">86</span>%E8%A7%<span class="number">84</span>%E5%<span class="number">88</span>%<span class="number">92</span>%E2%<span class="number">80</span>%<span class="number">94</span>%E2%<span class="number">80</span>%<span class="number">94</span>%E6%A0%B8%E5%BF%<span class="number">83</span>/#<span class="number">13</span>-并发编程) 异步处理</span><br><span class="line"></span><br><span class="line">**追问链**：`RocketMQ 核心角色 → NameServer 无状态设计 → 事务消息半消息+回查机制 → 回查 6s/最多<span class="number">15</span>次 → 顺序消息 MessageQueueSelector → 延迟消息 <span class="number">18</span> 级别 → 消息可靠性三端保障 → 同步刷盘 vs 异步刷盘 → 消息幂等 at-least-once → 堆积处理策略`</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">## <span class="number">3.7</span> 链路追踪（Micrometer Tracing / SkyWalking）</span><br><span class="line"></span><br><span class="line">Spring Boot <span class="number">3.</span>x 弃用 Sleuth，推荐使用 Micrometer Tracing（基于 Brave 或 OpenTelemetry 实现）。</span><br><span class="line"></span><br><span class="line">**TraceId / SpanId**：</span><br><span class="line"></span><br><span class="line">```text</span><br><span class="line">外部请求 → Gateway 生成 TraceId（UUID）</span><br><span class="line">  → 服务 A SpanA（Parent Span）</span><br><span class="line">    → 调用服务 B SpanB（Child Span，携带 ParentSpanId=SpanA）</span><br><span class="line">      → 调用服务 C SpanC</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>TraceId：标识完整请求链路，透传所有服务</li>
+<li>SpanId：标识每个服务处理单元，ParentSpanId 构建调用树</li>
+<li>透传方式：HTTP Header（<code>X-B3-TraceId</code>&#x2F;<code>X-B3-SpanId</code>）或 Dubbo RpcContext</li>
+</ul>
+<p><strong>Zipkin 集成</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.yml — Micrometer Tracing + Zipkin</span></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">tracing:</span></span><br><span class="line">    <span class="attr">sampling:</span></span><br><span class="line">      <span class="attr">probability:</span> <span class="number">0.1</span>  <span class="comment"># 采样率 10%</span></span><br><span class="line">  <span class="attr">zipkin:</span></span><br><span class="line">    <span class="attr">tracing:</span></span><br><span class="line">      <span class="attr">endpoint:</span> <span class="string">http://zipkin-server:9411/api/v2/spans</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>SkyWalking 架构</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Agent（Byte Buddy 字节码增强，无侵入）</span><br><span class="line">  → OAP Server（数据聚合分析）</span><br><span class="line">    → Storage（Elasticsearch / MySQL / H2）</span><br><span class="line">      → UI（可视化展示）</span><br></pre></td></tr></table></figure>
+
+<p>SkyWalking 通过 Byte Buddy 在加载时修改字节码，自动拦截 HTTP&#x2F;Dubbo&#x2F;gRPC&#x2F;DB 等调用，无需手动埋点。</p>
+<p><strong>采样策略</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+<th>配置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>固定采样率</td>
+<td>按百分比采样（0.0-1.0）</td>
+<td>management.tracing.sampling.probability</td>
+</tr>
+<tr>
+<td>速率限制</td>
+<td>每秒采样上限</td>
+<td>自定义 Sampler</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>生产环境采样率建议 0.1（10%），全量采样会对高并发服务产生性能影响。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：TraceId 透传 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">ThreadLocal 线程隔离</a> &#x2F; Span 构建 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#16-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">AOP 切面拦截</a> 自动埋点</p>
+</blockquote>
+<p><strong>追问链</strong>：<code>链路追踪解决了什么问题 → TraceId/SpanId 父子关系 → HTTP Header 透传 → Micrometer Tracing 替代 Sleuth → Zipkin Span 上报 → SkyWalking 无侵入 Agent → Byte Buddy 字节码增强 → 采样策略 0.1 → 与日志系统 MDC 关联</code></p>
+<hr>
+<h2 id="3-8-OpenFeign-声明式调用"><a href="#3-8-OpenFeign-声明式调用" class="headerlink" title="3.8 OpenFeign 声明式调用"></a>3.8 OpenFeign 声明式调用</h2><p>OpenFeign 通过接口注解定义 HTTP 客户端，动态代理生成实现类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient(</span></span><br><span class="line"><span class="meta">    name = &quot;user-service&quot;,</span></span><br><span class="line"><span class="meta">    path = &quot;/api/users&quot;,</span></span><br><span class="line"><span class="meta">    fallbackFactory = UserClientFallbackFactory.class</span></span><br><span class="line"><span class="meta">)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">UserClient</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/&#123;id&#125;&quot;)</span></span><br><span class="line">    Result&amp;lt;user&gt; getUser(<span class="meta">@PathVariable</span> Long id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Feign 调用链路</strong>：<code>@FeignClient 接口调用 → 动态代理发起 HTTP 请求 → RequestInterceptor 拦截 → 负载均衡 → 发送 HTTP 请求 → ErrorDecoder 处理响应</code></p>
+<blockquote>
+<p><strong>常见陷阱</strong>：Feign 超时不设置或设置过长会导致线程池耗尽；重试机制需要幂等性保证。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Dubbo vs OpenFeign 对比 → TCP 长连接 vs HTTP 短连接选型依据 &#x2F; Feign 动态代理 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#16-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">动态代理模式</a></p>
+</blockquote>
+<hr>
+<h2 id="3-9-Bootstrap-上下文与配置加载"><a href="#3-9-Bootstrap-上下文与配置加载" class="headerlink" title="3.9 Bootstrap 上下文与配置加载"></a>3.9 Bootstrap 上下文与配置加载</h2><p>Spring Cloud 应用在启动时比 Spring Boot 多了一个 Bootstrap 上下文：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Spring Cloud 应用启动</span><br><span class="line">  → Bootstrap ApplicationContext 初始化</span><br><span class="line">  → 加载 bootstrap.yml / bootstrap-&#123;profile&#125;.yml</span><br><span class="line">  → 从 Nacos Config 拉取远程配置</span><br><span class="line">  → 创建主 ApplicationContext（读取远程配置+本地配置合并）</span><br><span class="line">  → 正常 Spring Boot 启动流程</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关联知识点</strong>：微服务治理 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#48-%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8shardingsphere-%E5%8E%9F%E7%90%86">MySQL 分库分表</a> 分布式场景 &#x2F; Sentinel 熔断 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">线程池拒绝策略</a> 类比</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Nacos 注册中心原理 → 心跳机制 → CAP 权衡(AP/CP) → 配置中心长轮询原理(30s挂起+MD5分片) → 灰度配置Beta发布 → Nacos 2.0 gRPC改进 → 临时vs持久化实例 → 注册中心CAP对比(Nacos/Eureka/Consul/ZK) → Gateway 路由三要素 → Predicate 匹配 → Filter 链 → 自定义GatewayFilter工厂 → GlobalFilter鉴权日志 → RequestRateLimiter Redis+Lua → Gateway vs Zuul 1.x → 动态路由 → Sentinel 流量控制 → @SentinelResource blockHandler/fallback → 热点参数限流(LRU+滑动窗口) → 系统自适应保护(Load/CPU/RT) → 规则持久化Push/Pull → 熔断状态机(Closed/Open/Half-Open) → 滑动窗口/令牌桶/漏桶对比 → Dubbo RPC(TCP长连接+NIO+Hessian2) → 负载均衡五种策略 → 集群容错五种策略 → Dubbo vs OpenFeign → SPI扩展机制 → Seata AT模式二阶段 → undo_log前后镜像 → 全局锁写隔离 → TCC Try/Confirm/Cancel → 空回滚幂等悬挂 → Saga状态机编排 → 四种模式对比(XA/AT/TCC/Saga) → TC/TM/RM架构 → RocketMQ核心角色 → 事务消息半消息+回查 → 顺序消息MessageQueueSelector → 延迟消息18级别 → 消息可靠性三端保障 → 消息幂等 → 链路追踪TraceId/SpanId → Micrometer Tracing替代Sleuth → Zipkin/SkyWalking集成 → 无侵入Agent Byte Buddy → 采样策略 → OpenFeign声明式调用 → Feign调用链路 → 超时重试配置 → Bootstrap上下文 → 与 @Conditional(2.3) 及线程池拒绝策略(核心1.3) 关联</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/">https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/research/">research</a><a class="post-meta__tags" href="/tags/interview/">interview</a><a class="post-meta__tags" href="/tags/guide/">guide</a><a class="post-meta__tags" href="/tags/java/">java</a><a class="post-meta__tags" href="/tags/spring/">spring</a><a class="post-meta__tags" href="/tags/spring-cloud/">spring-cloud</a><a class="post-meta__tags" href="/tags/microservices/">microservices</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/" title="低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash</div></div><div class="info-2"><div class="info-item-1">低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash 快查区：快速找到你的答案一句话定论别找了，没有比 V4 Flash 更便宜且编码能力不输的 API 模型。 DeepSeek V4 Flash（输入 ¥1 &#x2F; 输出 ¥2 &#x2F; 百万 tokens，SWE-bench 80.6%）在同价位段没有对手。你的实际选择只有三个方向：    你的态度 推荐做法 代价    不能接受能力降级 继续用 V4 Flash + 优化使用方式 能力不变，做好缓存命中、错峰使用可大幅降本   接受小幅降级，想省长期成本 自部署开源模型（见 §3） SWE-bench 73-77%，需一次性硬件投入   只做简单任务，越便宜越好 免费 API 模型（见 §2） 能力只有 59.2%，仅适合辅助轮角色   不想看细节？选第一行即可。 下面都是为需要详细对比的人准备的。  本报告怎么读   你的目的 看哪里    只想确认”没有更好的选择” 看完快查区即可   想了解哪些模型可以当备胎 看 §2   想算算自部署划不划算 看 §3   需要完整参考 全看...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="java知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">java知识规划——核心</div></div><div class="info-2"><div class="info-item-1">java知识规划——核心 本文档覆盖面试权重 30% 的 Java 核心知识，按”语言特性 → 运行时原理 → 并发 → 数据结构 → IO → 设计”的逻辑递进。与 Spring 生态体系、MyBatis、MySQL、AI 开发等方向的知识关联见总览文档的跨域链路。  1.1 Java 版本特性演进（8→11→17→21）涵盖 Java 8&#x2F;11&#x2F;17&#x2F;21 四个 LTS 版本的核心特性，重点理解 Lambda 编译原理、Stream 惰性求值、虚拟线程并发模型、Record 与模式匹配的语言级增强。  Lambda 与 invokedynamicJava 8 Lambda 的编译方式与匿名内部类有本质区别：  匿名内部类：javac 编译为独立的 OuterClass$1.class 文件，每次调用经历类加载、验证、准备完整流程 Lambda 表达式：javac 生成一条 invokedynamic 指令，首次调用时通过 BootstrapMethods 属性中的 LambdaMetafactory.metafactory() 动态生成本地内部类...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/" title="java知识规划——spring"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——spring</div></div><div class="info-2"><div class="info-item-1">java知识规划——spring 本文档覆盖面试权重 25% 的 Spring 知识体系，按”容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全”层层递进。每节末尾标注与 Java 核心、AI 开发 及 Spring Cloud 微服务 方向的知识关联。   2.1 Spring IoC 容器覆盖 Bean 生命周期全流程、三级缓存循环依赖、BeanFactory 与 ApplicationContext 的区别。  Bean 生命周期全流程Spring IoC 容器中一个 Bean 从创建到销毁经历以下步骤（最核心的 10 步）： 123456789101112131415161718192021222324252627282930① 实例化（Instantiation）   通过反射（Constructor.newInstance）创建原始对象   ↓② 属性赋值（Population）   @Autowired / @Resource / @Value 完成依赖注入   ↓③ Aware 接口回调   BeanNameAware.setBeanN...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/" title="java知识规划——redis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">java知识规划——redis</div></div><div class="info-2"><div class="info-item-1">java知识规划——redis 本文档覆盖 Redis 面试知识体系，按”数据结构 → 持久化 → 集群 → 过期淘汰 → 分布式锁 → 缓存设计 → 事务 Lua → 高级特性 → Redisson → 实战场景”层层递进。每节末尾标注与 Java 核心、Spring Cloud 微服务 及 MySQL 方向的知识关联。   6.1 核心数据结构与底层编码一句话原理：Redis 有 9 种核心数据结构，每种底层由 2-3 种编码实现，根据数据特征自动切换。理解 RedisObject 和编码转换条件是区分”会用”和”懂原理”的关键。  RedisObject 头部每个 key 的 value 在 Redis 中存储为 redisObject： 12345678┌──────────────────────────────────────────┐│ redisObject 头部（16 bytes, 64-bit）       ││ type:4bit（String/List/Set/ZSet/Hash）    ││ encoding:4bit（int/embstr/raw/ht...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/" title="java知识规划——mybatis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mybatis</div></div><div class="info-2"><div class="info-item-1">java知识规划——mybatis 本文档覆盖面试权重 15% 的 MyBatis 知识体系。从 SQL 参数绑定到高级映射逐层递进。每节末尾标注与 Java 核心、Spring 生态 及 MySQL 方向的知识关联。   3.1 #{} vs ${} 及 SQL 注入防范一句话原理：#{} 走预编译（PreparedStatement + ? 占位符），参数由 TypeHandler 安全设置，防 SQL 注入；${} 直接字符串替换拼接，仅用于表名&#x2F;列名等动态标识符。  预编译机制#{} 在 MyBatis 解析阶段被替换为 ?，由 JDBC 的 PreparedStatement.setXxx(index, value) 安全设置： 1234&lt;!-- XML 映射 --&gt;&lt;select id=&quot;findByUsername&quot; resultType=&quot;User&quot;&gt;    SELECT * FROM user WHERE username = #&#123;username&#125;&lt;/selec...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/" title="java知识规划——mysql"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mysql</div></div><div class="info-2"><div class="info-item-1">java知识规划——mysql 本文档覆盖面试权重 15% 的 MySQL 知识体系。按”索引 → 优化 → 执行计划 → 事务 → MVCC → 锁 → SQL 优化 → 分库分表 → 主从复制 → InnoDB 内存结构”递进。每节末尾标注与 Spring 生态 及 MyBatis 方向的知识关联。   4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀一句话原理：B+Tree 非叶子节点只存索引键（不存数据），叶子节点存完整行数据（聚簇）或主键值（二级）且叶子节点间有双向链表；聚簇索引物理存储顺序&#x3D;索引顺序，一张表一个；二级索引叶子存主键值需回表。  B+Tree 三层结构12345根节点（存放索引键的指针范围）  ↓内部节点（存放下一层节点的指针范围）  ↓叶子节点（存放完整数据或主键值，双向链表连接）  B+Tree vs B-Tree 核心区别：    维度 B+Tree B-Tree    数据存储 只有叶子节点存数据 所有节点都存数据   叶子节点连接 有双向链表，支持范围扫描 无链表，范围查询需中序遍历   I&...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="java知识规划——分布式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">java知识规划——分布式系统</div></div><div class="info-2"><div class="info-item-1">java知识规划——分布式系统 本文档是 Java 知识规划体系的理论补全，按”理论基石 → 一致性协议 → ID → 事务 → 锁 → 存储 → RPC → 可观测 → 配置 → 设计思维”递进。与 Spring Cloud 微服务方向的关系：微服务是实践，分布式理论是底层原理。建议先读微服务方向再读本文档。   7.1 CAP 定理与 BASE 理论一句话原理：分布式系统在 Consistency（一致性）、Availability（可用性）、Partition Tolerance（分区容错性）三者中最多同时满足两个。网络分区是基础设施的必然现象（P 必须选），实际是在 C 和 A 之间取舍。  CAP 不三角123456C（一致性）：所有节点在同一时刻看到同一份数据A（可用性）：每次请求都能收到非错响应（不保证数据最新）P（分区容错性）：网络分区时系统仍能正常工作P 是必选——网络分区一定会发生，不可选择忽略。实际决策：CP（优先一致，允许不可用）vs AP（优先可用，接受最终一致）  两级节点场景证明：网络分区发生时，节点 N1 和 N2 无法通信。如果允许 N1 接受写...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94ai%E5%BC%80%E5%8F%91/" title="java知识规划——ai开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——ai开发</div></div><div class="info-2"><div class="info-item-1">java知识规划——ai开发 本文档覆盖面试权重 10% 的 AI 开发知识，以 LangChain4j 框架为主线，从 AiServices 核心架构到模型集成、RAG、Tool Calling、会话记忆、流式响应逐层展开。每个知识点与 Java 核心 及 Spring 生态 的知识关联标注在末尾。   5.1 核心架构与 AiServices涵盖 AiServices 动态代理原理、ChatLanguageModel 统一抽象、核心组件体系以及 LangChain4j 与 Spring AI 的选型对比。  AiServices 动态代理原理AiServices 是 LangChain4j 的核心入口，底层基于 JDK 动态代理实现： 12345678// 定义 AI Service 接口interface Assistant &#123;    String chat(String userMessage);&#125;// AiServices.create() 创建代理实例Assistant assistant = AiServices.create(Assistant...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.</span> <span class="toc-text">java知识规划——springCloud微服务</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Nacos%EF%BC%9A%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="toc-number">1.1.</span> <span class="toc-text">3.1 Nacos：注册中心 + 配置中心</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Gateway-%E8%B7%AF%E7%94%B1%E7%BD%91%E5%85%B3"><span class="toc-number">1.2.</span> <span class="toc-text">3.2 Gateway 路由网关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Sentinel-%E9%99%90%E6%B5%81%E4%B8%8E%E7%86%94%E6%96%AD"><span class="toc-number">1.3.</span> <span class="toc-text">3.3 Sentinel 限流与熔断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Dubbo-RPC-%E6%A1%86%E6%9E%B6"><span class="toc-number">1.4.</span> <span class="toc-text">3.4 Dubbo RPC 框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-Seata-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="toc-number">1.5.</span> <span class="toc-text">3.5 Seata 分布式事务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-6-RocketMQ-%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.6.</span> <span class="toc-text">3.6 RocketMQ 消息中间件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-8-OpenFeign-%E5%A3%B0%E6%98%8E%E5%BC%8F%E8%B0%83%E7%94%A8"><span class="toc-number">1.7.</span> <span class="toc-text">3.8 OpenFeign 声明式调用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-9-Bootstrap-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E9%85%8D%E7%BD%AE%E5%8A%A0%E8%BD%BD"><span class="toc-number">1.8.</span> <span class="toc-text">3.9 Bootstrap 上下文与配置加载</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

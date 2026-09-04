@@ -1,0 +1,1155 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>docker-compose 使用教程 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="Docker Compose v2&#x2F;v5 完整使用指南：从安装、compose.yaml 全语法、全部子命令到网络&#x2F;卷&#x2F;多环境&#x2F;生产&#x2F;CI&#x2F;排错">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docker-compose 使用教程">
+<meta property="og:url" content="https://ziogn.github.io/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="Docker Compose v2&#x2F;v5 完整使用指南：从安装、compose.yaml 全语法、全部子命令到网络&#x2F;卷&#x2F;多环境&#x2F;生产&#x2F;CI&#x2F;排错">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-06-18T21:15:00.000Z">
+<meta property="article:modified_time" content="2026-06-19T02:30:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="devops">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="docker-compose">
+<meta property="article:tag" content="容器编排">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "docker-compose 使用教程",
+  "url": "https://ziogn.github.io/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-06-18T21:15:00.000Z",
+  "dateModified": "2026-06-19T02:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'docker-compose 使用教程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">docker-compose 使用教程</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">docker-compose 使用教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-18T21:15:00.000Z" title="发表于 2026-06-19 05:15:00">2026-06-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-19T02:30:00.000Z" title="更新于 2026-06-19 10:30:00">2026-06-19</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>27分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="docker-compose-使用教程"><a href="#docker-compose-使用教程" class="headerlink" title="docker-compose 使用教程"></a>docker-compose 使用教程</h1><blockquote>
+<p>本教程以 Docker 官方文档与 compose-spec 为唯一依据，全程使用 v2&#x2F;v5 语法（<code>docker compose</code> 子命令），覆盖从安装到生产、CI、排错的完整链路。贯穿示例为 be-star 类栈：一个 Spring Boot 后端 + MySQL 8 + Redis 7。</p>
+</blockquote>
+<h2 id="1-开篇与-Compose-概览"><a href="#1-开篇与-Compose-概览" class="headerlink" title="1. 开篇与 Compose 概览"></a>1. 开篇与 Compose 概览</h2><h3 id="1-1-多容器编排的痛点与-Compose-的定位"><a href="#1-1-多容器编排的痛点与-Compose-的定位" class="headerlink" title="1.1 多容器编排的痛点与 Compose 的定位"></a>1.1 多容器编排的痛点与 Compose 的定位</h3><p>假设你要部署 be-star：一个 Spring Boot 后端 + MySQL 数据库 + Redis 缓存，至少三个容器。用原生 <code>docker run</code>，你需要这样的命令链：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 手动方式：三条冗长命令，且顺序、网络、卷都要手动管</span></span><br><span class="line">docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=root -v mysql-data:/var/lib/mysql mysql:8</span><br><span class="line">docker run -d --name redis redis:7</span><br><span class="line">docker run -d --name app --<span class="built_in">link</span> mysql --<span class="built_in">link</span> redis -p 8080:8080 be-star:latest</span><br></pre></td></tr></table></figure>
+
+<p>痛点很明显：命令冗长难记、启动顺序靠人工保证、容器间网络与数据卷要手动创建、整套配置无法版本化分享给团队。Compose 的价值就是用一份 <code>compose.yaml</code> 声明整个应用栈，一条命令拉起、一条命令销毁：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Compose 方式：一条命令，声明式管理</span></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-三层模型：Project-Service-Container"><a href="#1-2-三层模型：Project-Service-Container" class="headerlink" title="1.2 三层模型：Project &#x2F; Service &#x2F; Container"></a>1.2 三层模型：Project &#x2F; Service &#x2F; Container</h3><p>Compose 用三层抽象组织资源：</p>
+<ul>
+<li><strong>Project（项目）</strong>：资源隔离单位，默认以 compose 文件所在目录名命名，所有容器&#x2F;网络&#x2F;卷都带 <code>{project}_</code> 前缀（如 <code>bestar_mysql_1</code>）。可用 <code>-p</code> 或环境变量 <code>COMPOSE_PROJECT_NAME</code> 覆盖。</li>
+<li><strong>Service（服务）</strong>：compose 文件中 <code>services:</code> 下的一份容器定义。</li>
+<li><strong>Container（容器）</strong>：service 的一个运行实例。</li>
+</ul>
+<p>理解 project 是关键：两个不同目录跑同一份 compose，互不干扰，因为 project 名不同。</p>
+<h3 id="1-3-版本体系彻底澄清：v1-v2-v5"><a href="#1-3-版本体系彻底澄清：v1-v2-v5" class="headerlink" title="1.3 版本体系彻底澄清：v1 &#x2F; v2 &#x2F; v5"></a>1.3 版本体系彻底澄清：v1 &#x2F; v2 &#x2F; v5</h3><p>中文社区资料普遍过时，仍用 <code>docker-compose</code> 与 <code>version: &quot;3&quot;</code>。务必认清三者关系：</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>命令写法</th>
+<th>实现语言</th>
+<th>分发方式</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1</td>
+<td><code>docker-compose</code>（连字符）</td>
+<td>Python</td>
+<td>独立二进制</td>
+<td><strong>2023 年 EOL，已退役</strong>，不再分发</td>
+</tr>
+<tr>
+<td>v2</td>
+<td><code>docker compose</code>（空格，子命令）</td>
+<td>Go</td>
+<td>Docker CLI 插件，随 Engine&#x2F;Desktop</td>
+<td>当前主流</td>
+</tr>
+<tr>
+<td>v5</td>
+<td><code>docker compose</code>（空格，子命令）</td>
+<td>Go</td>
+<td>Docker Desktop 默认集成，新增官方 Go SDK</td>
+<td>2025 发布，与 v2 功能等价</td>
+</tr>
+</tbody></table>
+<p>v5 跳过 v3&#x2F;v4 是刻意为之——避免与旧的 compose 文件格式 <code>version: &quot;3&quot;</code> 混淆。本教程全程以 v2&#x2F;v5 为准：</p>
+<blockquote>
+<p><strong>关于 v1 EOL 日期</strong>：具体 EOL 日期官方未在 retired 页明确披露，社区普遍引用 2023-06。官方 retired 页只表述 “no longer maintained, users should migrate to Compose v2”。</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># v2/v5（正确，本教程全程使用）</span><br><span class="line">$ docker compose version</span><br><span class="line">Docker Compose version v2.29.1   # 或 v5.x.x，功能等价</span><br><span class="line"></span><br><span class="line"># v1（废弃，不要再学）</span><br><span class="line">$ docker-compose --version</span><br><span class="line">docker-compose version 1.29.2</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-version-字段已废弃——别再写了"><a href="#1-4-version-字段已废弃——别再写了" class="headerlink" title="1.4 version: 字段已废弃——别再写了"></a>1.4 <code>version:</code> 字段已废弃——别再写了</h3><p>Compose v2&#x2F;v5 完全忽略顶层 <code>version</code> 字段，始终用最新 schema 校验文件。新文件不要再写它：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ❌ 旧写法（废弃，会被忽略并可能报警告）</span></span><br><span class="line"><span class="attr">version:</span> <span class="string">&quot;3.8&quot;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">be-star:latest</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ✅ 新写法（正确，直接以 services 开头）</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">be-star:latest</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="2-安装与环境准备"><a href="#2-安装与环境准备" class="headerlink" title="2. 安装与环境准备"></a>2. 安装与环境准备</h2><h3 id="2-1-Compose-v2-与-Docker-Engine-的关系"><a href="#2-1-Compose-v2-与-Docker-Engine-的关系" class="headerlink" title="2.1 Compose v2 与 Docker Engine 的关系"></a>2.1 Compose v2 与 Docker Engine 的关系</h3><p>常见误解：”要不要单独安装 docker-compose 二进制？”——<strong>不需要</strong>。Compose v2 作为 Go 插件，随 Docker Engine（Linux）或 Docker Desktop（macOS&#x2F;Windows）一起分发。装好 Docker 即已具备 Compose。Linux 上的 <code>docker-compose-plugin</code> 包就是提供这个插件。</p>
+<h3 id="2-2-各平台安装"><a href="#2-2-各平台安装" class="headerlink" title="2.2 各平台安装"></a>2.2 各平台安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Linux（Debian/Ubuntu，apt 仓库）</span></span><br><span class="line"><span class="built_in">sudo</span> apt-get update</span><br><span class="line"><span class="built_in">sudo</span> apt-get install docker-compose-plugin   <span class="comment"># 官方包名（apt 与 rpm 都是此名）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Linux（CentOS/RHEL，yum 仓库）</span></span><br><span class="line"><span class="built_in">sudo</span> yum install docker-compose-plugin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注：某些第三方源（如 Dexian）曾提供别名 docker-plugin，但官方包名以 docker-compose-plugin 为准</span></span><br></pre></td></tr></table></figure>
+
+<p>macOS 与 Windows：安装 <a target="_blank" rel="noopener" href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a>（Windows 需启用 WSL2 后端），Compose 内置，无需额外操作。</p>
+<h3 id="2-3-验证安装与理解版本号"><a href="#2-3-验证安装与理解版本号" class="headerlink" title="2.3 验证安装与理解版本号"></a>2.3 验证安装与理解版本号</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># ✅ 成功</span><br><span class="line">$ docker compose version</span><br><span class="line">Docker Compose version v2.29.1</span><br><span class="line"></span><br><span class="line"># ❌ 失败：插件未安装或不在 PATH</span><br><span class="line">$ docker compose version</span><br><span class="line">docker: &#x27;compose&#x27; is not a docker command.</span><br><span class="line"># 排查：检查 ~/.docker/cli-plugins/ 或 /usr/libexec/docker/cli-plugins/ 是否有 docker-compose</span><br></pre></td></tr></table></figure>
+
+<p>看到 <code>v5.x.x</code> 不必恐慌，它与 v2.x 功能等价，只是新版本号体系。</p>
+<h2 id="3-快速上手：be-star-多容器组合"><a href="#3-快速上手：be-star-多容器组合" class="headerlink" title="3. 快速上手：be-star 多容器组合"></a>3. 快速上手：be-star 多容器组合</h2><h3 id="3-1-文件位置与命名规范"><a href="#3-1-文件位置与命名规范" class="headerlink" title="3.1 文件位置与命名规范"></a>3.1 文件位置与命名规范</h3><p>compose-spec 推荐的首选文件名是 <code>compose.yaml</code>（或 <code>compose.yml</code>）。兼容的历史命名 <code>docker-compose.yaml</code>&#x2F;<code>docker-compose.yml</code> 仍可用。默认 override 文件 <code>compose.override.yaml</code> 会自动与主文件合并。<strong>新项目一律用 <code>compose.yaml</code></strong>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">be-star/                         # 项目根目录（即 project name）</span><br><span class="line">├── Dockerfile                   # 后端镜像构建文件</span><br><span class="line">├── compose.yaml                 # 主 compose 文件</span><br><span class="line">├── .env                         # 环境变量（自动加载）</span><br><span class="line">├── mysql-init/                  # 数据库初始化脚本</span><br><span class="line">│   └── init.sql</span><br><span class="line">└── src/                         # 应用源码</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-一份可直接抄的完整-compose-yaml"><a href="#3-2-一份可直接抄的完整-compose-yaml" class="headerlink" title="3.2 一份可直接抄的完整 compose.yaml"></a>3.2 一份可直接抄的完整 compose.yaml</h3><p>下面这份贯穿全教程的文件可直接抄改使用，包含 app（Spring Boot）、mysql、redis 三个 service。后续章节逐字段拆解。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">build:</span> <span class="string">.</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8080:8080&quot;</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="attr">mysql:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_healthy</span></span><br><span class="line">      <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_started</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">SPRING_DATASOURCE_URL:</span> <span class="string">jdbc:mysql://mysql:3306/bestar</span></span><br><span class="line">      <span class="attr">SPRING_REDIS_HOST:</span> <span class="string">redis</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:8</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">$&#123;MYSQL_ROOT_PASSWORD:-root&#125;</span></span><br><span class="line">      <span class="attr">MYSQL_DATABASE:</span> <span class="string">bestar</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">mysql-data:/var/lib/mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./mysql-init:/docker-entrypoint-initdb.d:ro</span></span><br><span class="line">    <span class="attr">healthcheck:</span></span><br><span class="line">      <span class="attr">test:</span> [<span class="string">&quot;CMD&quot;</span>, <span class="string">&quot;mysqladmin&quot;</span>, <span class="string">&quot;ping&quot;</span>, <span class="string">&quot;-h&quot;</span>, <span class="string">&quot;localhost&quot;</span>]</span><br><span class="line">      <span class="attr">interval:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">timeout:</span> <span class="string">5s</span></span><br><span class="line">      <span class="attr">retries:</span> <span class="number">5</span></span><br><span class="line">      <span class="attr">start_period:</span> <span class="string">30s</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:7</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">mysql-data:</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-四步跑通：up-→-ps-→-logs-→-down"><a href="#3-3-四步跑通：up-→-ps-→-logs-→-down" class="headerlink" title="3.3 四步跑通：up → ps → logs → down"></a>3.3 四步跑通：up → ps → logs → down</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># 1. 后台启动整个栈（首次会构建 app 镜像、拉取 mysql/redis）</span><br><span class="line">$ docker compose up -d</span><br><span class="line">[+] Running 4/4</span><br><span class="line"> ✔ Network bestar_default      Created</span><br><span class="line"> ✔ Volume &quot;bestar_mysql-data&quot;  Created</span><br><span class="line"> ✔ Container bestar-mysql-1    Started</span><br><span class="line"> ✔ Container bestar-redis-1    Started</span><br><span class="line"> ✔ Container bestar-app-1      Started</span><br><span class="line"></span><br><span class="line"># 2. 查看运行中的容器</span><br><span class="line">$ docker compose ps</span><br><span class="line">NAME                IMAGE        STATUS                    PORTS</span><br><span class="line">bestar-app-1        bestar-app   Up 10 seconds             0.0.0.0:8080-&gt;8080/tcp</span><br><span class="line">bestar-mysql-1      mysql:8      Up 20 seconds (healthy)   3306/tcp</span><br><span class="line">bestar-redis-1      redis:7      Up 20 seconds             6379/tcp</span><br><span class="line"></span><br><span class="line"># 3. 跟踪 app 日志</span><br><span class="line">$ docker compose logs -f app</span><br><span class="line"></span><br><span class="line"># 4. 停止并移除容器（默认保留卷，数据不丢）</span><br><span class="line">$ docker compose down</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-compose-yaml-全语法详解"><a href="#4-compose-yaml-全语法详解" class="headerlink" title="4. compose.yaml 全语法详解"></a>4. compose.yaml 全语法详解</h2><h3 id="4-1-顶层元素总览"><a href="#4-1-顶层元素总览" class="headerlink" title="4.1 顶层元素总览"></a>4.1 顶层元素总览</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">bestar</span>                    <span class="comment"># 显式 project name（可选，覆盖目录名）</span></span><br><span class="line"><span class="attr">services:</span>                       <span class="comment"># 必填：定义所有服务</span></span><br><span class="line">  <span class="attr">app:</span> &#123; <span class="string">...</span> &#125;</span><br><span class="line"><span class="attr">networks:</span>                       <span class="comment"># 自定义网络</span></span><br><span class="line">  <span class="attr">backend:</span> &#123;&#125;</span><br><span class="line"><span class="attr">volumes:</span>                        <span class="comment"># 命名卷</span></span><br><span class="line">  <span class="attr">mysql-data:</span> &#123;&#125;</span><br><span class="line"><span class="attr">configs:</span>                        <span class="comment"># 非敏感配置文件</span></span><br><span class="line">  <span class="attr">nginx_conf:</span> &#123; <span class="attr">file:</span> <span class="string">./nginx.conf</span> &#125;</span><br><span class="line"><span class="attr">secrets:</span>                        <span class="comment"># 敏感数据</span></span><br><span class="line">  <span class="attr">db_password:</span> &#123; <span class="attr">file:</span> <span class="string">./db_password.txt</span> &#125;</span><br><span class="line"><span class="attr">include:</span>                        <span class="comment"># 引用其他 compose 文件（v2.20+）</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">compose.monitoring.yaml</span></span><br><span class="line"><span class="attr">x-custom:</span> &#123; <span class="string">...</span> &#125;               <span class="comment"># 自定义扩展字段（被忽略，供工具读取）</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>顶层元素</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>services</code></td>
+<td>定义容器服务（必填）</td>
+</tr>
+<tr>
+<td><code>networks</code></td>
+<td>自定义网络</td>
+</tr>
+<tr>
+<td><code>volumes</code></td>
+<td>命名卷声明</td>
+</tr>
+<tr>
+<td><code>configs</code></td>
+<td>非敏感配置文件</td>
+</tr>
+<tr>
+<td><code>secrets</code></td>
+<td>敏感数据</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>显式 project name</td>
+</tr>
+<tr>
+<td><code>include</code></td>
+<td>引用其他 compose 文件</td>
+</tr>
+<tr>
+<td><code>x-*</code></td>
+<td>自定义扩展字段</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-services-字段：镜像与构建"><a href="#4-2-services-字段：镜像与构建" class="headerlink" title="4.2 services 字段：镜像与构建"></a>4.2 services 字段：镜像与构建</h3><p><code>image</code> 拉取现成镜像，<code>build</code> 本地构建。<code>build</code> 长语法可精细控制：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">be-star:latest</span>       <span class="comment"># 镜像名（build 时打标签）</span></span><br><span class="line">    <span class="attr">build:</span></span><br><span class="line">      <span class="attr">context:</span> <span class="string">./app</span>            <span class="comment"># 构建上下文目录</span></span><br><span class="line">      <span class="attr">dockerfile:</span> <span class="string">Dockerfile</span>    <span class="comment"># 指定 Dockerfile（默认 context/Dockerfile）</span></span><br><span class="line">      <span class="attr">args:</span>                     <span class="comment"># 构建参数（对应 ARG）</span></span><br><span class="line">        <span class="attr">JAR_FILE:</span> <span class="string">target/app.jar</span></span><br><span class="line">      <span class="attr">target:</span> <span class="string">production</span>        <span class="comment"># 多阶段构建的目标阶段</span></span><br><span class="line">      <span class="attr">cache_from:</span>               <span class="comment"># 复用缓存（详见 10.1）</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">type=registry,ref=bestar/app:cache</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">bestar-app</span>  <span class="comment"># 固定容器名（否则用 &#123;project&#125;-&#123;service&#125;-N）</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;app.jar&quot;</span>]   <span class="comment"># 覆盖 CMD</span></span><br><span class="line">    <span class="attr">entrypoint:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>]    <span class="comment"># 覆盖 ENTRYPOINT</span></span><br><span class="line">    <span class="attr">working_dir:</span> <span class="string">/app</span>           <span class="comment"># 工作目录</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;1000:1000&quot;</span>           <span class="comment"># 以指定 UID:GID 运行</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-services-字段：环境变量与配置注入"><a href="#4-3-services-字段：环境变量与配置注入" class="headerlink" title="4.3 services 字段：环境变量与配置注入"></a>4.3 services 字段：环境变量与配置注入</h3><p><code>environment</code>（行内）与 <code>env_file</code>（引用外部文件）二选一或混用。<strong>敏感数据用 env_file + .env，非敏感用 environment</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="comment"># 方式一：行内（非敏感，可见于 compose 文件）</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">SPRING_PROFILES_ACTIVE=prod</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">LOG_LEVEL=info</span></span><br><span class="line">    <span class="comment"># 方式二：引用文件（敏感，文件不入库）</span></span><br><span class="line">    <span class="attr">env_file:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">.env.production</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>environment</code> 是运行时注入容器，与第 7 章的变量插值（构建 compose 文件时替换 YAML 文本）时机不同。</p>
+<h3 id="4-4-services-字段：端口与网络"><a href="#4-4-services-字段：端口与网络" class="headerlink" title="4.4 services 字段：端口与网络"></a>4.4 services 字段：端口与网络</h3><p><code>ports</code> 发布到宿主机（外部可访问），<code>expose</code> 仅暴露给同网络容器（不发布到宿主）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8080:8080&quot;</span>            <span class="comment"># 短语法：宿主端口:容器端口</span></span><br><span class="line">      <span class="comment"># 长语法</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">target:</span> <span class="number">8080</span>           <span class="comment"># 容器端口</span></span><br><span class="line">        <span class="attr">published:</span> <span class="string">&quot;8080&quot;</span>      <span class="comment"># 宿主端口</span></span><br><span class="line">        <span class="attr">protocol:</span> <span class="string">tcp</span>          <span class="comment"># tcp/udp</span></span><br><span class="line">        <span class="attr">mode:</span> <span class="string">host</span>             <span class="comment"># host/ingress(Swarm)</span></span><br><span class="line">    <span class="attr">expose:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;9000&quot;</span>                 <span class="comment"># 仅容器间可见，宿主访问不到</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">backend</span></span><br><span class="line">    <span class="attr">extra_hosts:</span>               <span class="comment"># 等价 --add-host，注入 hosts 记录</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;host.docker.internal:host-gateway&quot;</span></span><br><span class="line">    <span class="attr">dns:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">8.8</span><span class="number">.8</span><span class="number">.8</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-services-字段：运行控制"><a href="#4-5-services-字段：运行控制" class="headerlink" title="4.5 services 字段：运行控制"></a>4.5 services 字段：运行控制</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span>    <span class="comment"># 重启策略（service 级，单机生效）</span></span><br><span class="line">    <span class="attr">init:</span> <span class="literal">true</span>                 <span class="comment"># 启用 tini，解决 PID 1 僵尸进程问题</span></span><br><span class="line">    <span class="attr">stop_signal:</span> <span class="string">SIGTERM</span>       <span class="comment"># 停止信号</span></span><br><span class="line">    <span class="attr">tty:</span> <span class="literal">true</span>                  <span class="comment"># 分配伪终端</span></span><br><span class="line">    <span class="attr">stdin_open:</span> <span class="literal">true</span>           <span class="comment"># 保持标准输入打开</span></span><br></pre></td></tr></table></figure>
+
+<p><code>restart</code> 取值（单机 <code>docker compose up</code> 生效）：<code>no</code>（默认）、<code>always</code>、<code>unless-stopped</code>、<code>on-failure</code>（可带重试次数 <code>on-failure:3</code>）。注意 <code>restart_policy</code> 属于 deploy 字段，单机行为不同，详见 8.3。</p>
+<h3 id="4-6-configs-与-secrets"><a href="#4-6-configs-与-secrets" class="headerlink" title="4.6 configs 与 secrets"></a>4.6 configs 与 secrets</h3><p>两者都通过顶层声明 + service 引用，挂载为容器内文件。区别：secrets 内容不以明文出现在 <code>docker inspect</code>，专管敏感数据。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">nginx_conf</span>             <span class="comment"># 挂载到 /nginx.conf（非敏感配置）</span></span><br><span class="line">    <span class="attr">secrets:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">db_password</span>            <span class="comment"># 挂载到 /run/secrets/db_password（敏感）</span></span><br><span class="line"></span><br><span class="line"><span class="attr">configs:</span></span><br><span class="line">  <span class="attr">nginx_conf:</span></span><br><span class="line">    <span class="attr">file:</span> <span class="string">./nginx.conf</span></span><br><span class="line"></span><br><span class="line"><span class="attr">secrets:</span></span><br><span class="line">  <span class="attr">db_password:</span></span><br><span class="line">    <span class="attr">file:</span> <span class="string">./db_password.txt</span></span><br></pre></td></tr></table></figure>
+
+<p>单机模式下，configs 与 secrets 都以普通文件形式挂载到容器内。</p>
+<h2 id="5-核心子命令详解"><a href="#5-核心子命令详解" class="headerlink" title="5. 核心子命令详解"></a>5. 核心子命令详解</h2><h3 id="5-1-生命周期命令"><a href="#5-1-生命周期命令" class="headerlink" title="5.1 生命周期命令"></a>5.1 生命周期命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动：-d 后台、--build 先构建、--force-recreate 强制重建容器、--wait 等所有服务 healthy</span></span><br><span class="line">docker compose up -d --build --<span class="built_in">wait</span></span><br><span class="line">docker compose up --force-recreate app        <span class="comment"># 仅重建指定服务</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 停止并清理：-v 连卷一起删（数据丢失警告）、--rmi all 连镜像删、--remove-orphans 清孤儿容器</span></span><br><span class="line">docker compose down                <span class="comment"># 仅删容器和网络</span></span><br><span class="line">docker compose down -v             <span class="comment"># 连命名卷一起删（慎用，数据丢失）</span></span><br><span class="line">docker compose down --rmi all      <span class="comment"># 连镜像一起删</span></span><br><span class="line">docker compose down --remove-orphans</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其他生命周期</span></span><br><span class="line">docker compose stop                <span class="comment"># 停止但不删容器</span></span><br><span class="line">docker compose start               <span class="comment"># 启动已停止的容器</span></span><br><span class="line">docker compose restart app         <span class="comment"># 重启</span></span><br><span class="line">docker compose pause / unpause     <span class="comment"># 暂停/恢复（冻结进程）</span></span><br><span class="line">docker compose <span class="built_in">rm</span> -f               <span class="comment"># 删除已停止的容器</span></span><br></pre></td></tr></table></figure>
+
+<p><code>down</code> 与 <code>stop</code>&#x2F;<code>rm</code> 的区别：<code>stop</code> 只停止不删除，容器配置还在；<code>down</code> 直接停止并删除容器和网络（默认保留卷）。</p>
+<h3 id="5-2-观察与调试命令"><a href="#5-2-观察与调试命令" class="headerlink" title="5.2 观察与调试命令"></a>5.2 观察与调试命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker compose ps                                <span class="comment"># 查看运行容器</span></span><br><span class="line">docker compose ps --format <span class="string">&quot;table &#123;&#123;.Name&#125;&#125;\t&#123;&#123;.Status&#125;&#125;&quot;</span></span><br><span class="line">docker compose logs -f --<span class="built_in">tail</span>=100 app            <span class="comment"># 跟踪最后 100 行日志（排错首选）</span></span><br><span class="line">docker compose logs --since 10m app              <span class="comment"># 最近 10 分钟日志</span></span><br><span class="line">docker compose logs --timestamps app             <span class="comment"># 带时间戳</span></span><br><span class="line">docker compose top app                           <span class="comment"># 查看容器内进程</span></span><br><span class="line">docker compose events                            <span class="comment"># 实时事件流</span></span><br><span class="line">docker compose port app 8080                     <span class="comment"># 查看端口映射</span></span><br><span class="line">docker compose images                            <span class="comment"># 列出镜像</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-执行与构建命令"><a href="#5-3-执行与构建命令" class="headerlink" title="5.3 执行与构建命令"></a>5.3 执行与构建命令</h3><p><code>exec</code> 在已运行容器内执行（常用于进容器调试），<code>run</code> 启动新容器跑一次性任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># exec：进入运行中的 app 容器</span></span><br><span class="line">docker compose <span class="built_in">exec</span> app sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># run：跑一次性任务，--rm 用完即删、--no-deps 不启动依赖</span></span><br><span class="line">docker compose run --<span class="built_in">rm</span> app java -jar migrate.jar</span><br><span class="line">docker compose run --<span class="built_in">rm</span> --no-deps app <span class="built_in">ls</span> /app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建与镜像</span></span><br><span class="line">docker compose build --no-cache app     <span class="comment"># 禁缓存强制重建</span></span><br><span class="line">docker compose pull                     <span class="comment"># 拉取所有服务镜像</span></span><br><span class="line">docker compose push                     <span class="comment"># 推送镜像</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-配置维护命令与全局-flag"><a href="#5-4-配置维护命令与全局-flag" class="headerlink" title="5.4 配置维护命令与全局 flag"></a>5.4 配置维护命令与全局 flag</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config：校验 + 打印合并后最终配置（排错 override/插值首选）</span></span><br><span class="line">docker compose config                  <span class="comment"># 打印最终配置</span></span><br><span class="line">docker compose config --services       <span class="comment"># 列出所有服务名</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 容器与宿主互拷文件</span></span><br><span class="line">docker compose <span class="built_in">cp</span> app:/app/logs/app.log ./</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有 project</span></span><br><span class="line">docker compose <span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<p>全局 flag（放在子命令前）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker compose -f compose.yaml -f compose.prod.yaml up -d   <span class="comment"># 指定多文件</span></span><br><span class="line">docker compose -p myproject up -d                           <span class="comment"># 指定 project name</span></span><br><span class="line">docker compose --profile debug up -d                        <span class="comment"># 启用 profile</span></span><br><span class="line">docker compose --env-file .env.production up -d             <span class="comment"># 指定 env 文件</span></span><br><span class="line">docker compose --ansi never up -d                           <span class="comment"># 关闭彩色输出</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-网络与数据卷"><a href="#6-网络与数据卷" class="headerlink" title="6. 网络与数据卷"></a>6. 网络与数据卷</h2><h3 id="6-1-默认网络行为"><a href="#6-1-默认网络行为" class="headerlink" title="6.1 默认网络行为"></a>6.1 默认网络行为</h3><p>每个 project 自动创建一个名为 <code>{project}_default</code> 的 bridge 网络。同 project 内的服务可用服务名互相访问（Docker 内置 DNS 解析）。这就是为什么 compose.yaml 里写 <code>jdbc:mysql://mysql:3306/...</code> 能连通——<code>mysql</code> 就是服务名，自动解析为该容器 IP。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">SPRING_DATASOURCE_URL:</span> <span class="string">jdbc:mysql://mysql:3306/bestar</span>   <span class="comment"># mysql 即服务名</span></span><br><span class="line">      <span class="attr">SPRING_REDIS_HOST:</span> <span class="string">redis</span>                                <span class="comment"># redis 即服务名</span></span><br><span class="line">  <span class="attr">mysql:</span> &#123; <span class="string">...</span> &#125;</span><br><span class="line">  <span class="attr">redis:</span> &#123; <span class="string">...</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-自定义网络"><a href="#6-2-自定义网络" class="headerlink" title="6.2 自定义网络"></a>6.2 自定义网络</h3><p>多网络划分可实现隔离（如只让 app 能访问数据库，nginx 不能直连）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">frontend</span>, <span class="string">backend</span>]    <span class="comment"># 同时接入两网</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">backend</span>]              <span class="comment"># 仅后端网，前端访问不到</span></span><br><span class="line">  <span class="attr">nginx:</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">frontend</span>]             <span class="comment"># 仅前端网</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">frontend:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span>                   <span class="comment"># 默认 bridge；还有 overlay(Swarm)/host/none</span></span><br><span class="line">  <span class="attr">backend:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">    <span class="attr">enable_ipv6:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">ipam:</span></span><br><span class="line">      <span class="attr">config:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">172.20</span><span class="number">.0</span><span class="number">.0</span><span class="string">/16</span></span><br></pre></td></tr></table></figure>
+
+<p>还可给服务在网络内起别名（<code>aliases: [db, database]</code>），其他服务可用任一别名访问。</p>
+<h3 id="6-3-volumes-持久化"><a href="#6-3-volumes-持久化" class="headerlink" title="6.3 volumes 持久化"></a>6.3 volumes 持久化</h3><p>命名卷由 Docker 管理存储位置，<code>down</code> 默认保留，<code>down -v</code> 才删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">mysql-data:/var/lib/mysql</span>    <span class="comment"># 命名卷（推荐，数据持久）</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">mysql-data:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">local</span>                    <span class="comment"># 可换 NFS 等驱动</span></span><br><span class="line">    <span class="comment"># driver_opts:                   # 高级选项</span></span><br><span class="line">    <span class="comment">#   type: none</span></span><br><span class="line">    <span class="comment">#   o: bind</span></span><br><span class="line">    <span class="comment">#   device: /data/mysql</span></span><br></pre></td></tr></table></figure>
+
+<p>匿名卷（直接写容器路径 <code>-/var/lib/mysql</code>）不推荐——<code>down</code> 后易丢失且难管理。</p>
+<h3 id="6-4-bind-mount-与挂载模式选型"><a href="#6-4-bind-mount-与挂载模式选型" class="headerlink" title="6.4 bind mount 与挂载模式选型"></a>6.4 bind mount 与挂载模式选型</h3><p>bind mount 挂载宿主路径，适合开发期代码热重载、挂配置文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="comment"># 开发期：bind mount 挂源码热重载</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./src:/app/src</span></span><br><span class="line">      <span class="comment"># 只读挂载配置文件</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./nginx.conf:/etc/nginx/nginx.conf:ro</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="comment"># 生产期：命名卷存数据（由 Docker 管理，性能与可移植性更好）</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">mysql-data:/var/lib/mysql</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐挂载</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发期源码热重载</td>
+<td>bind mount</td>
+<td><code>./src:/app/src</code></td>
+</tr>
+<tr>
+<td>配置文件（只读）</td>
+<td>bind mount <code>:ro</code></td>
+<td>nginx.conf 等</td>
+</tr>
+<tr>
+<td>生产数据库数据</td>
+<td>命名卷</td>
+<td>Docker 管理，跨主机可迁移</td>
+</tr>
+<tr>
+<td>临时数据</td>
+<td>tmpfs</td>
+<td>内存中，容器停即消失</td>
+</tr>
+</tbody></table>
+<p>长语法 <code>type: bind/volume/tmpfs</code> 可精细控制挂载类型。</p>
+<h2 id="7-多环境配置"><a href="#7-多环境配置" class="headerlink" title="7. 多环境配置"></a>7. 多环境配置</h2><h3 id="7-1-多文件-override-合并规则"><a href="#7-1-多文件-override-合并规则" class="headerlink" title="7.1 多文件 override 合并规则"></a>7.1 多文件 override 合并规则</h3><p><code>-f a.yaml -f b.yaml</code> 合并时遵循官方 merge 规则：</p>
+<table>
+<thead>
+<tr>
+<th>字段类型</th>
+<th>合并规则</th>
+<th>示例字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单值字段</td>
+<td>后者覆盖前者</td>
+<td><code>image</code>、<code>command</code>、<code>mem_limit</code></td>
+</tr>
+<tr>
+<td>多值字段</td>
+<td>拼接累加</td>
+<td><code>ports</code>、<code>expose</code>、<code>dns</code>、<code>tmpfs</code></td>
+</tr>
+<tr>
+<td>键值字段</td>
+<td>按 key 合并，后者优先</td>
+<td><code>environment</code>、<code>labels</code>、<code>volumes</code>、<code>devices</code></td>
+</tr>
+</tbody></table>
+<p>路径一律相对于<strong>第一个 <code>-f</code> 指定的 base 文件</strong>解析。默认 <code>compose.override.yaml</code> 会自动与主文件合并。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># compose.yaml（base）</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">be-star:latest</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8080:8080&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># compose.override.yaml（开发覆盖：加调试端口、挂源码）</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">build:</span> <span class="string">.</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;5005:5005&quot;</span>          <span class="comment"># 多值：拼接，结果为 8080 + 5005</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">DEBUG:</span> <span class="string">&quot;true&quot;</span>          <span class="comment"># 键值：新增</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./src:/app/src</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d                 <span class="comment"># 自动合并 compose.yaml + compose.override.yaml</span></span><br><span class="line">docker compose -f compose.yaml -f compose.prod.yaml up -d   <span class="comment"># 显式指定</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-profile-按场景启用服务"><a href="#7-2-profile-按场景启用服务" class="headerlink" title="7.2 profile 按场景启用服务"></a>7.2 profile 按场景启用服务</h3><p>给 service 打 <code>profiles</code>，默认不启动，需要时用 <code>--profile</code> 启用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span> &#123; <span class="string">...</span> &#125;</span><br><span class="line">  <span class="attr">mysql:</span> &#123; <span class="string">...</span> &#125;</span><br><span class="line">  <span class="attr">adminer:</span>                         <span class="comment"># 数据库管理工具，仅调试时启用</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">adminer</span></span><br><span class="line">    <span class="attr">ports:</span> [<span class="string">&quot;8081:8080&quot;</span>]</span><br><span class="line">    <span class="attr">profiles:</span> [<span class="string">debug</span>]</span><br><span class="line">  <span class="attr">prometheus:</span>                      <span class="comment"># 监控，仅监控环境启用</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">prom/prometheus</span></span><br><span class="line">    <span class="attr">profiles:</span> [<span class="string">monitoring</span>]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d                        <span class="comment"># 不含 adminer、prometheus</span></span><br><span class="line">docker compose --profile debug up -d        <span class="comment"># 拉起 adminer</span></span><br><span class="line">COMPOSE_PROFILES=debug docker compose up -d <span class="comment"># 用环境变量等价</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-env-文件与环境变量优先级"><a href="#7-3-env-文件与环境变量优先级" class="headerlink" title="7.3 .env 文件与环境变量优先级"></a>7.3 .env 文件与环境变量优先级</h3><p><code>.env</code> 文件与 compose.yaml 同目录时自动加载。优先级从高到低：</p>
+<ol>
+<li>Shell 环境变量</li>
+<li><code>.env</code> 文件（未指定 <code>--env-file</code> 时）</li>
+<li>compose 文件中的默认值</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .env（不要提交到 git）</span></span><br><span class="line">MYSQL_ROOT_PASSWORD=s3cret</span><br><span class="line">APP_PORT=8080</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># compose.yaml</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">$&#123;MYSQL_ROOT_PASSWORD&#125;</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;$&#123;APP_PORT&#125;:8080&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker compose --env-file .env.production up -d   <span class="comment"># 指定自定义 env 文件</span></span><br></pre></td></tr></table></figure>
+
+<p><code>.gitignore</code> 务必加 <code>.env</code>。</p>
+<h3 id="7-4-变量插值与-include-跨文件复用"><a href="#7-4-变量插值与-include-跨文件复用" class="headerlink" title="7.4 变量插值与 include 跨文件复用"></a>7.4 变量插值与 include 跨文件复用</h3><p>插值语法（构建 compose 文件时替换 YAML 文本，与运行时 <code>environment</code> 时机不同）：</p>
+<table>
+<thead>
+<tr>
+<th>语法</th>
+<th>语义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>${VAR}</code></td>
+<td>VAR 的值，未设则为空</td>
+</tr>
+<tr>
+<td><code>${VAR:-default}</code></td>
+<td>VAR 已设且非空则取其值，否则取 default</td>
+</tr>
+<tr>
+<td><code>${VAR-default}</code></td>
+<td>VAR 已设则取其值（含空），否则取 default</td>
+</tr>
+<tr>
+<td><code>${VAR:?error}</code></td>
+<td>VAR 已设且非空则取其值，否则报错中止</td>
+</tr>
+<tr>
+<td><code>${VAR:+replacement}</code></td>
+<td>VAR 已设且非空则取 replacement，否则为空</td>
+</tr>
+</tbody></table>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">$&#123;MYSQL_ROOT_PASSWORD:-root&#125;</span>   <span class="comment"># 未设给默认值 root</span></span><br><span class="line">      <span class="attr">SECRET_KEY:</span> <span class="string">$&#123;SECRET_KEY:?必须提供</span> <span class="string">SECRET_KEY&#125;</span>      <span class="comment"># 未设直接报错中止</span></span><br></pre></td></tr></table></figure>
+
+<p><code>include</code>（v2.20+）跨文件复用，比 <code>-f</code> 合并更清晰，被引用文件作为独立片段注入：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># compose.yaml</span></span><br><span class="line"><span class="attr">include:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">compose.monitoring.yaml</span>    <span class="comment"># 引用监控相关服务</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span> &#123; <span class="string">...</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="8-生产实践与进阶"><a href="#8-生产实践与进阶" class="headerlink" title="8. 生产实践与进阶"></a>8. 生产实践与进阶</h2><h3 id="8-1-启动顺序与健康等待"><a href="#8-1-启动顺序与健康等待" class="headerlink" title="8.1 启动顺序与健康等待"></a>8.1 启动顺序与健康等待</h3><p><code>depends_on</code> 长语法配合被依赖服务的 <code>healthcheck</code>，实现”等数据库就绪再启 app”：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="attr">mysql:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_healthy</span>   <span class="comment"># 等 mysql 健康检查通过</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="literal">true</span>                <span class="comment"># mysql 挂掉时重启 app</span></span><br><span class="line">      <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_started</span>   <span class="comment"># 等 redis 启动即可</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:8</span></span><br><span class="line">    <span class="attr">healthcheck:</span></span><br><span class="line">      <span class="attr">test:</span> [<span class="string">&quot;CMD&quot;</span>, <span class="string">&quot;mysqladmin&quot;</span>, <span class="string">&quot;ping&quot;</span>, <span class="string">&quot;-h&quot;</span>, <span class="string">&quot;localhost&quot;</span>]</span><br><span class="line">      <span class="attr">interval:</span> <span class="string">10s</span>          <span class="comment"># 检查间隔</span></span><br><span class="line">      <span class="attr">timeout:</span> <span class="string">5s</span>            <span class="comment"># 超时时间</span></span><br><span class="line">      <span class="attr">retries:</span> <span class="number">5</span>             <span class="comment"># 连续失败次数</span></span><br><span class="line">      <span class="attr">start_period:</span> <span class="string">30s</span>      <span class="comment"># 启动宽限期（期间失败不计入 retries）</span></span><br></pre></td></tr></table></figure>
+
+<p><code>condition</code> 取值：<code>service_started</code>（等启动，不等就绪）、<code>service_healthy</code>（等健康检查通过）、<code>service_completed_successfully</code>（等任务成功完成，用于迁移脚本）。短语法 <code>depends_on: [mysql]</code> 仅等启动，不等就绪，生产环境不够用。</p>
+<h3 id="8-2-deploy-resources-资源限制（范围风险点）"><a href="#8-2-deploy-resources-资源限制（范围风险点）" class="headerlink" title="8.2 deploy.resources 资源限制（范围风险点）"></a>8.2 deploy.resources 资源限制（范围风险点）</h3><p>这是文档中最易误解的地方。<strong><code>deploy</code> 字段在 Compose v2 单机 <code>docker compose up</code> 下是部分生效</strong>——<code>deploy.resources</code>（<code>limits</code> &#x2F; <code>reservations</code>，含 cpus &#x2F; memory &#x2F; pids &#x2F; devices）与 <code>deploy.restart_policy</code> 在单机 <code>up</code> 下<strong>正常生效</strong>（compose 源码 <code>pkg/compose/create.go</code> 的 <code>getDeployResources</code> 显式将 <code>deploy.Resources.Limits</code> &#x2F; <code>deploy.Resources.Reservations</code> 写入 <code>container.Resources</code> &#x2F; <code>HostConfig</code>）。但 <code>deploy.replicas</code> &#x2F; <code>update_config</code> &#x2F; <code>rollback_config</code> &#x2F; <code>placement</code> &#x2F; <code>mode</code> &#x2F; <code>endpoint_mode</code> 仅在 Swarm（<code>docker stack deploy</code>）下生效，单机 <code>up</code> 下会被忽略。Compose 早期版本（v1、v2 早期）曾整体忽略 <code>deploy</code> 段，<strong>该警告在现代 v2&#x2F;v5 已不适用</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>deploy 子字段</th>
+<th>单机 <code>docker compose up</code> 行为</th>
+<th>Swarm <code>docker stack deploy</code> 行为</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>resources.limits</code> (cpus&#x2F;memory&#x2F;pids)</td>
+<td><strong>生效</strong>（Compose v2 直接处理）</td>
+<td>生效</td>
+<td>两种部署方式行为一致</td>
+</tr>
+<tr>
+<td><code>resources.reservations</code></td>
+<td><strong>生效</strong></td>
+<td>生效</td>
+<td>同上</td>
+</tr>
+<tr>
+<td><code>restart_policy</code> (condition&#x2F;delay&#x2F;max_attempts&#x2F;window)</td>
+<td><strong>生效</strong></td>
+<td>生效</td>
+<td>精细重试控制</td>
+</tr>
+<tr>
+<td><code>replicas</code></td>
+<td>忽略</td>
+<td>生效</td>
+<td>单机用 <code>--scale &lt;svc&gt;=N</code></td>
+</tr>
+<tr>
+<td><code>update_config</code></td>
+<td>忽略</td>
+<td>生效</td>
+<td>仅 Swarm 滚动更新</td>
+</tr>
+<tr>
+<td><code>rollback_config</code></td>
+<td>忽略</td>
+<td>生效</td>
+<td>仅 Swarm 回滚</td>
+</tr>
+<tr>
+<td><code>placement</code></td>
+<td>忽略</td>
+<td>生效</td>
+<td>Swarm 节点约束</td>
+</tr>
+<tr>
+<td><code>mode</code> (global&#x2F;replicated)</td>
+<td>忽略</td>
+<td>生效</td>
+<td>Swarm 服务模式</td>
+</tr>
+<tr>
+<td><code>endpoint_mode</code></td>
+<td>忽略</td>
+<td>生效</td>
+<td>Swarm endpoint 配置</td>
+</tr>
+</tbody></table>
+<p><strong>配置建议</strong>：单机直接使用 <code>deploy.resources</code> &#x2F; <code>deploy.restart_policy</code> 即可生效，无需拆字段；如已习惯 service 级字段或需兼容早期 Compose 版本（v1 &#x2F; v2 早期可能忽略 deploy.resources），可用 <code>mem_limit</code> &#x2F; <code>cpus</code> &#x2F; <code>pids_limit</code> &#x2F; <code>mem_reservation</code> &#x2F; <code>restart</code> 作为兼容回退。<code>--compatibility</code> 标志的作用是让 <code>replicas</code> &#x2F; <code>update_config</code> &#x2F; <code>placement</code> 等 Swarm-only 字段在单机不报警告，对 <code>resources</code> 无额外意义。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span>           <span class="comment"># 单机 docker compose up 也生效</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">&quot;2.0&quot;</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">2G</span></span><br><span class="line">          <span class="attr">pids:</span> <span class="number">1000</span></span><br><span class="line">        <span class="attr">reservations:</span>     <span class="comment"># 软预留，单机生效</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">&quot;0.5&quot;</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">512M</span></span><br><span class="line">      <span class="attr">restart_policy:</span>     <span class="comment"># 精细重启策略，单机生效</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">        <span class="attr">window:</span> <span class="string">120s</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>兼容性提示</strong>：v2 之前的早期 Compose 版本（v1 &#x2F; v2 早期）可能忽略 <code>deploy.resources</code>，此时可用 service 级 <code>mem_limit</code> &#x2F; <code>cpus</code> &#x2F; <code>pids_limit</code> 字段作为兼容回退。</p>
+</blockquote>
+<h3 id="8-3-重启策略：restart-vs-restart-policy"><a href="#8-3-重启策略：restart-vs-restart-policy" class="headerlink" title="8.3 重启策略：restart vs restart_policy"></a>8.3 重启策略：restart vs restart_policy</h3><p>两个容易混淆的字段：</p>
+<ul>
+<li><strong>service 级 <code>restart</code></strong>（单机 <code>docker compose up</code> 生效）：取值 <code>no</code>&#x2F;<code>always</code>&#x2F;<code>unless-stopped</code>&#x2F;<code>on-failure:N</code>，简单场景够用，配置直观。</li>
+<li><strong>deploy 级 <code>restart_policy</code></strong>（单机 <code>docker compose up</code> 下也生效，Compose v2 直接处理）：condition&#x2F;delay&#x2F;max_attempts&#x2F;window 可配指数退避，精细控制推荐用这个。</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app-simple:</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span>          <span class="comment"># 单机简单部署：配置直观</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">app-fine:</span></span><br><span class="line">    <span class="attr">deploy:</span>                          <span class="comment"># 精细退避策略：单机 up 下也生效</span></span><br><span class="line">      <span class="attr">restart_policy:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">        <span class="attr">window:</span> <span class="string">120s</span></span><br></pre></td></tr></table></figure>
+
+<p>选型建议：单机推荐 <code>deploy.restart_policy</code>（精细控制，单机生效），简单场景或需兼容旧版 Compose 时可用 service 级 <code>restart: unless-stopped</code>。</p>
+<h3 id="8-4-编排定位：Swarm-专属字段与-K8s-的关系"><a href="#8-4-编排定位：Swarm-专属字段与-K8s-的关系" class="headerlink" title="8.4 编排定位：Swarm 专属字段与 K8s 的关系"></a>8.4 编排定位：Swarm 专属字段与 K8s 的关系</h3><p>Compose 不是 K8s 的替代品，它是单机与小规模编排工具。<strong><code>deploy.resources</code>（limits&#x2F;reservations）与 <code>deploy.restart_policy</code> 在单机 <code>docker compose up</code> 下生效</strong>，与 Swarm 行为一致；但 <code>deploy.replicas</code> &#x2F; <code>update_config</code> &#x2F; <code>rollback_config</code> &#x2F; <code>placement</code> &#x2F; <code>mode</code> &#x2F; <code>endpoint_mode</code> 等 Swarm 编排字段在单机 <code>up</code> 下被忽略——你写了 <code>replicas: 3</code>，单机 <code>up</code> 仍只起一个容器。要真正的集群编排与滚动更新，用 Swarm（<code>docker stack deploy</code>）或 K8s；Compose 适合单机、开发与 CI。</p>
+<p>如需迁移，<code>kompose</code> 等工具可将 compose.yaml 转为 K8s 资源清单。</p>
+<h2 id="9-CI-CD-集成"><a href="#9-CI-CD-集成" class="headerlink" title="9. CI&#x2F;CD 集成"></a>9. CI&#x2F;CD 集成</h2><h3 id="9-1-GitHub-Actions-中使用-Compose"><a href="#9-1-GitHub-Actions-中使用-Compose" class="headerlink" title="9.1 GitHub Actions 中使用 Compose"></a>9.1 GitHub Actions 中使用 Compose</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .github/workflows/integration-test.yml</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">Integration</span> <span class="string">Test</span></span><br><span class="line"><span class="attr">on:</span> [<span class="string">push</span>]</span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">test:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">docker/setup-compose-action@v2</span>     <span class="comment"># 安装指定版本 Compose（v2 为当前主推，锁版本保证可复现）</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Start</span> <span class="string">stack</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">docker</span> <span class="string">compose</span> <span class="string">up</span> <span class="string">-d</span> <span class="string">--wait</span>         <span class="comment"># --wait 等所有服务 healthy</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Run</span> <span class="string">tests</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">./mvnw</span> <span class="string">test</span>                          <span class="comment"># 跑集成测试</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Cleanup</span></span><br><span class="line">        <span class="attr">if:</span> <span class="string">always()</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">docker</span> <span class="string">compose</span> <span class="string">down</span> <span class="string">-v</span>               <span class="comment"># 测完清理卷与网络</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-GitLab-CI-中使用-Compose"><a href="#9-2-GitLab-CI-中使用-Compose" class="headerlink" title="9.2 GitLab CI 中使用 Compose"></a>9.2 GitLab CI 中使用 Compose</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .gitlab-ci.yml</span></span><br><span class="line"><span class="attr">integration-test:</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">docker:24</span></span><br><span class="line">  <span class="attr">services:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker:24-dind</span>                              <span class="comment"># docker-in-docker</span></span><br><span class="line">  <span class="attr">variables:</span></span><br><span class="line">    <span class="attr">DOCKER_TLS_CERTDIR:</span> <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">compose</span> <span class="string">up</span> <span class="string">-d</span> <span class="string">--wait</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">compose</span> <span class="string">run</span> <span class="string">--rm</span> <span class="string">app</span> <span class="string">./mvnw</span> <span class="string">test</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">compose</span> <span class="string">down</span> <span class="string">-v</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-CI-中的最佳实践"><a href="#9-3-CI-中的最佳实践" class="headerlink" title="9.3 CI 中的最佳实践"></a>9.3 CI 中的最佳实践</h3><p>CI 专用 flag 组合：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 任一容器退出则整体中止，并以 test 服务退出码作为整体退出码</span></span><br><span class="line">docker compose up --abort-on-container-exit --exit-code-from <span class="built_in">test</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --wait：等所有服务 healthy 再返回，替代手动 sleep</span></span><br><span class="line">docker compose up -d --<span class="built_in">wait</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试后清理卷与网络，避免 CI 环境污染</span></span><br><span class="line">docker compose down -v --remove-orphans</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>--exit-code-from &lt;service&gt;</code>：指定哪个服务的退出码作为整体退出码（通常是测试服务）。</li>
+<li><code>--abort-on-container-exit</code>：任一容器退出则整体中止。</li>
+<li><code>--wait</code>：等所有服务 healthy 再返回，替代不可靠的 <code>sleep 10</code>。</li>
+<li>测试后 <code>down -v</code> 清理卷与网络。</li>
+</ul>
+<h2 id="10-性能调优与排错"><a href="#10-性能调优与排错" class="headerlink" title="10. 性能调优与排错"></a>10. 性能调优与排错</h2><h3 id="10-1-构建缓存优化"><a href="#10-1-构建缓存优化" class="headerlink" title="10.1 构建缓存优化"></a>10.1 构建缓存优化</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d --build          <span class="comment"># 有缓存地重建（增量，推荐）</span></span><br><span class="line">docker compose build --no-cache app   <span class="comment"># 禁缓存全重建（排查缓存问题时用）</span></span><br></pre></td></tr></table></figure>
+
+<p>进阶：BuildKit（默认启用）多阶段构建配合 <code>target</code> 只构建所需阶段，<code>cache_from</code>&#x2F;<code>cache_to</code> 跨构建复用缓存（CI 场景关键）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">build:</span></span><br><span class="line">      <span class="attr">context:</span> <span class="string">.</span></span><br><span class="line">      <span class="attr">target:</span> <span class="string">production</span>              <span class="comment"># 多阶段：只构建 production 阶段</span></span><br><span class="line">      <span class="attr">cache_from:</span>                     <span class="comment"># CI 中复用上次构建缓存</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">type=registry,ref=bestar/app:cache</span></span><br><span class="line">      <span class="attr">cache_to:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">type=registry,ref=bestar/app:cache,mode=max</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-常见报错-FAQ"><a href="#10-2-常见报错-FAQ" class="headerlink" title="10.2 常见报错 FAQ"></a>10.2 常见报错 FAQ</h3><table>
+<thead>
+<tr>
+<th>报错关键词</th>
+<th>可能原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>port is already allocated</code></td>
+<td>宿主端口被占用</td>
+<td><code>lsof -i :8080</code> 查占用进程并停掉，或改 compose 端口</td>
+</tr>
+<tr>
+<td><code>permission denied</code> &#x2F; mysql 启动即崩</td>
+<td>容器内 UID 与挂载目录权限不匹配</td>
+<td><code>chown</code> 调整宿主目录权限，或用 <code>user:</code> 指定匹配 UID</td>
+</tr>
+<tr>
+<td><code>version</code> 字段警告</td>
+<td>仍写 <code>version: &quot;3&quot;</code></td>
+<td>删掉 version 字段（已废弃）</td>
+</tr>
+<tr>
+<td><code>orphan container</code> 警告</td>
+<td>存在 compose 文件未定义的旧容器</td>
+<td><code>docker compose down --remove-orphans</code></td>
+</tr>
+<tr>
+<td><code>failed to solve</code> 构建失败</td>
+<td>Dockerfile 指令错误或拉镜像失败</td>
+<td>检查 Dockerfile，确认网络可拉基础镜像</td>
+</tr>
+<tr>
+<td><code>network not found</code> &#x2F; <code>already exists</code></td>
+<td><code>not found</code> 多因手动 <code>docker network rm</code> 删除；<code>already exists</code> 多为同名 project name 复用残留</td>
+<td>先 <code>docker network ls</code> 检查，<code>docker network rm &lt;name&gt;</code> 清理，或换 <code>-p</code> 指定新 project name</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 排查示例：端口占用</span></span><br><span class="line">$ docker compose up -d</span><br><span class="line">ERROR: Bind <span class="keyword">for</span> 0.0.0.0:8080 failed: port is already allocated</span><br><span class="line">$ lsof -i :8080                  <span class="comment"># 找到占用进程</span></span><br><span class="line">$ <span class="built_in">kill</span> &lt;PID&gt;                      <span class="comment"># 停掉，或改 compose 端口</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-排错工具链"><a href="#10-3-排错工具链" class="headerlink" title="10.3 排错工具链"></a>10.3 排错工具链</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config：up 前预检，打印合并后最终配置（查 override/插值问题首选）</span></span><br><span class="line">docker compose config</span><br><span class="line"></span><br><span class="line"><span class="comment"># 带时间戳日志，定位时序问题</span></span><br><span class="line">docker compose logs --timestamps app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查容器运行时详情（网络、挂载、环境变量、重启策略实际值）</span></span><br><span class="line">docker inspect bestar-app-1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查磁盘占用与清理 dangling 镜像/卷（prune 谨慎，会删未使用的资源）</span></span><br><span class="line">docker system <span class="built_in">df</span></span><br><span class="line">docker compose down &amp;&amp; docker system prune -f   <span class="comment"># 清理流程</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="附录-A-命令速查表"><a href="#附录-A-命令速查表" class="headerlink" title="附录 A. 命令速查表"></a>附录 A. 命令速查表</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>用途</th>
+<th>常用 flag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>up</code></td>
+<td>创建并启动服务</td>
+<td><code>-d</code> <code>--build</code> <code>--force-recreate</code> <code>--wait</code> <code>--no-deps</code></td>
+</tr>
+<tr>
+<td><code>down</code></td>
+<td>停止并删除容器&#x2F;网络</td>
+<td><code>-v</code> <code>--rmi all</code> <code>--remove-orphans</code> <code>-t</code></td>
+</tr>
+<tr>
+<td><code>stop</code> &#x2F; <code>start</code></td>
+<td>停止&#x2F;启动（不删除）</td>
+<td><code>-t</code></td>
+</tr>
+<tr>
+<td><code>restart</code></td>
+<td>重启服务</td>
+<td>服务名</td>
+</tr>
+<tr>
+<td><code>pause</code> &#x2F; <code>unpause</code></td>
+<td>暂停&#x2F;恢复进程</td>
+<td>服务名</td>
+</tr>
+<tr>
+<td><code>rm</code></td>
+<td>删除已停止容器</td>
+<td><code>-f</code> <code>-v</code></td>
+</tr>
+<tr>
+<td><code>ps</code></td>
+<td>查看运行容器</td>
+<td><code>--format</code> <code>-a</code></td>
+</tr>
+<tr>
+<td><code>logs</code></td>
+<td>查看日志</td>
+<td><code>-f</code> <code>--tail N</code> <code>--since</code> <code>--timestamps</code></td>
+</tr>
+<tr>
+<td><code>top</code></td>
+<td>查看容器内进程</td>
+<td>服务名</td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>实时事件流</td>
+<td></td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>查看端口映射</td>
+<td>服务名 端口</td>
+</tr>
+<tr>
+<td><code>images</code></td>
+<td>列出镜像</td>
+<td></td>
+</tr>
+<tr>
+<td><code>exec</code></td>
+<td>在运行容器内执行</td>
+<td>服务名 命令</td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td>新容器跑一次性任务</td>
+<td><code>--rm</code> <code>--no-deps</code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>构建镜像</td>
+<td><code>--no-cache</code></td>
+</tr>
+<tr>
+<td><code>pull</code> &#x2F; <code>push</code></td>
+<td>拉取&#x2F;推送镜像</td>
+<td></td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>校验并打印最终配置</td>
+<td><code>--services</code> <code>--volumes</code></td>
+</tr>
+<tr>
+<td><code>cp</code></td>
+<td>容器与宿主互拷文件</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ls</code></td>
+<td>列出所有 project</td>
+<td><code>-a</code></td>
+</tr>
+</tbody></table>
+<h2 id="附录-B-常见报错-FAQ-汇总"><a href="#附录-B-常见报错-FAQ-汇总" class="headerlink" title="附录 B. 常见报错 FAQ 汇总"></a>附录 B. 常见报错 FAQ 汇总</h2><table>
+<thead>
+<tr>
+<th>报错关键词</th>
+<th>可能原因</th>
+<th>解决步骤</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>port is already allocated</code></td>
+<td>宿主端口被其他进程占用</td>
+<td>1. <code>lsof -i :端口</code> 查占用；2. 停掉占用进程或改 compose 端口</td>
+</tr>
+<tr>
+<td><code>permission denied</code>（卷）</td>
+<td>容器 UID 与宿主目录权限不匹配</td>
+<td>1. <code>chown -R</code> 调整宿主目录属主；2. compose 用 <code>user:</code> 指定匹配 UID</td>
+</tr>
+<tr>
+<td><code>version is obsolete</code> 警告</td>
+<td>仍写 <code>version: &quot;3.x&quot;</code></td>
+<td>删除顶层 <code>version</code> 字段</td>
+</tr>
+<tr>
+<td><code>orphan container</code> 警告</td>
+<td>compose 文件外的残留容器</td>
+<td><code>docker compose down --remove-orphans</code></td>
+</tr>
+<tr>
+<td><code>failed to solve</code></td>
+<td>Dockerfile 指令错误或基础镜像拉取失败</td>
+<td>1. 检查 Dockerfile 指令；2. 确认网络与镜像源</td>
+</tr>
+<tr>
+<td><code>network not found</code> &#x2F; <code>already exists</code></td>
+<td><code>not found</code> 多因手动 <code>docker network rm</code> 删除；<code>already exists</code> 多为同名 project name 复用残留</td>
+<td>1. <code>docker network ls</code> 检查；2. <code>docker network rm &lt;name&gt;</code> 清理；3. 或换 <code>-p</code> 指定新 project name</td>
+</tr>
+<tr>
+<td><code>no such service</code></td>
+<td>服务名拼写错误</td>
+<td><code>docker compose config --services</code> 核对</td>
+</tr>
+<tr>
+<td>容器立即退出（exit 0&#x2F;1）</td>
+<td>启动命令错误或依赖未就绪</td>
+<td><code>docker compose logs</code> 看日志；加 <code>depends_on</code> + healthcheck</td>
+</tr>
+<tr>
+<td>插值变量为空</td>
+<td>变量未设且未提供默认值</td>
+<td>用 <code>${VAR:-default}</code> 或检查 <code>.env</code></td>
+</tr>
+</tbody></table>
+<h2 id="附录-C-完整-compose-yaml-模板参考"><a href="#附录-C-完整-compose-yaml-模板参考" class="headerlink" title="附录 C. 完整 compose.yaml 模板参考"></a>附录 C. 完整 compose.yaml 模板参考</h2><p>一份整合全书要点的生产级模板，可作为抄改起点：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">bestar</span>                            <span class="comment"># 显式 project name</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span>                                  <span class="comment"># Spring Boot 后端</span></span><br><span class="line">    <span class="attr">build:</span></span><br><span class="line">      <span class="attr">context:</span> <span class="string">.</span></span><br><span class="line">      <span class="attr">dockerfile:</span> <span class="string">Dockerfile</span></span><br><span class="line">      <span class="attr">target:</span> <span class="string">production</span>                <span class="comment"># 多阶段构建，只构建生产镜像</span></span><br><span class="line">      <span class="attr">args:</span></span><br><span class="line">        <span class="attr">JAR_FILE:</span> <span class="string">target/app.jar</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">be-star:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">bestar-app</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;$&#123;APP_PORT:-8080&#125;:8080&quot;</span>        <span class="comment"># 插值 + 默认值</span></span><br><span class="line">    <span class="attr">environment:</span>                        <span class="comment"># 非敏感配置</span></span><br><span class="line">      <span class="attr">SPRING_PROFILES_ACTIVE:</span> <span class="string">prod</span></span><br><span class="line">      <span class="attr">SPRING_DATASOURCE_URL:</span> <span class="string">jdbc:mysql://mysql:3306/bestar</span></span><br><span class="line">      <span class="attr">SPRING_REDIS_HOST:</span> <span class="string">redis</span></span><br><span class="line">    <span class="attr">env_file:</span>                           <span class="comment"># 敏感配置走外部文件</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">.env.production</span></span><br><span class="line">    <span class="attr">depends_on:</span>                         <span class="comment"># 启动顺序 + 健康等待</span></span><br><span class="line">      <span class="attr">mysql:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_healthy</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">service_started</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">frontend</span>, <span class="string">backend</span>]        <span class="comment"># 多网络隔离</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span>             <span class="comment"># service 级重启（单机生效）</span></span><br><span class="line">    <span class="attr">init:</span> <span class="literal">true</span>                          <span class="comment"># 解决 PID 1 僵尸进程</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">&quot;2.0&quot;</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">2g</span></span><br><span class="line">        <span class="attr">reservations:</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1g</span></span><br><span class="line">    <span class="attr">profiles:</span> []                        <span class="comment"># 默认启用</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:8</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">$&#123;MYSQL_ROOT_PASSWORD:?必须提供&#125;</span></span><br><span class="line">      <span class="attr">MYSQL_DATABASE:</span> <span class="string">bestar</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">mysql-data:/var/lib/mysql</span>       <span class="comment"># 命名卷持久化</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./mysql-init:/docker-entrypoint-initdb.d:ro</span>   <span class="comment"># 只读挂初始化脚本</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">backend</span>]                  <span class="comment"># 仅后端网，前端访问不到</span></span><br><span class="line">    <span class="attr">healthcheck:</span></span><br><span class="line">      <span class="attr">test:</span> [<span class="string">&quot;CMD&quot;</span>, <span class="string">&quot;mysqladmin&quot;</span>, <span class="string">&quot;ping&quot;</span>, <span class="string">&quot;-h&quot;</span>, <span class="string">&quot;localhost&quot;</span>]</span><br><span class="line">      <span class="attr">interval:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">timeout:</span> <span class="string">5s</span></span><br><span class="line">      <span class="attr">retries:</span> <span class="number">5</span></span><br><span class="line">      <span class="attr">start_period:</span> <span class="string">30s</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:7</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;redis-server&quot;</span>, <span class="string">&quot;--appendonly&quot;</span>, <span class="string">&quot;yes&quot;</span>]</span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">redis-data:/data</span></span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">backend</span>]</span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">adminer:</span>                              <span class="comment"># 调试工具，profile 控制</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">adminer</span></span><br><span class="line">    <span class="attr">ports:</span> [<span class="string">&quot;8081:8080&quot;</span>]</span><br><span class="line">    <span class="attr">networks:</span> [<span class="string">backend</span>]</span><br><span class="line">    <span class="attr">profiles:</span> [<span class="string">debug</span>]</span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">frontend:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">  <span class="attr">backend:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">mysql-data:</span></span><br><span class="line">  <span class="attr">redis-data:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># secrets:                              # 敏感数据（按需启用）</span></span><br><span class="line"><span class="comment">#   tls_cert:</span></span><br><span class="line"><span class="comment">#     file: ./certs/server.pem</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<blockquote>
+<p>参考来源：<a target="_blank" rel="noopener" href="https://docs.docker.com/compose/">Docker Compose 官方文档</a>、<a target="_blank" rel="noopener" href="https://github.com/compose-spec/compose-spec">compose-spec 规范</a>、<a target="_blank" rel="noopener" href="https://docs.docker.com/reference/compose-file/deploy/">deploy 字段参考</a>、<a target="_blank" rel="noopener" href="https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/">多文件合并规则</a>、<a target="_blank" rel="noopener" href="https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/">变量插值</a>。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">https://ziogn.github.io/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/docker/">docker</a><a class="post-meta__tags" href="/tags/docker-compose/">docker-compose</a><a class="post-meta__tags" href="/tags/%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92/">容器编排</a><a class="post-meta__tags" href="/tags/devops/">devops</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/deepseek-v4-flash-gsd-core-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版） 本文是一份面向”要不要用 DeepSeek V4 Flash 接 Claude Code、靠 GSD-Core 工作流压幻觉”这一决策的实战调研报告。写作顺序遵循 先结论 → 可抄配置 → 原理 → 决策树 → 排错 FAQ 的教程风格，不是原理参考书。读者可以直接跳到 §7 抄配置、跳到 §9 做选型。 第 2 版更新（2026-06-24）：通过 DeepWiki 深入 GSD-Core 源码，大幅扩充了 §3 GSD-Core 工作机制（新增 3.4 专业 Agent 系统、3.5 Model Profiles 分层模型配置、3.6 Wave-Based 并行执行与 Workspace 隔离、3.7 Hook 系统与 CLI 工具），同时对 §5 和 §7 做了相应增强。   1. 一句话定论先给你 4 句话的结论，剩下的章节都是在论证它。    你的疑问 一句话结论    V4 Flash 是什么？ 284B 总参 &#x2F; 激活 1...</div></div></div></a><a class="pagination-related" href="/GSD-gsd-core%20%E6%A8%A1%E5%9E%8B%E8%A7%A3%E6%9E%90%E4%B8%8E%20Agent%20%E6%A8%A1%E5%9E%8B%E5%88%87%E6%8D%A2/" title="GSD-gsd-core Agent↔Model 配置实战教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GSD-gsd-core Agent↔Model 配置实战教程</div></div><div class="info-2"><div class="info-item-1">GSD-gsd-core Agent↔Model 配置实战教程 本文基于 open-gsd/gsd-core 仓库源码(commit 308c7be,2026-06 仓库快照)撰写,核实基准为 npm 包 @opengsd/gsd-core@1.4.4 + GitHub raw。所有结论以仓库源码为最终准绳,与部分二手文档(deepwiki、旧版本教程)有出入的地方均已在文中标注。 本文定位是「实战教程」,不是原理书。前 7 章就能让你完成 90% 的配置任务;原理和深度表放在 §11 与附录里,想深入理解时再翻。   1. 30 秒上手目标:不读完整篇,也能改对配置。 一句话:GSD 把不同 agent(planner &#x2F; researcher &#x2F; debugger 等 34 个)自动分到 opus(重)&#x2F; sonnet(中)&#x2F; haiku(轻)三档模型,默认就帮你配好了;你要做的只是「想换档」时改个文件。 你最需要知道的 3 件事   # 问题 答案 详见    ① 配置文件在哪 &lt;项目根&gt;/.planning/config...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/%E8%BD%BB%E9%87%8F%E7%BA%A7%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E6%9C%8D%E5%8A%A1%E8%B0%83%E7%A0%94/" title="轻量级系统日志聚合服务调研"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-24</div><div class="info-item-2">轻量级系统日志聚合服务调研</div></div><div class="info-2"><div class="info-item-1">轻量级系统日志聚合服务调研第一章 背景与需求1.1 什么是日志聚合日志聚合 (Log Aggregation) 是将分散在多台服务器上的系统日志集中采集、存储和查询的过程。它与单机日志查看有本质区别：  单机查看：运维人员通过 SSH 登录每台服务器，使用 journalctl、tail -f 或 grep 逐个排查日志文件。这种方式在服务器数量超过 3-5 台后效率急剧下降。 日志聚合：所有节点的日志自动汇集到一处，通过统一的 Web 界面或查询接口进行关联分析、过滤检索和可视化展示。  日志聚合是现代运维体系的基础设施之一，与指标监控（Prometheus &#x2F; VictoriaMetrics）、链路追踪（OpenTelemetry &#x2F; Jaeger）共同构成可观测性的三大支柱。 1.2 多服务器日志管理痛点在管理多台 Linux 服务器时，系统日志（由 systemd-journald 管理的日志数据）面临一系列实际问题：  数据分散，排查困难：排查跨多台机器的问题（如慢 SQL、网络延迟、服务调用链异常）需要依次登录每台节点执行命令。当集群规模达到数十或...</div></div></div></a><a class="pagination-related" href="/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="Nginx 配置实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-26</div><div class="info-item-2">Nginx 配置实战指南</div></div><div class="info-2"><div class="info-item-1">Nginx 配置实战指南本教程以实际项目配置为基础，覆盖 Nginx 的两大核心场景：静态站点部署与反向代理配置。所有配置示例均来自生产环境实践，可直接复用。 1. Nginx 基础概念1.1 配置文件结构Nginx 的配置体系由主配置文件和站点配置目录组成：    路径 用途    /etc/nginx/nginx.conf 主配置文件，定义全局设置（user、worker_processes、events、http 块）   /etc/nginx/sites-available/ 站点配置文件存放目录   /etc/nginx/sites-enabled/ 已启用站点的符号链接目录   /var/log/nginx/ 默认日志目录   主配置文件中通过 include 指令加载站点配置： 12345# nginx.conf 中的关键 include 行http &#123;    # ...    include /etc/nginx/sites-enabled/*;&#125;  站点启用机制：将配置文件放在 sites-available/，然后创建符号链接到 sites...</div></div></div></a><a class="pagination-related" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">Sidecar 机制详解</div></div><div class="info-2"><div class="info-item-1">Sidecar 机制详解1. Sidecar 设计模式1.1 什么是 Sidecar 模式Sidecar 是一种分布式架构设计模式（也称 Sidekick 模式），核心思想是将辅助功能从主应用中剥离出来，以独立的进程或容器运行，并与主应用部署在同一环境中共享生命周期。 类比现实世界：三轮摩托车的边车（Sidecar）附加在车身旁，提供额外载客能力但不改变主车结构。在软件架构中，Sidecar 进程附加在主应用进程旁，提供日志、监控、代理、安全等辅助能力，主应用无需感知其存在。 graph LR     subgraph &quot;Pod&quot;         subgraph &quot;共享网络命名空间 localhost&quot;             A[&quot;主容器&lt;br&#x2F;&gt;业务应用&quot;] --- B[&quot;Sidecar 容器&lt;br&#x2F;&gt;代理&#x2F;日志&#x2F;监控&quot;]         end         C[&quot;共享存储卷&lt;br&#x2F;&gt;emptyD...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E4%BA%91%E5%8E%9F%E7%94%9F/" title="go语言知识规划——云原生"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——云原生</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——云原生 云原生是 Go 语言生态中最具说服力的舞台。Kubernetes 本身由 Go 编写，Docker、containerd、Etcd、Prometheus 等云原生基础设施的基石项目也全部使用 Go。掌握云原生方向的技术栈，意味着理解 Go 语言在分布式系统中”非它不可”的生态位。本文档是总览文档中”云原生”方向的展开，权重 15%。   1. Docker 容器化 Go 应用1.1 为什么需要容器化Go 编译为静态二进制文件，天生适合容器化部署。与 Java&#x2F;Python 等运行时依赖 JVM 或解释器的语言不同，Go 的编译产物是一个独立的可执行文件，可以运行在没有任何依赖的 scratch（空镜像）中。 容器化对 Go 应用的核心价值：    维度 说明    环境一致性 开发、测试、生产环境完全一致，消除”在我机器上能跑”问题   资源隔离 通过 cgroup&#x2F;namespace 实现 CPU、内存、网络隔离   快速部署 镜像体积小（Go 静态编译后仅数 MB），秒级启动   弹性伸缩 配合 K8s HPA（Horizont...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#docker-compose-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">docker-compose 使用教程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BC%80%E7%AF%87%E4%B8%8E-Compose-%E6%A6%82%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">1. 开篇与 Compose 概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%A4%9A%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92%E7%9A%84%E7%97%9B%E7%82%B9%E4%B8%8E-Compose-%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 多容器编排的痛点与 Compose 的定位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%89%E5%B1%82%E6%A8%A1%E5%9E%8B%EF%BC%9AProject-Service-Container"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 三层模型：Project &#x2F; Service &#x2F; Container</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E7%89%88%E6%9C%AC%E4%BD%93%E7%B3%BB%E5%BD%BB%E5%BA%95%E6%BE%84%E6%B8%85%EF%BC%9Av1-v2-v5"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 版本体系彻底澄清：v1 &#x2F; v2 &#x2F; v5</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-version-%E5%AD%97%E6%AE%B5%E5%B7%B2%E5%BA%9F%E5%BC%83%E2%80%94%E2%80%94%E5%88%AB%E5%86%8D%E5%86%99%E4%BA%86"><span class="toc-number">1.1.4.</span> <span class="toc-text">1.4 version: 字段已废弃——别再写了</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-number">1.2.</span> <span class="toc-text">2. 安装与环境准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Compose-v2-%E4%B8%8E-Docker-Engine-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 Compose v2 与 Docker Engine 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%90%84%E5%B9%B3%E5%8F%B0%E5%AE%89%E8%A3%85"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 各平台安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85%E4%B8%8E%E7%90%86%E8%A7%A3%E7%89%88%E6%9C%AC%E5%8F%B7"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 验证安装与理解版本号</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%EF%BC%9Abe-star-%E5%A4%9A%E5%AE%B9%E5%99%A8%E7%BB%84%E5%90%88"><span class="toc-number">1.3.</span> <span class="toc-text">3. 快速上手：be-star 多容器组合</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE%E4%B8%8E%E5%91%BD%E5%90%8D%E8%A7%84%E8%8C%83"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 文件位置与命名规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%80%E4%BB%BD%E5%8F%AF%E7%9B%B4%E6%8E%A5%E6%8A%84%E7%9A%84%E5%AE%8C%E6%95%B4-compose-yaml"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 一份可直接抄的完整 compose.yaml</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%9B%9B%E6%AD%A5%E8%B7%91%E9%80%9A%EF%BC%9Aup-%E2%86%92-ps-%E2%86%92-logs-%E2%86%92-down"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 四步跑通：up → ps → logs → down</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-compose-yaml-%E5%85%A8%E8%AF%AD%E6%B3%95%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.4.</span> <span class="toc-text">4. compose.yaml 全语法详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%A1%B6%E5%B1%82%E5%85%83%E7%B4%A0%E6%80%BB%E8%A7%88"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 顶层元素总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-services-%E5%AD%97%E6%AE%B5%EF%BC%9A%E9%95%9C%E5%83%8F%E4%B8%8E%E6%9E%84%E5%BB%BA"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 services 字段：镜像与构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-services-%E5%AD%97%E6%AE%B5%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E4%B8%8E%E9%85%8D%E7%BD%AE%E6%B3%A8%E5%85%A5"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 services 字段：环境变量与配置注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-services-%E5%AD%97%E6%AE%B5%EF%BC%9A%E7%AB%AF%E5%8F%A3%E4%B8%8E%E7%BD%91%E7%BB%9C"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 services 字段：端口与网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-services-%E5%AD%97%E6%AE%B5%EF%BC%9A%E8%BF%90%E8%A1%8C%E6%8E%A7%E5%88%B6"><span class="toc-number">1.4.5.</span> <span class="toc-text">4.5 services 字段：运行控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-configs-%E4%B8%8E-secrets"><span class="toc-number">1.4.6.</span> <span class="toc-text">4.6 configs 与 secrets</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%A0%B8%E5%BF%83%E5%AD%90%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.5.</span> <span class="toc-text">5. 核心子命令详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%91%BD%E4%BB%A4"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 生命周期命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%A7%82%E5%AF%9F%E4%B8%8E%E8%B0%83%E8%AF%95%E5%91%BD%E4%BB%A4"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 观察与调试命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%89%A7%E8%A1%8C%E4%B8%8E%E6%9E%84%E5%BB%BA%E5%91%BD%E4%BB%A4"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3 执行与构建命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E9%85%8D%E7%BD%AE%E7%BB%B4%E6%8A%A4%E5%91%BD%E4%BB%A4%E4%B8%8E%E5%85%A8%E5%B1%80-flag"><span class="toc-number">1.5.4.</span> <span class="toc-text">5.4 配置维护命令与全局 flag</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%8D%B7"><span class="toc-number">1.6.</span> <span class="toc-text">6. 网络与数据卷</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%BB%98%E8%AE%A4%E7%BD%91%E7%BB%9C%E8%A1%8C%E4%B8%BA"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 默认网络行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 自定义网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-volumes-%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 volumes 持久化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-bind-mount-%E4%B8%8E%E6%8C%82%E8%BD%BD%E6%A8%A1%E5%BC%8F%E9%80%89%E5%9E%8B"><span class="toc-number">1.6.4.</span> <span class="toc-text">6.4 bind mount 与挂载模式选型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%A4%9A%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-number">1.7.</span> <span class="toc-text">7. 多环境配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%A4%9A%E6%96%87%E4%BB%B6-override-%E5%90%88%E5%B9%B6%E8%A7%84%E5%88%99"><span class="toc-number">1.7.1.</span> <span class="toc-text">7.1 多文件 override 合并规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-profile-%E6%8C%89%E5%9C%BA%E6%99%AF%E5%90%AF%E7%94%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.7.2.</span> <span class="toc-text">7.2 profile 按场景启用服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-env-%E6%96%87%E4%BB%B6%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E4%BC%98%E5%85%88%E7%BA%A7"><span class="toc-number">1.7.3.</span> <span class="toc-text">7.3 .env 文件与环境变量优先级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%8F%98%E9%87%8F%E6%8F%92%E5%80%BC%E4%B8%8E-include-%E8%B7%A8%E6%96%87%E4%BB%B6%E5%A4%8D%E7%94%A8"><span class="toc-number">1.7.4.</span> <span class="toc-text">7.4 变量插值与 include 跨文件复用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B8%8E%E8%BF%9B%E9%98%B6"><span class="toc-number">1.8.</span> <span class="toc-text">8. 生产实践与进阶</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%90%AF%E5%8A%A8%E9%A1%BA%E5%BA%8F%E4%B8%8E%E5%81%A5%E5%BA%B7%E7%AD%89%E5%BE%85"><span class="toc-number">1.8.1.</span> <span class="toc-text">8.1 启动顺序与健康等待</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-deploy-resources-%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6%EF%BC%88%E8%8C%83%E5%9B%B4%E9%A3%8E%E9%99%A9%E7%82%B9%EF%BC%89"><span class="toc-number">1.8.2.</span> <span class="toc-text">8.2 deploy.resources 资源限制（范围风险点）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E9%87%8D%E5%90%AF%E7%AD%96%E7%95%A5%EF%BC%9Arestart-vs-restart-policy"><span class="toc-number">1.8.3.</span> <span class="toc-text">8.3 重启策略：restart vs restart_policy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E7%BC%96%E6%8E%92%E5%AE%9A%E4%BD%8D%EF%BC%9ASwarm-%E4%B8%93%E5%B1%9E%E5%AD%97%E6%AE%B5%E4%B8%8E-K8s-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.8.4.</span> <span class="toc-text">8.4 编排定位：Swarm 专属字段与 K8s 的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-CI-CD-%E9%9B%86%E6%88%90"><span class="toc-number">1.9.</span> <span class="toc-text">9. CI&#x2F;CD 集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-GitHub-Actions-%E4%B8%AD%E4%BD%BF%E7%94%A8-Compose"><span class="toc-number">1.9.1.</span> <span class="toc-text">9.1 GitHub Actions 中使用 Compose</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-GitLab-CI-%E4%B8%AD%E4%BD%BF%E7%94%A8-Compose"><span class="toc-number">1.9.2.</span> <span class="toc-text">9.2 GitLab CI 中使用 Compose</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-CI-%E4%B8%AD%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.9.3.</span> <span class="toc-text">9.3 CI 中的最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%8E%92%E9%94%99"><span class="toc-number">1.10.</span> <span class="toc-text">10. 性能调优与排错</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%9E%84%E5%BB%BA%E7%BC%93%E5%AD%98%E4%BC%98%E5%8C%96"><span class="toc-number">1.10.1.</span> <span class="toc-text">10.1 构建缓存优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99-FAQ"><span class="toc-number">1.10.2.</span> <span class="toc-text">10.2 常见报错 FAQ</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%8E%92%E9%94%99%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">1.10.3.</span> <span class="toc-text">10.3 排错工具链</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-A-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.11.</span> <span class="toc-text">附录 A. 命令速查表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-B-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99-FAQ-%E6%B1%87%E6%80%BB"><span class="toc-number">1.12.</span> <span class="toc-text">附录 B. 常见报错 FAQ 汇总</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-C-%E5%AE%8C%E6%95%B4-compose-yaml-%E6%A8%A1%E6%9D%BF%E5%8F%82%E8%80%83"><span class="toc-number">1.13.</span> <span class="toc-text">附录 C. 完整 compose.yaml 模板参考</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

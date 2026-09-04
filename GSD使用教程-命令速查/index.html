@@ -1,0 +1,1869 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>GSD 使用教程 - 命令速查 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="GSD 完整命令速查表，覆盖 v1.35.0+ 全部命令、命名空间元技能、旧命令迁移与新特性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GSD 使用教程 - 命令速查">
+<meta property="og:url" content="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="GSD 完整命令速查表，覆盖 v1.35.0+ 全部命令、命名空间元技能、旧命令迁移与新特性">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-04-25T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-03T21:30:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="AI编程">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="GSD">
+<meta property="article:tag" content="OpenCode">
+<meta property="article:tag" content="命令速查">
+<meta property="article:tag" content="项目工作流">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "GSD 使用教程 - 命令速查",
+  "url": "https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-04-25T02:00:00.000Z",
+  "dateModified": "2026-06-03T21:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'GSD 使用教程 - 命令速查',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">GSD 使用教程 - 命令速查</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">GSD 使用教程 - 命令速查</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-25T02:00:00.000Z" title="发表于 2026-04-25 10:00:00">2026-04-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-03T21:30:00.000Z" title="更新于 2026-06-04 05:30:00">2026-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>23分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="GSD-使用教程-命令速查"><a href="#GSD-使用教程-命令速查" class="headerlink" title="GSD 使用教程 - 命令速查"></a>GSD 使用教程 - 命令速查</h1><blockquote>
+<p>本手册覆盖 GSD 项目内部版本 v1.35.0+（预发布 v1.43.0-rc2），从 v1.6.0 全面更新。命令体系经历大幅重构：新增 7 个统一命令、6 个命名空间元技能、25+ 个旧命令被合并或移除。</p>
+<p><strong>版本号说明</strong>：v1.35.0+ 为项目内部版本号（对应旧包 <code>get-shit-done-cc</code>），新包 <code>@opengsd/gsd-core</code> 采用独立版本号体系（当前 latest 为 1.2.0，但代码已包含 v1.35.0+ 的全部特性）。</p>
+</blockquote>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E4%BB%93%E5%BA%93%E8%BF%81%E7%A7%BB">概述与仓库迁移</a></li>
+<li><a href="#2-%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%85%83%E6%8A%80%E8%83%BD%E9%80%9F%E6%9F%A5">命名空间元技能速查</a></li>
+<li><a href="#3-%E6%97%A7%E5%91%BD%E4%BB%A4%E8%BF%81%E7%A7%BB%E5%AF%B9%E7%85%A7%E8%A1%A8">旧命令迁移对照表</a></li>
+<li><a href="#4-%E6%96%B0%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3">新命令详解</a></li>
+<li><a href="#5-%E7%8E%B0%E6%9C%89%E5%91%BD%E4%BB%A4%E6%96%B0%E5%A2%9E%E6%A0%87%E5%BF%97%E9%80%9F%E6%9F%A5">现有命令新增标志速查</a></li>
+<li><a href="#6-package-legitimacy-gate">Package Legitimacy Gate</a></li>
+<li><a href="#7-%E8%B7%A8-ai-%E8%AF%84%E5%AE%A1">跨 AI 评审</a></li>
+<li><a href="#8-mvp-%E4%B8%8E-tdd-%E8%A7%84%E5%88%92%E6%A8%A1%E5%BC%8F">MVP 与 TDD 规划模式</a></li>
+<li><a href="#9-%E5%A4%9A%E8%BF%90%E8%A1%8C%E6%97%B6%E6%94%AF%E6%8C%81">多运行时支持</a></li>
+<li><a href="#10-%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E5%85%B3%E9%94%AE%E9%87%8C%E7%A8%8B%E7%A2%91">版本演进关键里程碑</a></li>
+<li><a href="#11-%E9%99%84%E5%BD%95%E5%BF%AB%E9%80%9F%E5%91%BD%E4%BB%A4%E7%B4%A2%E5%BC%95">附录：快速命令索引</a></li>
+</ol>
+<hr>
+<h2 id="1-概述与仓库迁移"><a href="#1-概述与仓库迁移" class="headerlink" title="1. 概述与仓库迁移"></a>1. 概述与仓库迁移</h2><h3 id="版本跨度"><a href="#版本跨度" class="headerlink" title="版本跨度"></a>版本跨度</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>旧值</th>
+<th>新值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>项目内部版本</td>
+<td>v1.6.0</td>
+<td>v1.35.0（稳定）&#x2F; v1.43.0-rc2（预发布）</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td><code>gsd-build/get-shit-done</code></td>
+<td><code>open-gsd/gsd-core</code></td>
+</tr>
+<tr>
+<td>npm 包名</td>
+<td><code>get-shit-done-cc</code></td>
+<td><code>@opengsd/gsd-core</code></td>
+</tr>
+</tbody></table>
+<h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新安装方式</span></span><br><span class="line">npx @opengsd/gsd-core@latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 旧包名已废弃（deprecated），建议切换到 @opengsd/gsd-core</span></span><br><span class="line">npx get-shit-done-cc@latest</span><br></pre></td></tr></table></figure>
+
+<h3 id="仓库迁移说明"><a href="#仓库迁移说明" class="headerlink" title="仓库迁移说明"></a>仓库迁移说明</h3><p>旧仓库 <code>gsd-build/get-shit-done</code> 已归档并重定向到 <code>open-gsd/gsd-core</code>。所有 Issue 和 PR 已迁移。旧包名 <code>get-shit-done-cc</code> 已标记 deprecated，建议切换到 <code>@opengsd/gsd-core</code>。</p>
+<hr>
+<h2 id="2-命名空间元技能速查"><a href="#2-命名空间元技能速查" class="headerlink" title="2. 命名空间元技能速查"></a>2. 命名空间元技能速查</h2><blockquote>
+<p>v1.40 引入。6 个命名空间路由器将技能列表的 token 成本从 ~2,150 降至 ~120。<strong>叠加式设计</strong> – 所有原有命令仍可直接调用。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>路由到</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workflow</code></td>
+<td>discuss &#x2F; plan &#x2F; execute &#x2F; verify &#x2F; phase &#x2F; progress</td>
+<td>阶段流水线操作</td>
+</tr>
+<tr>
+<td><code>/gsd-project</code></td>
+<td>milestones &#x2F; audits &#x2F; summary</td>
+<td>项目生命周期管理</td>
+</tr>
+<tr>
+<td><code>/gsd-quality</code></td>
+<td>code-review &#x2F; debug &#x2F; audit &#x2F; security &#x2F; eval &#x2F; ui</td>
+<td>质量门禁</td>
+</tr>
+<tr>
+<td><code>/gsd-context</code></td>
+<td>map &#x2F; graphify &#x2F; docs &#x2F; learnings</td>
+<td>代码库智能</td>
+</tr>
+<tr>
+<td><code>/gsd-manage</code></td>
+<td>config &#x2F; workspace &#x2F; workstreams &#x2F; thread &#x2F; update &#x2F; ship &#x2F; inbox</td>
+<td>管理操作</td>
+</tr>
+<tr>
+<td><code>/gsd-ideate</code></td>
+<td>explore &#x2F; sketch &#x2F; spike &#x2F; spec &#x2F; capture</td>
+<td>探索与捕获</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 命名空间路由器调用示例</span></span><br><span class="line">/gsd-workflow          <span class="comment"># 自动路由到 discuss/plan/execute/verify</span></span><br><span class="line">/gsd-quality           <span class="comment"># 自动路由到 code-review/debug/audit</span></span><br><span class="line">/gsd-ideate            <span class="comment"># 自动路由到 explore/sketch/spike</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-旧命令迁移对照表"><a href="#3-旧命令迁移对照表" class="headerlink" title="3. 旧命令迁移对照表"></a>3. 旧命令迁移对照表</h2><p>共 25+ 个命令被合并或移除，按功能分为 6 组。</p>
+<h3 id="3-1-工作空间命令合并"><a href="#3-1-工作空间命令合并" class="headerlink" title="3.1 工作空间命令合并"></a>3.1 工作空间命令合并</h3><table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-new-workspace</code></td>
+<td><code>/gsd-workspace --new</code></td>
+<td>合并到统一工作空间命令</td>
+</tr>
+<tr>
+<td><code>/gsd-list-workspaces</code></td>
+<td><code>/gsd-workspace --list</code></td>
+<td>合并到统一工作空间命令</td>
+</tr>
+<tr>
+<td><code>/gsd-remove-workspace</code></td>
+<td><code>/gsd-workspace --remove &lt;name&gt;</code></td>
+<td>合并到统一工作空间命令</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-阶段管理命令合并"><a href="#3-2-阶段管理命令合并" class="headerlink" title="3.2 阶段管理命令合并"></a>3.2 阶段管理命令合并</h3><table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-add-phase</code></td>
+<td><code>/gsd-phase &quot;description&quot;</code></td>
+<td>合并到统一阶段命令</td>
+</tr>
+<tr>
+<td><code>/gsd-insert-phase N</code></td>
+<td><code>/gsd-phase --insert N</code></td>
+<td>合并到统一阶段命令</td>
+</tr>
+<tr>
+<td><code>/gsd-remove-phase N</code></td>
+<td><code>/gsd-phase --remove N</code></td>
+<td>合并到统一阶段命令</td>
+</tr>
+<tr>
+<td><code>/gsd-list-phase-assumptions</code></td>
+<td><code>/gsd-discuss-phase N --assumptions</code></td>
+<td>变为 discuss-phase 的标志</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-配置命令合并"><a href="#3-3-配置命令合并" class="headerlink" title="3.3 配置命令合并"></a>3.3 配置命令合并</h3><table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-settings</code></td>
+<td><code>/gsd-config</code></td>
+<td><code>/gsd-config</code> 为新增的统一配置命令，<code>/gsd-settings</code> 仍可用但建议迁移</td>
+</tr>
+<tr>
+<td><code>/gsd-settings-advanced</code></td>
+<td><code>/gsd-config --advanced</code></td>
+<td>合并到统一配置命令</td>
+</tr>
+<tr>
+<td><code>/gsd-settings-integrations</code></td>
+<td><code>/gsd-config --integrations</code></td>
+<td>合并到统一配置命令</td>
+</tr>
+<tr>
+<td><code>/gsd-set-profile</code></td>
+<td><code>/gsd-config --profile &lt;name&gt;</code></td>
+<td>合并到统一配置命令</td>
+</tr>
+</tbody></table>
+<h3 id="3-4-捕获命令合并"><a href="#3-4-捕获命令合并" class="headerlink" title="3.4 捕获命令合并"></a>3.4 捕获命令合并</h3><table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-note</code></td>
+<td><code>/gsd-capture --note</code></td>
+<td>合并到统一捕获命令</td>
+</tr>
+<tr>
+<td><code>/gsd-add-todo</code></td>
+<td><code>/gsd-capture &quot;description&quot;</code></td>
+<td>合并到统一捕获命令</td>
+</tr>
+<tr>
+<td><code>/gsd-check-todos</code></td>
+<td><code>/gsd-capture --list</code></td>
+<td>合并到统一捕获命令</td>
+</tr>
+<tr>
+<td><code>/gsd-add-backlog</code></td>
+<td><code>/gsd-capture --backlog</code></td>
+<td>合并到统一捕获命令</td>
+</tr>
+<tr>
+<td><code>/gsd-plant-seed</code></td>
+<td><code>/gsd-capture --seed</code></td>
+<td>合并到统一捕获命令</td>
+</tr>
+</tbody></table>
+<h3 id="3-5-其他命令迁移"><a href="#3-5-其他命令迁移" class="headerlink" title="3.5 其他命令迁移"></a>3.5 其他命令迁移</h3><table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-research-phase</code></td>
+<td><code>/gsd-plan-phase --research-phase N</code></td>
+<td>变为 plan-phase 的模式标志</td>
+</tr>
+<tr>
+<td><code>/gsd-reapply-patches</code></td>
+<td><code>/gsd-update --reapply</code></td>
+<td>变为 update 的标志</td>
+</tr>
+<tr>
+<td><code>/gsd-scan</code></td>
+<td><code>/gsd-map-codebase --fast</code></td>
+<td>合并到 map-codebase</td>
+</tr>
+<tr>
+<td><code>/gsd-do</code></td>
+<td><code>/gsd-progress --do &quot;task&quot;</code></td>
+<td>变为 progress 的标志</td>
+</tr>
+<tr>
+<td><code>/gsd-join-discord</code></td>
+<td><code>/gsd-help</code> 中显示链接</td>
+<td>不再是独立命令</td>
+</tr>
+</tbody></table>
+<h3 id="3-6-新增统一命令替代的旧技能"><a href="#3-6-新增统一命令替代的旧技能" class="headerlink" title="3.6 新增统一命令替代的旧技能"></a>3.6 新增统一命令替代的旧技能</h3><p>以下 4 个旧命令已被合并到新命令的标志中：</p>
+<table>
+<thead>
+<tr>
+<th>旧命令</th>
+<th>新命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-edit-phase</code></td>
+<td><code>/gsd-phase --edit N</code></td>
+<td>合并到统一阶段命令</td>
+</tr>
+<tr>
+<td><code>/gsd-sketch-wrap-up</code></td>
+<td><code>/gsd-sketch --wrap-up</code></td>
+<td>变为 sketch 的标志</td>
+</tr>
+<tr>
+<td><code>/gsd-spike-wrap-up</code></td>
+<td><code>/gsd-spike --wrap-up</code></td>
+<td>变为 spike 的标志</td>
+</tr>
+<tr>
+<td><code>/gsd-code-review-fix</code></td>
+<td><code>/gsd-code-review --fix --auto</code></td>
+<td>变为 code-review 的标志</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-新命令详解"><a href="#4-新命令详解" class="headerlink" title="4. 新命令详解"></a>4. 新命令详解</h2><h3 id="4-1-gsd-workspace"><a href="#4-1-gsd-workspace" class="headerlink" title="4.1 &#x2F;gsd-workspace"></a>4.1 &#x2F;gsd-workspace</h3><p>统一工作空间管理，替代原来三个独立命令（<code>/gsd-new-workspace</code>、<code>/gsd-list-workspaces</code>、<code>/gsd-remove-workspace</code>）。用于创建隔离的开发环境，每个工作空间包含独立的 <code>.planning/</code> 目录和仓库副本，适合多特性并行开发或多项目并管。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--new</code></td>
+<td>创建新工作空间</td>
+</tr>
+<tr>
+<td><code>--list</code></td>
+<td>列出所有活跃工作空间</td>
+</tr>
+<tr>
+<td><code>--remove &lt;name&gt;</code></td>
+<td>移除指定工作空间</td>
+</tr>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>指定工作空间名称</td>
+</tr>
+<tr>
+<td><code>--repos &lt;list&gt;</code></td>
+<td>指定关联仓库</td>
+</tr>
+<tr>
+<td><code>--path &lt;path&gt;</code></td>
+<td>指定工作空间路径</td>
+</tr>
+<tr>
+<td><code>--strategy &lt;type&gt;</code></td>
+<td>工作空间策略</td>
+</tr>
+<tr>
+<td><code>--branch &lt;name&gt;</code></td>
+<td>指定分支</td>
+</tr>
+<tr>
+<td><code>--auto</code></td>
+<td>自动配置</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gsd-workspace --new --name feature-x --repos <span class="string">&quot;repo-a,repo-b&quot;</span></span><br><span class="line">/gsd-workspace --list</span><br><span class="line">/gsd-workspace --remove feature-x</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-gsd-phase"><a href="#4-2-gsd-phase" class="headerlink" title="4.2 &#x2F;gsd-phase"></a>4.2 &#x2F;gsd-phase</h3><p>统一阶段 CRUD 管理，替代原来三个独立命令（<code>/gsd-add-phase</code>、<code>/gsd-insert-phase</code>、<code>/gsd-remove-phase</code>）。直接操作 <code>ROADMAP.md</code> 中的阶段定义，支持追加、插入、移除和编辑阶段条目。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;description&quot;</code></td>
+<td>追加新阶段（默认行为）</td>
+</tr>
+<tr>
+<td><code>--insert N</code></td>
+<td>在第 N 阶段后插入</td>
+</tr>
+<tr>
+<td><code>--remove N</code></td>
+<td>移除第 N 阶段</td>
+</tr>
+<tr>
+<td><code>--edit N</code></td>
+<td>编辑第 N 阶段</td>
+</tr>
+<tr>
+<td><code>--force</code></td>
+<td>强制操作</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gsd-phase <span class="string">&quot;Add user authentication&quot;</span></span><br><span class="line">/gsd-phase --insert 3 --force</span><br><span class="line">/gsd-phase --remove 5</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-gsd-mvp-phase"><a href="#4-3-gsd-mvp-phase" class="headerlink" title="4.3 &#x2F;gsd-mvp-phase"></a>4.3 &#x2F;gsd-mvp-phase</h3><p>引导式 MVP 规划命令，适用于需要快速验证核心功能的早期阶段。执行流程：交互式收集用户故事 → 运行 SPIDR（Splitting）拆分检查，确保需求粒度过关 → 在 <code>ROADMAP.md</code> 中写入 <code>Mode: mvp</code> 标记 → 最终委托给 <code>/gsd-plan-phase</code> 生成详细执行计划。与直接使用 <code>--mvp</code> 标志的区别在于增加了交互式故事收集和拆分检查两个前置步骤。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/gsd-mvp-phase 1</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-gsd-config"><a href="#4-4-gsd-config" class="headerlink" title="4.4 &#x2F;gsd-config"></a>4.4 &#x2F;gsd-config</h3><p>统一配置管理命令，整合了原来三个独立配置命令（<code>/gsd-settings</code>、<code>/gsd-settings-advanced</code>、<code>/gsd-settings-integrations</code>）和配置切换命令（<code>/gsd-set-profile</code>）。支持交互式配置和标志式配置两种模式，是调整 GSD 运行时行为的统一入口。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--advanced</code></td>
+<td>高级配置（原 settings-advanced）</td>
+</tr>
+<tr>
+<td><code>--integrations</code></td>
+<td>第三方集成配置（原 settings-integrations）</td>
+</tr>
+<tr>
+<td><code>--profile &lt;name&gt;</code></td>
+<td>切换配置（原 set-profile）</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/gsd-config                  <span class="comment"># 交互式基本配置</span></span><br><span class="line">/gsd-config --advanced       <span class="comment"># 高级配置</span></span><br><span class="line">/gsd-config --integrations   <span class="comment"># 集成配置</span></span><br><span class="line">/gsd-config --profile budget <span class="comment"># 切换到 budget 配置</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-gsd-surface"><a href="#4-5-gsd-surface" class="headerlink" title="4.5 &#x2F;gsd-surface"></a>4.5 &#x2F;gsd-surface</h3><p>管理 GSD 技能的表面层（Surface Layer），控制各个技能的启用&#x2F;禁用状态。技能表面层是 GSD 的插件化体系，通过启用或禁用特定技能来调整 AI 助手的能力集，减少不必要技能的 token 开销。</p>
+<table>
+<thead>
+<tr>
+<th>子命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>list</code></td>
+<td>列出所有技能</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>显示技能状态</td>
+</tr>
+<tr>
+<td><code>profile</code></td>
+<td>显示当前配置</td>
+</tr>
+<tr>
+<td><code>disable &lt;skill&gt;</code></td>
+<td>禁用技能</td>
+</tr>
+<tr>
+<td><code>enable &lt;skill&gt;</code></td>
+<td>启用技能</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>重置为默认</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/gsd-surface list</span><br><span class="line">/gsd-surface <span class="built_in">disable</span> code-review</span><br><span class="line">/gsd-surface <span class="built_in">enable</span> code-review</span><br><span class="line">/gsd-surface reset</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-6-gsd-fast"><a href="#4-6-gsd-fast" class="headerlink" title="4.6 &#x2F;gsd-fast"></a>4.6 &#x2F;gsd-fast</h3><p>极简内联任务执行模式，无子代理生成、无规划开销、无上下文备份。直接在当前上下文中执行任务，适用于不需要完整 GSD 工作流的轻量操作。典型场景：拼写修正、配置文件更改、简单重构、快速文件搜索等。与普通 GSD 命令相比，&#x2F;gsd-fast 不创建阶段、不写入 .planning&#x2F; 目录，执行完毕即结束，token 开销极低。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/gsd-fast <span class="string">&quot;Fix typo in README.md&quot;</span></span><br><span class="line">/gsd-fast <span class="string">&quot;Update copyright year to 2026&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-7-gsd-capture"><a href="#4-7-gsd-capture" class="headerlink" title="4.7 &#x2F;gsd-capture"></a>4.7 &#x2F;gsd-capture</h3><p>统一捕获命令，整合了原来五个独立捕获命令（<code>/gsd-add-todo</code>、<code>/gsd-note</code>、<code>/gsd-plant-seed</code>、<code>/gsd-add-backlog</code>、<code>/gsd-check-todos</code>）。用于在开发过程中快速记录想法、待办事项、远期需求和前瞻性思路，所有捕获项持久化保存，支持跨项目全局捕获。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;description&quot;</code></td>
+<td>添加待办（默认行为）</td>
+</tr>
+<tr>
+<td><code>--note &quot;text&quot;</code></td>
+<td>添加笔记</td>
+</tr>
+<tr>
+<td><code>--backlog &quot;text&quot;</code></td>
+<td>添加到积压</td>
+</tr>
+<tr>
+<td><code>--seed &quot;text&quot;</code></td>
+<td>捕获前瞻性想法（带触发条件）</td>
+</tr>
+<tr>
+<td><code>--list</code></td>
+<td>列出所有捕获项</td>
+</tr>
+<tr>
+<td><code>--global</code></td>
+<td>跨项目全局捕获</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/gsd-capture <span class="string">&quot;Add dark mode support&quot;</span></span><br><span class="line">/gsd-capture --note <span class="string">&quot;Consider caching strategy&quot;</span></span><br><span class="line">/gsd-capture --backlog <span class="string">&quot;GraphQL API layer&quot;</span></span><br><span class="line">/gsd-capture --seed <span class="string">&quot;Add real-time when WebSocket ready&quot;</span></span><br><span class="line">/gsd-capture --list</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-现有命令新增标志速查"><a href="#5-现有命令新增标志速查" class="headerlink" title="5. 现有命令新增标志速查"></a>5. 现有命令新增标志速查</h2><h3 id="5-1-gsd-discuss-phase"><a href="#5-1-gsd-discuss-phase" class="headerlink" title="5.1 &#x2F;gsd-discuss-phase"></a>5.1 &#x2F;gsd-discuss-phase</h3><p><code>/gsd-discuss-phase</code> 是 GSD 工作流的第一个核心步骤，在规划阶段前通过自适应提问捕获实现决策。它像一位资深架构师一样追问细节，将模糊需求转化为明确的上下文记录，写入 <code>{phase}-CONTEXT.md</code>。新增标志使讨论过程更加灵活可控。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--all</code></td>
+<td>跳过区域选择，交互式讨论所有灰色地带</td>
+</tr>
+<tr>
+<td><code>--auto</code></td>
+<td>自动选择推荐默认值</td>
+</tr>
+<tr>
+<td><code>--batch</code></td>
+<td>批量提问模式</td>
+</tr>
+<tr>
+<td><code>--analyze</code></td>
+<td>讨论中加入权衡分析</td>
+</tr>
+<tr>
+<td><code>--power</code></td>
+<td>基于文件的批量回答</td>
+</tr>
+<tr>
+<td><code>--assumptions</code></td>
+<td>展示 Claude 的实现假设（非交互式）</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/gsd-discuss-phase 1 --all --analyze</span><br><span class="line">/gsd-discuss-phase 2 --assumptions</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-gsd-plan-phase"><a href="#5-2-gsd-plan-phase" class="headerlink" title="5.2 &#x2F;gsd-plan-phase"></a>5.2 &#x2F;gsd-plan-phase</h3><p><code>/gsd-plan-phase</code> 是 GSD 工作流的规划核心，对指定阶段进行研究、任务分解和验证。它读取 discuss-phase 产出的 <code>{phase}-CONTEXT.md</code>，运行领域研究，生成原子化任务计划（写入 <code>{phase}-PLAN.md</code>），并通过计划检查器验证。新增标志支持 PRD&#x2F;ADR 输入、MVP&#x2F;TDD 模式、外部评审反馈纳入等多种扩展能力。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--research-phase N</code></td>
+<td>纯研究模式（替代已删除的 <code>/gsd-research-phase</code>）</td>
+</tr>
+<tr>
+<td><code>--view</code></td>
+<td>配合 <code>--research-phase</code>，打印现有 RESEARCH.md</td>
+</tr>
+<tr>
+<td><code>--prd &lt;file&gt;</code></td>
+<td>使用 PRD 文件替代 discuss-phase</td>
+</tr>
+<tr>
+<td><code>--ingest &lt;path-or-glob&gt;</code></td>
+<td>使用 ADR 文件替代 discuss-phase</td>
+</tr>
+<tr>
+<td><code>--ingest-format &lt;auto|nygard|madr|narrative&gt;</code></td>
+<td>ADR 解析器格式覆盖</td>
+</tr>
+<tr>
+<td><code>--reviews</code></td>
+<td>使用 REVIEWS.md 中的跨 AI 评审反馈重新规划</td>
+</tr>
+<tr>
+<td><code>--validate</code></td>
+<td>规划前运行状态验证</td>
+</tr>
+<tr>
+<td><code>--bounce</code></td>
+<td>规划后运行外部 bounce 验证</td>
+</tr>
+<tr>
+<td><code>--skip-bounce</code></td>
+<td>跳过 plan bounce</td>
+</tr>
+<tr>
+<td><code>--mvp</code></td>
+<td>垂直 MVP 模式（UI-&gt;API-&gt;DB 特性切片）</td>
+</tr>
+<tr>
+<td><code>--tdd</code></td>
+<td>TDD 模式（行为添加任务以失败测试开始）</td>
+</tr>
+<tr>
+<td>Package Legitimacy Gate</td>
+<td>v1.42.1: 研究员推荐外部包时自动运行 slopcheck 验证</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/gsd-plan-phase 1 --research-phase 1 --view</span><br><span class="line">/gsd-plan-phase 2 --prd docs/prd.md</span><br><span class="line">/gsd-plan-phase 3 --mvp --tdd</span><br><span class="line">/gsd-plan-phase 4 --reviews --bounce</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-gsd-execute-phase"><a href="#5-3-gsd-execute-phase" class="headerlink" title="5.3 &#x2F;gsd-execute-phase"></a>5.3 &#x2F;gsd-execute-phase</h3><p><code>/gsd-execute-phase</code> 负责执行阶段中所有已规划的任务，采用波浪式并行化（Wave Parallelization）策略——将无依赖的任务放入同一波并行执行，依赖链的任务分波串行。每个子任务在独立子代理中运行，拥有专属上下文空间。新增标志提供了执行前验证和跨 AI 执行能力。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--validate</code></td>
+<td>执行前运行状态验证</td>
+</tr>
+<tr>
+<td><code>--cross-ai</code></td>
+<td>委托给外部 AI CLI 执行</td>
+</tr>
+<tr>
+<td><code>--no-cross-ai</code></td>
+<td>强制本地执行</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gsd-execute-phase 1 --validate</span><br><span class="line">/gsd-execute-phase 2 --cross-ai</span><br><span class="line">/gsd-execute-phase 3 --no-cross-ai --wave 2</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-gsd-progress"><a href="#5-4-gsd-progress" class="headerlink" title="5.4 &#x2F;gsd-progress"></a>5.4 &#x2F;gsd-progress</h3><p><code>/gsd-progress</code> 是 GSD 的状态查询和导航中枢，显示当前项目进度、已完成阶段和下一步建议。新增标志提供了自动推进（<code>--next</code>）、智能路由（<code>--do</code>）和完整性审计（<code>--forensic</code>）三种增强模式，使其从单纯的进度查看器升级为工作流指挥中心。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--next</code></td>
+<td>自动推进到下一个逻辑工作步骤</td>
+</tr>
+<tr>
+<td><code>--do &quot;task&quot;</code></td>
+<td>分析自由文本意图并路由到最合适的 GSD 命令</td>
+</tr>
+<tr>
+<td><code>--forensic</code></td>
+<td>标准报告 + 6 项完整性审计</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/gsd-progress</span><br><span class="line">/gsd-progress --next</span><br><span class="line">/gsd-progress --<span class="keyword">do</span> <span class="string">&quot;review phase 2&quot;</span></span><br><span class="line">/gsd-progress --forensic</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-gsd-debug"><a href="#5-5-gsd-debug" class="headerlink" title="5.5 &#x2F;gsd-debug"></a>5.5 &#x2F;gsd-debug</h3><p><code>/gsd-debug</code> 提供了系统化的调试能力，跟踪每个调试会话的持久化状态。相比于直接在上下文中提问调试，它维护独立的调试会话记录（支持 list&#x2F;status&#x2F;continue），允许跨会话回溯。新增标志和 TDD 模式使调试过程更加结构化和可复现。</p>
+<table>
+<thead>
+<tr>
+<th>子命令&#x2F;标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>list</code></td>
+<td>列出所有活跃调试会话</td>
+</tr>
+<tr>
+<td><code>status &lt;slug&gt;</code></td>
+<td>显示会话摘要</td>
+</tr>
+<tr>
+<td><code>continue &lt;slug&gt;</code></td>
+<td>恢复特定会话</td>
+</tr>
+<tr>
+<td><code>--diagnose</code></td>
+<td>仅诊断模式（不尝试修复）</td>
+</tr>
+<tr>
+<td>TDD 模式</td>
+<td><code>config.json</code> 中 <code>tdd_mode: true</code> 时，调试会话要求先写失败测试</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/gsd-debug <span class="string">&quot;Login button not responding&quot;</span></span><br><span class="line">/gsd-debug list</span><br><span class="line">/gsd-debug status login-bug</span><br><span class="line">/gsd-debug <span class="built_in">continue</span> login-bug</span><br><span class="line">/gsd-debug <span class="string">&quot;API timeout&quot;</span> --diagnose</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-gsd-code-review"><a href="#5-6-gsd-code-review" class="headerlink" title="5.6 &#x2F;gsd-code-review"></a>5.6 &#x2F;gsd-code-review</h3><p><code>/gsd-code-review</code> 对指定阶段的变更代码进行质量评审，查找 bug、安全漏洞和设计问题。新增深度级别控制（quick&#x2F;standard&#x2F;deep）和自动修复迭代功能（<code>--fix --auto</code>），支持最多 3 轮 修复→重新评审 循环，确保问题闭环。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--depth=quick|standard|deep</code></td>
+<td>评审深度级别</td>
+</tr>
+<tr>
+<td><code>--files file1,file2,...</code></td>
+<td>显式文件列表</td>
+</tr>
+<tr>
+<td><code>--fix --auto</code></td>
+<td>修复 + 重新评审迭代循环（最多 3 次）</td>
+</tr>
+<tr>
+<td>fallow 预检</td>
+<td>可选的结构预检（<code>code_quality.fallow.enabled</code>）</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gsd-code-review 3 --depth=deep</span><br><span class="line">/gsd-code-review 3 --files src/auth.ts,src/middleware.ts</span><br><span class="line">/gsd-code-review 3 --fix --auto</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-7-gsd-map-codebase"><a href="#5-7-gsd-map-codebase" class="headerlink" title="5.7 &#x2F;gsd-map-codebase"></a>5.7 &#x2F;gsd-map-codebase</h3><p><code>/gsd-map-codebase</code> 使用并行映射器代理分析代码库结构，生成可查询的代码库智能文件。新增标志提供了快速扫描模式（替代已删除的 <code>/gsd-scan</code>）和基于查询的智能搜索能力，是了解不熟悉代码库的首选入口。</p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--fast</code></td>
+<td>快速单代理扫描（替代已删除的 <code>/gsd-scan</code>）</td>
+</tr>
+<tr>
+<td><code>--query &lt;term&gt;</code></td>
+<td>搜索可查询的代码库智能文件</td>
+</tr>
+<tr>
+<td><code>--focus</code></td>
+<td><code>--fast</code> 模式的聚焦区域</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gsd-map-codebase auth</span><br><span class="line">/gsd-map-codebase --fast --focus security</span><br><span class="line">/gsd-map-codebase --query authentication</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-8-其他命令变更"><a href="#5-8-其他命令变更" class="headerlink" title="5.8 其他命令变更"></a>5.8 其他命令变更</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>新增标志</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-pause-work</code></td>
+<td><code>--report</code></td>
+<td>生成会话后摘要报告</td>
+</tr>
+<tr>
+<td><code>/gsd-new-milestone</code></td>
+<td><code>--reset-phase-numbers</code></td>
+<td>重置新里程碑的阶段编号为 1</td>
+</tr>
+<tr>
+<td><code>/gsd-health</code></td>
+<td><code>--context</code></td>
+<td>探测上下文窗口利用率（60% 警告，70% 临界）</td>
+</tr>
+<tr>
+<td><code>/gsd-spike</code></td>
+<td><code>--quick</code> &#x2F; <code>--wrap-up</code></td>
+<td>跳过对话 &#x2F; 将发现打包为项目本地技能</td>
+</tr>
+<tr>
+<td><code>/gsd-sketch</code></td>
+<td><code>--quick</code> &#x2F; <code>--wrap-up</code></td>
+<td>跳过对话 &#x2F; 将草图决策打包为项目本地技能</td>
+</tr>
+<tr>
+<td><code>/gsd-manager</code></td>
+<td><code>--analyze-deps</code></td>
+<td>扫描 ROADMAP 阶段依赖关系</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous</code></td>
+<td><code>--interactive</code></td>
+<td>精简上下文，带用户输入</td>
+</tr>
+<tr>
+<td><code>/gsd-update</code></td>
+<td><code>--sync</code> &#x2F; <code>--reapply</code></td>
+<td>更新后同步技能 &#x2F; 恢复本地修改</td>
+</tr>
+<tr>
+<td><code>/gsd-help</code></td>
+<td><code>--brief</code> &#x2F; <code>--full</code> &#x2F; <code>&lt;topic&gt;</code></td>
+<td>~10 行摘要 &#x2F; 完整参考 &#x2F; 单节查询</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/gsd-pause-work --report</span><br><span class="line">/gsd-new-milestone <span class="string">&quot;v2.0&quot;</span> --reset-phase-numbers</span><br><span class="line">/gsd-health --context</span><br><span class="line">/gsd-spike --quick <span class="string">&quot;can we stream LLM tokens through SSE&quot;</span></span><br><span class="line">/gsd-sketch --wrap-up</span><br><span class="line">/gsd-manager --analyze-deps</span><br><span class="line">/gsd-autonomous --interactive --from 3 --to 5</span><br><span class="line">/gsd-update --<span class="built_in">sync</span> --reapply</span><br><span class="line">/gsd-help --brief plan-phase</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-Package-Legitimacy-Gate"><a href="#6-Package-Legitimacy-Gate" class="headerlink" title="6. Package Legitimacy Gate"></a>6. Package Legitimacy Gate</h2><blockquote>
+<p>v1.42.1 引入。当研究员推荐外部包时自动运行 slopcheck 验证，防止引入垃圾包或不合法依赖。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>判定</th>
+<th>含义</th>
+<th>用户操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>[OK]</code></td>
+<td>包合法，可信赖</td>
+<td>无需操作，继续使用</td>
+</tr>
+<tr>
+<td><code>[SUS]</code></td>
+<td>可疑，需人工确认</td>
+<td>用户决定是否采用</td>
+</tr>
+<tr>
+<td><code>[SLOP]</code></td>
+<td>不合法 &#x2F; 垃圾包</td>
+<td>自动拒绝，需寻找替代方案</td>
+</tr>
+</tbody></table>
+<p>触发条件：<code>/gsd-plan-phase</code> 研究阶段中，当研究员推荐 npm&#x2F;pip&#x2F;cargo 等外部包时自动运行。</p>
+<hr>
+<h2 id="7-跨-AI-评审"><a href="#7-跨-AI-评审" class="headerlink" title="7. 跨 AI 评审"></a>7. 跨 AI 评审</h2><p><code>/gsd-review</code> 支持将阶段计划委托给外部 AI CLI 进行同伴评审，获得多视角反馈。</p>
+<h3 id="支持的评审器"><a href="#支持的评审器" class="headerlink" title="支持的评审器"></a>支持的评审器</h3><table>
+<thead>
+<tr>
+<th>评审器</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gemini</td>
+<td>云端 LLM</td>
+</tr>
+<tr>
+<td>Codex</td>
+<td>云端 LLM</td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td>IDE 内置</td>
+</tr>
+<tr>
+<td>Qwen Code</td>
+<td>本地&#x2F;云端</td>
+</tr>
+<tr>
+<td>CodeRabbit</td>
+<td>自动评审平台</td>
+</tr>
+<tr>
+<td>Claude</td>
+<td>云端 LLM</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>本地 CLI</td>
+</tr>
+<tr>
+<td>Antigravity</td>
+<td>本地 CLI</td>
+</tr>
+<tr>
+<td>Ollama</td>
+<td>本地运行时</td>
+</tr>
+<tr>
+<td>LM Studio</td>
+<td>本地运行时</td>
+</tr>
+<tr>
+<td>llama.cpp</td>
+<td>本地运行时</td>
+</tr>
+</tbody></table>
+<h3 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/gsd-review --phase 3 --all          <span class="comment"># 所有可用评审器</span></span><br><span class="line">/gsd-review --phase 3 --reviewers gemini,codex  <span class="comment"># 指定评审器</span></span><br></pre></td></tr></table></figure>
+
+<p>评审结果写入 <code>.planning/phases/XX/REVIEWS.md</code>，可通过 <code>/gsd-plan-phase --reviews</code> 将反馈纳入重新规划。</p>
+<hr>
+<h2 id="8-MVP-与-TDD-规划模式"><a href="#8-MVP-与-TDD-规划模式" class="headerlink" title="8. MVP 与 TDD 规划模式"></a>8. MVP 与 TDD 规划模式</h2><h3 id="8-1-MVP-模式"><a href="#8-1-MVP-模式" class="headerlink" title="8.1 MVP 模式"></a>8.1 MVP 模式</h3><p>垂直切片策略：每个特性从 UI -&gt; API -&gt; DB 全栈实现，形成 Walking Skeleton。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/gsd-plan-phase 1 --mvp        <span class="comment"># 为阶段 1 启用 MVP 模式</span></span><br><span class="line">/gsd-mvp-phase 1               <span class="comment"># 引导式 MVP 规划（交互式收集用户故事）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-TDD-模式"><a href="#8-2-TDD-模式" class="headerlink" title="8.2 TDD 模式"></a>8.2 TDD 模式</h3><p>行为添加任务以失败测试开始，强制测试先行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/gsd-plan-phase 1 --tdd        <span class="comment"># 为阶段 1 启用 TDD 模式</span></span><br></pre></td></tr></table></figure>
+
+<p>全局配置：在 <code>config.json</code> 中设置 <code>tdd_mode: true</code>。</p>
+<h3 id="8-3-组合用法"><a href="#8-3-组合用法" class="headerlink" title="8.3 组合用法"></a>8.3 组合用法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/gsd-plan-phase 1 --mvp --tdd  <span class="comment"># MVP + TDD 组合</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="9-多运行时支持"><a href="#9-多运行时支持" class="headerlink" title="9. 多运行时支持"></a>9. 多运行时支持</h2><blockquote>
+<p>v1.35.0+ 扩展了运行时支持。不同运行时的命令前缀和安装方式有差异。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>运行时</th>
+<th>命令前缀</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Claude Code</td>
+<td><code>/gsd-*</code></td>
+<td><code>npx @opengsd/gsd-core</code></td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td><code>/gsd-*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Gemini CLI</td>
+<td><code>/gsd:*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Cline</td>
+<td>通过 <code>.clinerules</code></td>
+<td>配置文件注入</td>
+</tr>
+<tr>
+<td>CodeBuddy</td>
+<td>自动检测</td>
+<td><code>~/.codebuddy/</code></td>
+</tr>
+<tr>
+<td>Qwen Code</td>
+<td>自动检测</td>
+<td><code>~/.qwen/skills/gsd-*/SKILL.md</code></td>
+</tr>
+<tr>
+<td>Kilo</td>
+<td><code>/gsd-*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Codex</td>
+<td><code>$gsd-*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Copilot</td>
+<td><code>/gsd-*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td><code>/gsd-*</code></td>
+<td>内置</td>
+</tr>
+<tr>
+<td>Windsurf</td>
+<td><code>/gsd-*</code></td>
+<td>内置</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="10-版本演进关键里程碑"><a href="#10-版本演进关键里程碑" class="headerlink" title="10. 版本演进关键里程碑"></a>10. 版本演进关键里程碑</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>关键变更</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.6.0</td>
+<td>旧版</td>
+<td>本文档最初基于的版本</td>
+</tr>
+<tr>
+<td>v1.33.0</td>
+<td>2026 年</td>
+<td>共享行为引用、配置重构、COMMANDS.md 更新</td>
+</tr>
+<tr>
+<td>v1.35.0</td>
+<td>2026-06-02</td>
+<td>新增运行时（Cline&#x2F;CodeBuddy&#x2F;Qwen Code）、新命令（&#x2F;gsd-from-gsd2、&#x2F;gsd-ai-integration-phase、&#x2F;gsd-eval-review）、&#x2F;gsd-review 增强</td>
+</tr>
+<tr>
+<td>v1.40.0</td>
+<td>2026 年</td>
+<td>命名空间元技能（6 个路由器）、上下文窗口利用率守卫</td>
+</tr>
+<tr>
+<td>v1.42.1</td>
+<td>2026 年</td>
+<td>Package Legitimacy Gate（slopcheck 验证）</td>
+</tr>
+<tr>
+<td>v1.43.0-rc2</td>
+<td>2026-05-17</td>
+<td>预发布：CJS-SDK 迁移、分层帮助输出、知识图谱自动更新、安全加固</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="11-附录：快速命令索引"><a href="#11-附录：快速命令索引" class="headerlink" title="11. 附录：快速命令索引"></a>11. 附录：快速命令索引</h2><p>按字母顺序排列所有当前可用命令。</p>
+<h3 id="A"><a href="#A" class="headerlink" title="A"></a>A</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-add-tests N</code></td>
+<td>为已完成阶段 N 生成单元测试和集成测试用例</td>
+</tr>
+<tr>
+<td><code>/gsd-ai-integration-phase</code></td>
+<td>AI 框架选择向导，为项目阶段集成 LLM&#x2F;AI 功能模块</td>
+</tr>
+<tr>
+<td><code>/gsd-manager --analyze-deps</code></td>
+<td>扫描 ROADMAP 阶段依赖关系并建议 Depends on 条目</td>
+</tr>
+<tr>
+<td><code>/gsd-audit-fix</code></td>
+<td>审计 → 分类优先级 → 自动修复 → 原子提交一键闭环</td>
+</tr>
+<tr>
+<td><code>/gsd-audit-milestone</code></td>
+<td>验证里程碑是否满足 DoD（完成的定义）各维度标准</td>
+</tr>
+<tr>
+<td><code>/gsd-audit-uat</code></td>
+<td>跨所有阶段审计未完成的 UAT 和验证项，追踪剩余工作</td>
+</tr>
+<tr>
+<td><code>/gsd-autonomous</code></td>
+<td>自主按顺序执行所有未完成的剩余阶段，支持 –from&#x2F;–to 范围控制</td>
+</tr>
+</tbody></table>
+<h3 id="C"><a href="#C" class="headerlink" title="C"></a>C</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-capture</code></td>
+<td>统一捕获：todo&#x2F;note&#x2F;seed&#x2F;backlog，支持 –global 跨项目</td>
+</tr>
+<tr>
+<td><code>/gsd-cleanup</code></td>
+<td>归档已完成里程碑积累的阶段目录，释放 .planning&#x2F; 空间</td>
+</tr>
+<tr>
+<td><code>/gsd-code-review N</code></td>
+<td>评审阶段 N 的变更代码，查找 bug、安全漏洞和设计问题</td>
+</tr>
+<tr>
+<td><code>/gsd-code-review-fix N</code></td>
+<td>自动修复 code-review 发现的问题，支持 –auto 迭代循环</td>
+</tr>
+<tr>
+<td><code>/gsd-complete-milestone</code></td>
+<td>归档完成里程碑并打 git 标签，标记版本发布点</td>
+</tr>
+<tr>
+<td><code>/gsd-config</code></td>
+<td>统一配置管理（原 settings 系列），支持 –profile 切换配置集</td>
+</tr>
+</tbody></table>
+<h3 id="D-E"><a href="#D-E" class="headerlink" title="D-E"></a>D-E</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-debug</code></td>
+<td>持久化调试会话：list&#x2F;status&#x2F;continue，支持 –diagnose 纯诊断</td>
+</tr>
+<tr>
+<td><code>/gsd-discuss-phase [N]</code></td>
+<td>通过自适应提问收集阶段 N 的实现决策和上下文</td>
+</tr>
+<tr>
+<td><code>/gsd-docs-update</code></td>
+<td>生成或更新经过代码库验证的技术文档和 README</td>
+</tr>
+<tr>
+<td><code>/gsd-eval-review</code></td>
+<td>回溯审计已实现 AI 阶段的评估覆盖率和缺口</td>
+</tr>
+<tr>
+<td><code>/gsd-execute-phase N</code></td>
+<td>执行阶段 N 计划，采用波浪式并行化多代理执行</td>
+</tr>
+<tr>
+<td><code>/gsd-explore</code></td>
+<td>苏格拉底式头脑风暴会议，通过追问引导想法深化</td>
+</tr>
+<tr>
+<td><code>/gsd-extract-learnings</code></td>
+<td>从已完成阶段工作中提取可复用模式写入 learnings</td>
+</tr>
+</tbody></table>
+<h3 id="F-G-H"><a href="#F-G-H" class="headerlink" title="F-G-H"></a>F-G-H</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-fast</code></td>
+<td>极简内联任务执行，无子代理无规划，适合拼写修正&#x2F;小重构</td>
+</tr>
+<tr>
+<td><code>/gsd-forensics</code></td>
+<td>GSD 工作流失败或卡住时的事后调查诊断工具</td>
+</tr>
+<tr>
+<td><code>/gsd-from-gsd2</code></td>
+<td>从 GSD-2 格式项目反向迁移回 GSD v1 格式</td>
+</tr>
+<tr>
+<td><code>/gsd-graphify</code></td>
+<td>构建和查询 .planning&#x2F;graphs&#x2F; 项目知识图谱</td>
+</tr>
+<tr>
+<td><code>/gsd-health</code></td>
+<td>验证 .planning&#x2F; 目录完整性和配置文件一致性</td>
+</tr>
+<tr>
+<td><code>/gsd-help</code></td>
+<td>显示所有命令和使用指南，支持 –brief&#x2F;–full&#x2F;&lt;topic&gt; 分级输出</td>
+</tr>
+</tbody></table>
+<h3 id="I-K-L-M"><a href="#I-K-L-M" class="headerlink" title="I-K-L-M"></a>I-K-L-M</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-import</code></td>
+<td>将外部计划文件导入 GSD 规划系统，支持 –from 指定路径</td>
+</tr>
+<tr>
+<td><code>/gsd-ingest-docs</code></td>
+<td>扫描仓库已有文档，引导初始化或合并 .planning&#x2F; 目录</td>
+</tr>
+<tr>
+<td><code>/gsd-intel</code></td>
+<td>查询已生成的代码库智能文件，适合快速了解项目结构</td>
+</tr>
+<tr>
+<td><code>/gsd-manager</code></td>
+<td>交互式命令中心仪表盘，一站式管理多个阶段和操作</td>
+</tr>
+<tr>
+<td><code>/gsd-map-codebase</code></td>
+<td>使用并行映射器代理分析代码库，生成可查询的智能文件</td>
+</tr>
+<tr>
+<td><code>/gsd-milestone-summary</code></td>
+<td>从里程碑工件生成全面的项目阶段摘要报告</td>
+</tr>
+<tr>
+<td><code>/gsd-mvp-phase</code></td>
+<td>引导式 MVP 规划：收集用户故事 → SPIDR 拆分 → 委托规划</td>
+</tr>
+</tbody></table>
+<h3 id="N-P"><a href="#N-P" class="headerlink" title="N-P"></a>N-P</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-new-milestone</code></td>
+<td>启动下一个版本里程碑周期，支持 –reset-phase-numbers</td>
+</tr>
+<tr>
+<td><code>/gsd-new-project</code></td>
+<td>初始化新 GSD 项目，交互式收集项目上下文和规划文档</td>
+</tr>
+<tr>
+<td><code>/gsd-next</code></td>
+<td>自动分析当前状态并推进到下一个逻辑工作步骤</td>
+</tr>
+<tr>
+<td><code>/gsd-pause-work</code></td>
+<td>中途停止时保存上下文到 continue-here.md，支持 –report</td>
+</tr>
+<tr>
+<td><code>/gsd-phase</code></td>
+<td>统一阶段 CRUD：追加&#x2F;插入&#x2F;移除&#x2F;编辑 ROADMAP.md 阶段</td>
+</tr>
+<tr>
+<td><code>/gsd-plan-milestone-gaps</code></td>
+<td>根据审计缺口自动创建新阶段以关闭差距</td>
+</tr>
+<tr>
+<td><code>/gsd-plan-phase N</code></td>
+<td>研究、任务分解、规划并验证阶段 N 的执行计划</td>
+</tr>
+<tr>
+<td><code>/gsd-plan-review-convergence</code></td>
+<td>plan → review → replan 迭代直至无 HIGH 问题</td>
+</tr>
+<tr>
+<td><code>/gsd-pr-branch</code></td>
+<td>通过过滤 .planning&#x2F; 提交创建干净的 PR 分支准备合并</td>
+</tr>
+<tr>
+<td><code>/gsd-profile-user</code></td>
+<td>从会话行为分析生成开发者配置 profile</td>
+</tr>
+<tr>
+<td><code>/gsd-progress</code></td>
+<td>显示项目状态和下一步建议，支持 –next&#x2F;–do&#x2F;–forensic</td>
+</tr>
+</tbody></table>
+<h3 id="Q-R-S"><a href="#Q-R-S" class="headerlink" title="Q-R-S"></a>Q-R-S</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-quick</code></td>
+<td>执行临时任务但保持 GSD 质量标准，适合小型一次性操作</td>
+</tr>
+<tr>
+<td><code>/gsd-resume-work</code></td>
+<td>从上次暂停的会话恢复完整上下文和工作进度</td>
+</tr>
+<tr>
+<td><code>/gsd-review</code></td>
+<td>跨 AI 同伴评审阶段计划，支持 –gemini&#x2F;–claude&#x2F;–all</td>
+</tr>
+<tr>
+<td><code>/gsd-review-backlog</code></td>
+<td>评审积压项目并决定是否提升到活跃里程碑</td>
+</tr>
+<tr>
+<td><code>/gsd-secure-phase</code></td>
+<td>回溯验证已完成阶段的威胁缓解和安全措施</td>
+</tr>
+<tr>
+<td><code>/gsd-session-report</code></td>
+<td>生成当前会话的完整工作摘要报告</td>
+</tr>
+<tr>
+<td><code>/gsd-ship N</code></td>
+<td>从已完成阶段 N 的工作创建 PR 并运行预合并检查</td>
+</tr>
+<tr>
+<td><code>/gsd-sketch</code></td>
+<td>通过可弃用的 HTML 模拟快速探索 UI&#x2F;UX 设计方向</td>
+</tr>
+<tr>
+<td><code>/gsd-sketch-wrap-up</code></td>
+<td>将获胜的草图设计决策打包为项目本地可复用技能</td>
+</tr>
+<tr>
+<td><code>/gsd-spike</code></td>
+<td>运行 2-5 个聚焦式技术可行性实验，评估方案</td>
+</tr>
+<tr>
+<td><code>/gsd-spike-wrap-up</code></td>
+<td>将完成的 spike 发现和技术决策打包为项目本地技能</td>
+</tr>
+<tr>
+<td><code>/gsd-stats</code></td>
+<td>显示 GSD 项目统计信息（阶段、任务、完成度）</td>
+</tr>
+<tr>
+<td><code>/gsd-surface</code></td>
+<td>管理技能表面层：list&#x2F;status&#x2F;disable&#x2F;enable&#x2F;reset</td>
+</tr>
+</tbody></table>
+<h3 id="T-U-W"><a href="#T-U-W" class="headerlink" title="T-U-W"></a>T-U-W</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-thread</code></td>
+<td>管理跨会话工作的持久化上下文线程，保持长期上下文连续性</td>
+</tr>
+<tr>
+<td><code>/gsd-ui-phase</code></td>
+<td>为前端阶段生成 UI 设计契约和交互规范文档</td>
+</tr>
+<tr>
+<td><code>/gsd-ui-review</code></td>
+<td>回溯 6 支柱视觉审计已实现的前端，自动生成评估报告</td>
+</tr>
+<tr>
+<td><code>/gsd-ultraplan-phase</code></td>
+<td>将规划阶段的复杂任务委托给外部 AI CLI 执行</td>
+</tr>
+<tr>
+<td><code>/gsd-undo</code></td>
+<td>基于阶段清单的安全 git 回滚，支持 –last&#x2F;–phase&#x2F;–plan</td>
+</tr>
+<tr>
+<td><code>/gsd-update</code></td>
+<td>更新 GSD 自身版本并预览变更日志，支持 –sync&#x2F;–reapply</td>
+</tr>
+<tr>
+<td><code>/gsd-validate-phase</code></td>
+<td>回溯审计阶段并填补 Nyquist 验证缺口</td>
+</tr>
+<tr>
+<td><code>/gsd-verify-work</code></td>
+<td>对已完成工作进行用户验收测试（UAT）并自动诊断问题</td>
+</tr>
+<tr>
+<td><code>/gsd-workspace</code></td>
+<td>统一管理工作空间：创建&#x2F;列出&#x2F;移除隔离开发环境</td>
+</tr>
+<tr>
+<td><code>/gsd-workstreams</code></td>
+<td>管理多个 GSD 项目的并行工作流进度</td>
+</tr>
+</tbody></table>
+<h3 id="命名空间命令"><a href="#命名空间命令" class="headerlink" title="命名空间命令"></a>命名空间命令</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workflow</code></td>
+<td>路由到阶段流水线：discuss&#x2F;plan&#x2F;execute&#x2F;verify&#x2F;phase&#x2F;progress</td>
+</tr>
+<tr>
+<td><code>/gsd-project</code></td>
+<td>路由到项目生命周期：milestones&#x2F;audits&#x2F;summary</td>
+</tr>
+<tr>
+<td><code>/gsd-quality</code></td>
+<td>路由到质量门禁：code-review&#x2F;debug&#x2F;audit&#x2F;security&#x2F;eval&#x2F;ui</td>
+</tr>
+<tr>
+<td><code>/gsd-context</code></td>
+<td>路由到代码库智能：map&#x2F;graphify&#x2F;docs&#x2F;learnings</td>
+</tr>
+<tr>
+<td><code>/gsd-manage</code></td>
+<td>路由到管理操作：config&#x2F;workspace&#x2F;workstreams&#x2F;thread&#x2F;update&#x2F;ship&#x2F;inbox</td>
+</tr>
+<tr>
+<td><code>/gsd-ideate</code></td>
+<td>路由到探索与捕获：explore&#x2F;sketch&#x2F;spike&#x2F;spec&#x2F;capture</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/">https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GSD/">GSD</a><a class="post-meta__tags" href="/tags/%E9%A1%B9%E7%9B%AE%E5%B7%A5%E4%BD%9C%E6%B5%81/">项目工作流</a><a class="post-meta__tags" href="/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/tags/AI%E7%BC%96%E7%A8%8B/">AI编程</a><a class="post-meta__tags" href="/tags/OpenCode/">OpenCode</a><a class="post-meta__tags" href="/tags/%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/">命令速查</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/" title="GSD 使用教程-实战故事"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">GSD 使用教程-实战故事</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-实战故事 用”小明开发电商项目”的故事，串联所有 16 大类别的实际应用场景。  目录 故事背景 1.1 版本说明   11.1 项目立项 11.2 需求讨论 11.3 制定计划 11.4 评审计划 11.5 执行开发 11.6 设计前端 11.7 验证质量 11.8 自动修复问题 11.9 调试疑难杂症 11.10 紧急插入任务 11.11 多线并行开发 11.12 临时中断去修 Bug 11.13 上下文线程 11.14 快速临时任务 11.15 AI 集成选型 11.16 知识图谱与情报 11.17 里程碑冲刺 11.18 完成里程碑 11.19 代码审查 11.20 UI 视觉审计 11.21 自主执行 11.22 导入外部计划 11.23 扫描代码库 11.24 代码库地图 11.25 更新文档 11.26 提取经验教训 11.27 创建 PR 11.28 查看进度 11.29 团队评审积压 11.30 回滚错误 11.31 健康检查 11.32 清理归档 11.33 配置个性化 11.34 行为分析生成配置 11.35 团队集成配置 11.36 摄入...</div></div></div></a><a class="pagination-related" href="/AI%E7%BC%96%E7%A0%81%E5%8A%A9%E6%89%8B%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/" title="AI 编码助手核心概念"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AI 编码助手核心概念</div></div><div class="info-2"><div class="info-item-1">AI 编码助手核心概念AI 编码助手（如 Claude Code、Cursor、Windsurf、GitHub Copilot 等）已成为现代开发者不可或缺的工具。本文将系统介绍这类工具的核心概念，帮助您理解并掌握 AI 辅助开发的工作原理。  目录第一部分：基础概念 1. 记忆与上下文系统 2. 规则系统 3. 技能系统 4. MCP协议详解 5. Agent智能体系统 6. 多代理团队协作  第二部分：进阶应用 7. 自定义工作流 8. 性能优化 9. 安全实践  第三部分：工程实践 10. CI&#x2F;CD集成  第四部分：入门与总结 11. 概念之间的关系 12. 快速开始 13. 总结  第五部分：配置实战 14. Claude Code 配置实战 15. MCP server 搭建实战 16. Agent 编写实战   第一部分：基础概念本部分介绍 AI 编码助手的核心概念，帮助您理解工具的工作原理。 1. 记忆与上下文系统1.1 什么是上下文？上下文（Context） 是 AI 理解当前任务所需的信息总和。没有上下文，AI 就如同失忆般不知道：  您正在开发什么...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/" title="GSD 使用教程-实战故事"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">GSD 使用教程-实战故事</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-实战故事 用”小明开发电商项目”的故事，串联所有 16 大类别的实际应用场景。  目录 故事背景 1.1 版本说明   11.1 项目立项 11.2 需求讨论 11.3 制定计划 11.4 评审计划 11.5 执行开发 11.6 设计前端 11.7 验证质量 11.8 自动修复问题 11.9 调试疑难杂症 11.10 紧急插入任务 11.11 多线并行开发 11.12 临时中断去修 Bug 11.13 上下文线程 11.14 快速临时任务 11.15 AI 集成选型 11.16 知识图谱与情报 11.17 里程碑冲刺 11.18 完成里程碑 11.19 代码审查 11.20 UI 视觉审计 11.21 自主执行 11.22 导入外部计划 11.23 扫描代码库 11.24 代码库地图 11.25 更新文档 11.26 提取经验教训 11.27 创建 PR 11.28 查看进度 11.29 团队评审积压 11.30 回滚错误 11.31 健康检查 11.32 清理归档 11.33 配置个性化 11.34 行为分析生成配置 11.35 团队集成配置 11.36 摄入...</div></div></div></a><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/" title="GSD 使用教程-并行开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-28</div><div class="info-item-2">GSD 使用教程-并行开发</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-并行开发 GSD（Get Shit Done）提供了丰富的并行开发能力，帮助开发者同时推进多条开发线，最大化 AI 编程效率。本教程详细介绍 GSD 的六大并行能力：Wave、Workstreams、Workspace、Thread、Autonomous 和 Manager。  目录 并行开发概述 Wave 波浪式并行执行 Workstreams 并行工作流 Workspace 隔离工作空间 Thread 跨会话线程 Autonomous 自主模式 Manager 命令中心 并行开发最佳实践 常见问题 FAQ   1. 并行开发概述1.1 为什么需要并行开发单线程开发模式存在明显的效率瓶颈：  等待浪费：AI 执行一个计划时，开发者只能等待，无法同时推进其他工作 多任务需求：真实项目往往需要前后端同步开发、多个模块并行推进 配额限制：单线程执行无法充分利用 API 配额，并行可以显著提升吞吐量  并行开发的核心思想是：让多个 AI 代理同时工作，每个代理独立执行不同的任务。 1.2 GSD 并行能力全景图GSD 提供了六大并行能力，从轻量到重量，覆盖不同的并行场...</div></div></div></a><a class="pagination-related" href="/deepseek-v4-flash-gsd-core-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-23</div><div class="info-item-2">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版） 本文是一份面向”要不要用 DeepSeek V4 Flash 接 Claude Code、靠 GSD-Core 工作流压幻觉”这一决策的实战调研报告。写作顺序遵循 先结论 → 可抄配置 → 原理 → 决策树 → 排错 FAQ 的教程风格，不是原理参考书。读者可以直接跳到 §7 抄配置、跳到 §9 做选型。 第 2 版更新（2026-06-24）：通过 DeepWiki 深入 GSD-Core 源码，大幅扩充了 §3 GSD-Core 工作机制（新增 3.4 专业 Agent 系统、3.5 Model Profiles 分层模型配置、3.6 Wave-Based 并行执行与 Workspace 隔离、3.7 Hook 系统与 CLI 工具），同时对 §5 和 §7 做了相应增强。   1. 一句话定论先给你 4 句话的结论，剩下的章节都是在论证它。    你的疑问 一句话结论    V4 Flash 是什么？ 284B 总参 &#x2F; 激活 1...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#GSD-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">1.</span> <span class="toc-text">GSD 使用教程 - 命令速查</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E4%BB%93%E5%BA%93%E8%BF%81%E7%A7%BB"><span class="toc-number">1.2.</span> <span class="toc-text">1. 概述与仓库迁移</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E8%B7%A8%E5%BA%A6"><span class="toc-number">1.2.1.</span> <span class="toc-text">版本跨度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%91%BD%E4%BB%A4"><span class="toc-number">1.2.2.</span> <span class="toc-text">安装命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%93%E5%BA%93%E8%BF%81%E7%A7%BB%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.3.</span> <span class="toc-text">仓库迁移说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%85%83%E6%8A%80%E8%83%BD%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">2. 命名空间元技能速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%97%A7%E5%91%BD%E4%BB%A4%E8%BF%81%E7%A7%BB%E5%AF%B9%E7%85%A7%E8%A1%A8"><span class="toc-number">1.4.</span> <span class="toc-text">3. 旧命令迁移对照表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4%E5%91%BD%E4%BB%A4%E5%90%88%E5%B9%B6"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 工作空间命令合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%98%B6%E6%AE%B5%E7%AE%A1%E7%90%86%E5%91%BD%E4%BB%A4%E5%90%88%E5%B9%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 阶段管理命令合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%85%8D%E7%BD%AE%E5%91%BD%E4%BB%A4%E5%90%88%E5%B9%B6"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 配置命令合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%8D%95%E8%8E%B7%E5%91%BD%E4%BB%A4%E5%90%88%E5%B9%B6"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 捕获命令合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4%E8%BF%81%E7%A7%BB"><span class="toc-number">1.4.5.</span> <span class="toc-text">3.5 其他命令迁移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%96%B0%E5%A2%9E%E7%BB%9F%E4%B8%80%E5%91%BD%E4%BB%A4%E6%9B%BF%E4%BB%A3%E7%9A%84%E6%97%A7%E6%8A%80%E8%83%BD"><span class="toc-number">1.4.6.</span> <span class="toc-text">3.6 新增统一命令替代的旧技能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%96%B0%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.5.</span> <span class="toc-text">4. 新命令详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-gsd-workspace"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 &#x2F;gsd-workspace</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-gsd-phase"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 &#x2F;gsd-phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-gsd-mvp-phase"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 &#x2F;gsd-mvp-phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-gsd-config"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4 &#x2F;gsd-config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-gsd-surface"><span class="toc-number">1.5.5.</span> <span class="toc-text">4.5 &#x2F;gsd-surface</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-gsd-fast"><span class="toc-number">1.5.6.</span> <span class="toc-text">4.6 &#x2F;gsd-fast</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-gsd-capture"><span class="toc-number">1.5.7.</span> <span class="toc-text">4.7 &#x2F;gsd-capture</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%8E%B0%E6%9C%89%E5%91%BD%E4%BB%A4%E6%96%B0%E5%A2%9E%E6%A0%87%E5%BF%97%E9%80%9F%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">5. 现有命令新增标志速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-gsd-discuss-phase"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 &#x2F;gsd-discuss-phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-gsd-plan-phase"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 &#x2F;gsd-plan-phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-gsd-execute-phase"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 &#x2F;gsd-execute-phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-gsd-progress"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.4 &#x2F;gsd-progress</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-gsd-debug"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.5 &#x2F;gsd-debug</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-gsd-code-review"><span class="toc-number">1.6.6.</span> <span class="toc-text">5.6 &#x2F;gsd-code-review</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-gsd-map-codebase"><span class="toc-number">1.6.7.</span> <span class="toc-text">5.7 &#x2F;gsd-map-codebase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-8-%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4%E5%8F%98%E6%9B%B4"><span class="toc-number">1.6.8.</span> <span class="toc-text">5.8 其他命令变更</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Package-Legitimacy-Gate"><span class="toc-number">1.7.</span> <span class="toc-text">6. Package Legitimacy Gate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%B7%A8-AI-%E8%AF%84%E5%AE%A1"><span class="toc-number">1.8.</span> <span class="toc-text">7. 跨 AI 评审</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E8%AF%84%E5%AE%A1%E5%99%A8"><span class="toc-number">1.8.1.</span> <span class="toc-text">支持的评审器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.8.2.</span> <span class="toc-text">使用方式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-MVP-%E4%B8%8E-TDD-%E8%A7%84%E5%88%92%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.9.</span> <span class="toc-text">8. MVP 与 TDD 规划模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-MVP-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 MVP 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-TDD-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 TDD 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E7%BB%84%E5%90%88%E7%94%A8%E6%B3%95"><span class="toc-number">1.9.3.</span> <span class="toc-text">8.3 组合用法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%A4%9A%E8%BF%90%E8%A1%8C%E6%97%B6%E6%94%AF%E6%8C%81"><span class="toc-number">1.10.</span> <span class="toc-text">9. 多运行时支持</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E5%85%B3%E9%94%AE%E9%87%8C%E7%A8%8B%E7%A2%91"><span class="toc-number">1.11.</span> <span class="toc-text">10. 版本演进关键里程碑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E9%99%84%E5%BD%95%EF%BC%9A%E5%BF%AB%E9%80%9F%E5%91%BD%E4%BB%A4%E7%B4%A2%E5%BC%95"><span class="toc-number">1.12.</span> <span class="toc-text">11. 附录：快速命令索引</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#A"><span class="toc-number">1.12.1.</span> <span class="toc-text">A</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C"><span class="toc-number">1.12.2.</span> <span class="toc-text">C</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#D-E"><span class="toc-number">1.12.3.</span> <span class="toc-text">D-E</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#F-G-H"><span class="toc-number">1.12.4.</span> <span class="toc-text">F-G-H</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#I-K-L-M"><span class="toc-number">1.12.5.</span> <span class="toc-text">I-K-L-M</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#N-P"><span class="toc-number">1.12.6.</span> <span class="toc-text">N-P</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q-R-S"><span class="toc-number">1.12.7.</span> <span class="toc-text">Q-R-S</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#T-U-W"><span class="toc-number">1.12.8.</span> <span class="toc-text">T-U-W</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%91%BD%E4%BB%A4"><span class="toc-number">1.12.9.</span> <span class="toc-text">命名空间命令</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

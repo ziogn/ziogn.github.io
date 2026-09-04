@@ -1,0 +1,1509 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>java知识规划——mysql | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="MySQL 核心机制面试知识规划，覆盖 B+Tree 索引、索引优化、EXPLAIN 执行计划、事务 ACID、MVCC、InnoDB 锁机制、SQL 优化策略、分库分表、主从复制、InnoDB 内存结构十大模块。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java知识规划——mysql">
+<meta property="og:url" content="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="MySQL 核心机制面试知识规划，覆盖 B+Tree 索引、索引优化、EXPLAIN 执行计划、事务 ACID、MVCC、InnoDB 锁机制、SQL 优化策略、分库分表、主从复制、InnoDB 内存结构十大模块。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-11T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:30:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="guide">
+<meta property="article:tag" content="interview">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="java面试">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="research">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java知识规划——mysql",
+  "url": "https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-11T07:00:00.000Z",
+  "dateModified": "2026-07-23T03:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'java知识规划——mysql',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">java知识规划——mysql</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">java知识规划——mysql</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-11T07:00:00.000Z" title="发表于 2026-07-11 15:00:00">2026-07-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-23T03:30:00.000Z" title="更新于 2026-07-23 11:30:00">2026-07-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>27分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="java知识规划——mysql"><a href="#java知识规划——mysql" class="headerlink" title="java知识规划——mysql"></a>java知识规划——mysql</h1><blockquote>
+<p>本文档覆盖面试权重 15% 的 MySQL 知识体系。按”索引 → 优化 → 执行计划 → 事务 → MVCC → 锁 → SQL 优化 → 分库分表 → 主从复制 → InnoDB 内存结构”递进。每节末尾标注与 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/">Spring 生态</a> 及 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/">MyBatis</a> 方向的知识关联。</p>
+</blockquote>
+<hr>
+<h2 id="4-1-B-Tree-数据结构-聚簇-vs-二级索引-最左前缀"><a href="#4-1-B-Tree-数据结构-聚簇-vs-二级索引-最左前缀" class="headerlink" title="4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀"></a>4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀</h2><p><strong>一句话原理</strong>：B+Tree 非叶子节点只存索引键（不存数据），叶子节点存完整行数据（聚簇）或主键值（二级）且叶子节点间有双向链表；聚簇索引物理存储顺序&#x3D;索引顺序，一张表一个；二级索引叶子存主键值需回表。</p>
+<hr>
+<h4 id="B-Tree-三层结构"><a href="#B-Tree-三层结构" class="headerlink" title="B+Tree 三层结构"></a>B+Tree 三层结构</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">根节点（存放索引键的指针范围）</span><br><span class="line">  ↓</span><br><span class="line">内部节点（存放下一层节点的指针范围）</span><br><span class="line">  ↓</span><br><span class="line">叶子节点（存放完整数据或主键值，双向链表连接）</span><br></pre></td></tr></table></figure>
+
+<p><strong>B+Tree vs B-Tree 核心区别</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>B+Tree</th>
+<th>B-Tree</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据存储</td>
+<td>只有叶子节点存数据</td>
+<td>所有节点都存数据</td>
+</tr>
+<tr>
+<td>叶子节点连接</td>
+<td>有双向链表，支持范围扫描</td>
+<td>无链表，范围查询需中序遍历</td>
+</tr>
+<tr>
+<td>I&#x2F;O 次数</td>
+<td>固定（等于树高，通常 3-4 层）</td>
+<td>不固定</td>
+</tr>
+<tr>
+<td>范围查询</td>
+<td>高效（叶子链表遍历）</td>
+<td>低效（反复回溯）</td>
+</tr>
+</tbody></table>
+<p><strong>聚簇索引 vs 二级索引</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>对比</th>
+<th>聚簇索引</th>
+<th>二级索引（辅助索引）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>叶子节点</td>
+<td>存储完整行数据</td>
+<td>存储主键值</td>
+</tr>
+<tr>
+<td>每表数量</td>
+<td>1 个（主键）</td>
+<td>多个</td>
+</tr>
+<tr>
+<td>回表</td>
+<td>不需要</td>
+<td>需要</td>
+</tr>
+<tr>
+<td>物理顺序</td>
+<td>与索引顺序一致</td>
+<td>无关</td>
+</tr>
+</tbody></table>
+<p><strong>最左前缀原则</strong>：<code>CREATE INDEX idx_a_b_c ON t(a, b, c)</code> 实际建立的索引为 <code>(a)</code>、<code>(a, b)</code>、<code>(a, b, c)</code>。<code>WHERE b=2</code> 或 <code>WHERE a=1 AND c=3</code> 均无法完全命中索引。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：InnoDB 没有主键会选第一个 NOT NULL UNIQUE 列作为聚簇索引，都没有则自动生成 6 字节 rowid。回表是性能杀手，覆盖索引可解决。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：数据结构 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#14-%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6">核心 HashMap 红黑树</a> &#x2F; 回表 → 4.2 覆盖索引</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>B+Tree 结构 → 非叶子节点只存键 → 叶子双向链表 → 相比 B-Tree 优势 → 聚簇索引组织表 → 二级索引回表 → 联合索引最左前缀 → 失效场景 → 字段顺序建议</code></p>
+<hr>
+<h2 id="4-2-索引优化（覆盖索引-索引下推-ICP-MRR）"><a href="#4-2-索引优化（覆盖索引-索引下推-ICP-MRR）" class="headerlink" title="4.2 索引优化（覆盖索引 &#x2F; 索引下推 ICP &#x2F; MRR）"></a>4.2 索引优化（覆盖索引 &#x2F; 索引下推 ICP &#x2F; MRR）</h2><p><strong>一句话原理</strong>：覆盖索引（查询字段全在索引中，Extra&#x3D;Using index 免回表）；索引下推 ICP（MySQL 5.6+，WHERE 条件下推到引擎层过滤减少回表）；MRR（随机 I&#x2F;O 变顺序 I&#x2F;O，收集主键 ID→排序→回表）。</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>优化</th>
+<th>原理</th>
+<th>Extra 信号</th>
+<th>版本要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>覆盖索引</td>
+<td>索引包含所有查询字段，无需回表</td>
+<td><code>Using index</code></td>
+<td>始终支持</td>
+</tr>
+<tr>
+<td>ICP</td>
+<td>WHERE 条件下推到存储引擎过滤</td>
+<td><code>Using index condition</code></td>
+<td>MySQL 5.6+</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>按主键排序后回表（随机 I&#x2F;O→顺序 I&#x2F;O）</td>
+<td><code>Using MRR</code></td>
+<td>MySQL 5.6+</td>
+</tr>
+</tbody></table>
+<p><strong>覆盖索引示例</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- idx_name_age(name, age)</span></span><br><span class="line"><span class="comment">-- 需要查询的字段（name, age）全在索引中 → 覆盖索引，避免回表</span></span><br><span class="line"><span class="keyword">SELECT</span> name, age <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;张三&#x27;</span>;</span><br><span class="line"><span class="comment">-- EXPLAIN Extra: Using index</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- SELECT * 无法利用覆盖索引</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;张三&#x27;</span>;</span><br><span class="line"><span class="comment">-- 需要回表查询所有列</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：覆盖索引需要索引包含所有 SELECT 字段（注意 <code>SELECT *</code> 破坏覆盖索引）；ICP 在二级索引上生效，聚簇索引不需要；索引失效场景（函数包裹、隐式类型转换、LIKE 前导 %）。</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>覆盖索引原理 → 避免回表 → EXPLAIN Using index → ICP 下推 → 联合索引尾字段范围条件效果 → MRR 排序回表 → 三种优化对比</code></p>
+<hr>
+<h2 id="4-3-EXPLAIN-执行计划解读"><a href="#4-3-EXPLAIN-执行计划解读" class="headerlink" title="4.3 EXPLAIN 执行计划解读"></a>4.3 EXPLAIN 执行计划解读</h2><p><strong>一句话原理</strong>：<code>EXPLAIN SELECT</code> 返回 type（扫描方式，const→eq_ref→ref→range→index→ALL 性能递减）、key（实际索引）、key_len（索引使用长度）、rows（估计扫描行数）、Extra（附加信息）。</p>
+<hr>
+<h4 id="type-分级（性能从高到低）"><a href="#type-分级（性能从高到低）" class="headerlink" title="type 分级（性能从高到低）"></a>type 分级（性能从高到低）</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">system → const → eq_ref → ref → range → index → ALL</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>type</th>
+<th>含义</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>const</td>
+<td>主键&#x2F;唯一索引等值查询</td>
+<td><code>WHERE id = 1</code></td>
+</tr>
+<tr>
+<td>eq_ref</td>
+<td>JOIN 关联的主键&#x2F;唯一索引</td>
+<td><code>JOIN ... ON a.id = b.id</code></td>
+</tr>
+<tr>
+<td>ref</td>
+<td>普通索引等值查询</td>
+<td><code>WHERE name = &#39;张三&#39;</code></td>
+</tr>
+<tr>
+<td>range</td>
+<td>索引范围查询</td>
+<td><code>WHERE age &gt; 18</code></td>
+</tr>
+<tr>
+<td>index</td>
+<td>全索引扫描（比全表略好）</td>
+<td><code>SELECT age FROM user</code>（覆盖索引）</td>
+</tr>
+<tr>
+<td>ALL</td>
+<td>全表扫描</td>
+<td>无索引的查询或索引失效</td>
+</tr>
+</tbody></table>
+<p><strong>Extra 信号解读</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>含义</th>
+<th align="center">评估</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Using index</code></td>
+<td>覆盖索引，无需回表</td>
+<td align="center">好</td>
+</tr>
+<tr>
+<td><code>Using index condition</code></td>
+<td>索引下推（ICP）</td>
+<td align="center">较好</td>
+</tr>
+<tr>
+<td><code>Using where</code></td>
+<td>Server 层过滤</td>
+<td align="center">中性</td>
+</tr>
+<tr>
+<td><code>Using filesort</code></td>
+<td>需要额外排序</td>
+<td align="center">坏</td>
+</tr>
+<tr>
+<td><code>Using temporary</code></td>
+<td>使用临时表</td>
+<td align="center">坏</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：<code>possible_keys</code> 有值但 <code>key=NULL</code> 说明有索引但优化器决定不用（通常因为数据量小或索引选择性差）。</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>EXPLAIN 输出解读 → type 扫描方式排序 → key/key_len 判定 → rows 估算偏差 → Extra 信号分类 → Using filesort 优化 → 与慢查询分析结合</code></p>
+<hr>
+<h2 id="4-4-事务-ACID-与隔离级别"><a href="#4-4-事务-ACID-与隔离级别" class="headerlink" title="4.4 事务 ACID 与隔离级别"></a>4.4 事务 ACID 与隔离级别</h2><p><strong>一句话原理</strong>：ACID 由 Undo Log（原子性）+ MVCC + 锁（隔离性）+ Redo Log WAL（持久性）共同保证。四种隔离级别递进解决脏读→不可重复读→幻读。</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>级别</th>
+<th align="center">脏读</th>
+<th align="center">不可重复读</th>
+<th align="center">幻读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>READ UNCOMMITTED</td>
+<td align="center">可能</td>
+<td align="center">可能</td>
+<td align="center">可能</td>
+</tr>
+<tr>
+<td>READ COMMITTED（RC）</td>
+<td align="center">不可能</td>
+<td align="center">可能</td>
+<td align="center">可能</td>
+</tr>
+<tr>
+<td>REPEATABLE READ（RR，MySQL 默认）</td>
+<td align="center">不可能</td>
+<td align="center">不可能</td>
+<td align="center">InnoDB 间隙锁避免</td>
+</tr>
+<tr>
+<td>SERIALIZABLE</td>
+<td align="center">不可能</td>
+<td align="center">不可能</td>
+<td align="center">不可能</td>
+</tr>
+</tbody></table>
+<p><strong>ACID 四特性对应的底层机制</strong>：</p>
+<ul>
+<li><strong>原子性（A）</strong>：Undo Log，事务回滚时通过 Undo Log 还原数据</li>
+<li><strong>一致性（C）</strong>：最核心目标，通过 A+I+D 共同保证</li>
+<li><strong>隔离性（I）</strong>：MVCC + 锁机制</li>
+<li><strong>持久性（D）</strong>：Redo Log WAL 机制</li>
+</ul>
+<blockquote>
+<p><strong>常见陷阱</strong>：RR 级别下当前读（SELECT FOR UPDATE）仍可能幻读（由 Gap Lock 解决）；RC 性能一般优于 RR（锁竞争更少）。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：@Transactional 隔离级别 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/#25-spring-%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86">Spring 事务管理</a> &#x2F; MVCC → 4.5</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>ACID 四特性 → Undo Log 原子性 → Redo Log 持久性 → MVCC 隔离性 → 四种隔离级别定义 → 三类并发问题 → MySQL RR 默认原因 → RC vs RR 性能对比 → 与 @Transactional 关系</code></p>
+<hr>
+<h2 id="4-5-MVCC-实现原理（Undo-Log-ReadView）"><a href="#4-5-MVCC-实现原理（Undo-Log-ReadView）" class="headerlink" title="4.5 MVCC 实现原理（Undo Log + ReadView）"></a>4.5 MVCC 实现原理（Undo Log + ReadView）</h2><p><strong>一句话原理</strong>：MVCC 实现非阻塞快照读。Undo Log 版本链（DB_TRX_ID + DB_ROLL_PTR 隐藏列）；ReadView（m_ids&#x2F;min_trx_id&#x2F;max_trx_id&#x2F;creator_trx_id）判定可见性。RC 每次 SELECT 新建 ReadView，RR 第一次 SELECT 生成复用。</p>
+<hr>
+<h4 id="ReadView-可见性判定"><a href="#ReadView-可见性判定" class="headerlink" title="ReadView 可见性判定"></a>ReadView 可见性判定</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">遍历 Undo Log 版本链，对每个版本的事务 trx_id：</span><br><span class="line">  ├── trx_id == creator_trx_id → 可见（自己修改的版本）</span><br><span class="line">  ├── trx_id &lt; min_trx_id → 可见（已提交的旧事务）</span><br><span class="line">  ├── trx_id &gt;= max_trx_id → 不可见（未来事务）</span><br><span class="line">  └── trx_id 在 m_ids 中 → 不可见（活跃事务）</span><br><span class="line">        不在 m_ids 中 → 可见（已提交）</span><br></pre></td></tr></table></figure>
+
+<p><strong>RC vs RR 差异</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RC</th>
+<th>RR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ReadView 生成</td>
+<td>每次 SELECT 都新建</td>
+<td>第一次 SELECT 生成，后续复用</td>
+</tr>
+<tr>
+<td>不可重复读</td>
+<td>可能</td>
+<td>否</td>
+</tr>
+<tr>
+<td>快照读实现</td>
+<td>每次读最新已提交版本</td>
+<td>读事务启动时的快照版本</td>
+</tr>
+</tbody></table>
+<p><strong>快照读 vs 当前读</strong>：</p>
+<ul>
+<li><strong>快照读</strong>：普通 SELECT，不加锁，走 MVCC 版本链</li>
+<li><strong>当前读</strong>：<code>SELECT ... FOR UPDATE</code> &#x2F; <code>UPDATE</code> &#x2F; <code>DELETE</code>，走行锁 + Next-Key Lock</li>
+</ul>
+<blockquote>
+<p><strong>关联知识点</strong>：锁机制 → 4.6 &#x2F; 事务隔离级别 → 4.4 &#x2F; 乐观并发控制 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 CAS</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>MVCC 解决的问题 → Undo Log 版本链 → DB_TRX_ID/DB_ROLL_PTR → ReadView 四字段 → 可见性判定算法 → RC vs RR ReadView 生成时机 → 快照读 vs 当前读 → 与 @Transactional 底层实现关联</code></p>
+<hr>
+<h2 id="4-6-InnoDB-锁机制（行锁-Gap-Lock-Next-Key-Lock）"><a href="#4-6-InnoDB-锁机制（行锁-Gap-Lock-Next-Key-Lock）" class="headerlink" title="4.6 InnoDB 锁机制（行锁 &#x2F; Gap Lock &#x2F; Next-Key Lock）"></a>4.6 InnoDB 锁机制（行锁 &#x2F; Gap Lock &#x2F; Next-Key Lock）</h2><p><strong>一句话原理</strong>：InnoDB 锁加在索引上。Record Lock 锁定索引记录；Gap Lock 锁定记录间间隙（RR 级别防止幻读）；Next-Key Lock &#x3D; Record Lock + Gap Lock（左开右闭）。唯一索引等值查询退化为 Record Lock。</p>
+<hr>
+<h4 id="锁分类"><a href="#锁分类" class="headerlink" title="锁分类"></a>锁分类</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">按粒度：行锁 | 表锁 | 意向锁(IS/IX)</span><br><span class="line">按模式：共享锁(S) | 排他锁(X)</span><br><span class="line">按算法：Record Lock | Gap Lock | Next-Key Lock</span><br></pre></td></tr></table></figure>
+
+<p><strong>锁退化规则</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>查询类型</th>
+<th>锁类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>唯一索引等值查询命中记录</td>
+<td>Record Lock（退化为行锁）</td>
+</tr>
+<tr>
+<td>唯一索引等值查询未命中</td>
+<td>Gap Lock（锁定不存在记录所在的间隙）</td>
+</tr>
+<tr>
+<td>普通索引范围查询</td>
+<td>Next-Key Lock（行锁 + 间隙锁）</td>
+</tr>
+<tr>
+<td>无索引条件</td>
+<td>全表行锁（实际为表锁）</td>
+</tr>
+</tbody></table>
+<p><strong>死锁检测</strong>：InnoDB 通过 <strong>wait-for graph</strong> 检测死锁，回滚代价较小的事务。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：没有索引的行操作 → 行锁退化为表锁（全表扫描）；Gap Lock 只在 RR 级别生效。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：MVCC → 4.5 &#x2F; 隔离级别 → 4.4 &#x2F; AQS → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 并发编程</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>InnoDB 锁分类 → Record Lock → Gap Lock(RR 生效) → Next-Key Lock → 锁退化规则 → 唯一索引等值 → 死锁 wait-for graph → 与 AQS Condition 类比</code></p>
+<hr>
+<h2 id="4-7-SQL-优化策略"><a href="#4-7-SQL-优化策略" class="headerlink" title="4.7 SQL 优化策略"></a>4.7 SQL 优化策略</h2><p><strong>一句话原理</strong>：慢查询定位 → EXPLAIN 分析 → 索引优化 → SQL 改写。深分页用游标分页（<code>WHERE id &gt; last_id LIMIT 20</code>）替代 <code>LIMIT 100000, 20</code>。</p>
+<hr>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 慢查询日志：SET long_query_time = 2; 分析 mysqldumpslow / pt-query-digest</span><br><span class="line">2. EXPLAIN 分析：type/key/rows/Extra 定位问题</span><br><span class="line">3. 索引设计：频繁 WHERE/ORDER BY/JOIN 列、区分度低的列不建索引、长字符串前缀索引</span><br><span class="line">4. SQL 改写：避免 SELECT *、JOIN 小表驱动大表、避免函数、避免隐式转换、LIKE 非前缀 %</span><br><span class="line">5. 深分页优化：游标分页 WHERE id &gt; last_id LIMIT 20</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：隐式类型转换（<code>WHERE int_col = &#39;123&#39;</code>）导致索引失效；OR 条件两端必须都有索引否则失效；深分页 <code>LIMIT 1000000, 20</code> 虽然返回 20 条但需要扫描前 100 万行。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：EXPLAIN → 4.3 &#x2F; 索引 → 4.1 &#x2F; 深分页 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/#38-%E5%88%86%E9%A1%B5%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86rowbounds--pagehelper">MyBatis 分页</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>慢查询定位 → long_query_time → EXPLAIN 分析 → 索引优化三原则 → SQL 改写五避免 → 深分页游标优化 → JOIN 小表驱动大表 → 与 PageHelper 分页优化关联</code></p>
+<hr>
+<h2 id="4-8-分库分表（ShardingSphere-原理）"><a href="#4-8-分库分表（ShardingSphere-原理）" class="headerlink" title="4.8 分库分表（ShardingSphere 原理）"></a>4.8 分库分表（ShardingSphere 原理）</h2><p><strong>一句话原理</strong>：分库分表策略（垂直分库&#x2F;垂直分表&#x2F;水平分库&#x2F;水平分表）。ShardingSphere 核心流程：SQL 解析 → SQL 路由 → SQL 改写 → SQL 执行 → 结果归并。</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>垂直分库</td>
+<td>按业务模块拆分到不同数据库</td>
+<td>模块间耦合低</td>
+</tr>
+<tr>
+<td>垂直分表</td>
+<td>大表拆为”宽表+明细表”（冷热分离）</td>
+<td>大字段影响性能</td>
+</tr>
+<tr>
+<td>水平分库</td>
+<td>同一张表数据分散到多个数据库实例</td>
+<td>写压力大</td>
+</tr>
+<tr>
+<td>水平分表</td>
+<td>同一张表数据分散到多个表</td>
+<td>单表数据量巨大</td>
+</tr>
+</tbody></table>
+<p><strong>ShardingSphere 五流程</strong>：<code>SQL 解析(AST) → SQL 路由(分片键) → SQL 改写(表名) → SQL 执行(并行) → 结果归并(排序/聚合)</code></p>
+<blockquote>
+<p><strong>常见陷阱</strong>：分片键选择不当导致查询路由到全部分片；分布式事务需要 Seata&#x2F;XA 方案。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：分布式事务 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/#28-spring-cloud-%E5%BE%AE%E6%9C%8D%E5%8A%A1">Spring Cloud</a> &#x2F; 雪花算法 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 并发编程</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>分库分表策略(垂直/水平) → ShardingSphere 五流程 → 解析→路由→改写→执行→归并 → 分片算法(取模/范围/复合) → 分布式 ID 雪花算法 → 跨库事务 → 与 Spring Cloud 关联</code></p>
+<hr>
+<h2 id="4-9-主从复制（Binlog）"><a href="#4-9-主从复制（Binlog）" class="headerlink" title="4.9 主从复制（Binlog）"></a>4.9 主从复制（Binlog）</h2><p><strong>一句话原理</strong>：主库事务提交写 Binlog → Binlog Dump Thread 发送 → 从库 I&#x2F;O Thread 写入 Relay Log → SQL Thread 重放。</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>格式</th>
+<th>记录内容</th>
+<th>日志量</th>
+<th>一致性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>STATEMENT</td>
+<td>SQL 语句</td>
+<td>小</td>
+<td>非确定性函数导致不一致</td>
+</tr>
+<tr>
+<td>ROW（默认）</td>
+<td>行数据前后镜像</td>
+<td>大</td>
+<td>绝对一致</td>
+</tr>
+<tr>
+<td>MIXED</td>
+<td>自动选择</td>
+<td>中</td>
+<td>折中</td>
+</tr>
+</tbody></table>
+<p><strong>复制模式</strong>：异步（默认）→ 半同步（至少一个从库写 Relay Log）→ 全同步（全部执行完）。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：半同步复制性能下降（等待从库写 Relay Log）；大事务导致主从延迟。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：读写分离 → 4.8 ShardingSphere &#x2F; Binlog → 4.10 两阶段提交</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>主从复制三线程 → Binlog Dump → I/O Thread → SQL Thread → STATEMENT/ROW/MIXED → 异步/半同步/全同步 → 主从延迟 → 与 ShardingSphere 读写分离关联</code></p>
+<hr>
+<h2 id="4-10-InnoDB-内存结构（Buffer-Pool-Redo-Log-Undo-Log-Binlog）"><a href="#4-10-InnoDB-内存结构（Buffer-Pool-Redo-Log-Undo-Log-Binlog）" class="headerlink" title="4.10 InnoDB 内存结构（Buffer Pool &#x2F; Redo Log &#x2F; Undo Log &#x2F; Binlog）"></a>4.10 InnoDB 内存结构（Buffer Pool &#x2F; Redo Log &#x2F; Undo Log &#x2F; Binlog）</h2><p><strong>一句话原理</strong>：Buffer Pool（16KB 页缓存 + 变种 LRU 防扫描污染）保证数据缓存；Redo Log（WAL 机制，顺序 I&#x2F;O 提升写性能）保证持久性；Undo Log 保证原子性和 MVCC 版本链；Binlog（Server 层）用于复制和恢复。Redo Log 和 Binlog 通过两阶段提交保持一致性。</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>层次</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Buffer Pool</td>
+<td>InnoDB</td>
+<td>缓存数据页和索引页，变种 LRU 淘汰</td>
+</tr>
+<tr>
+<td>Redo Log</td>
+<td>InnoDB</td>
+<td>WAL 循环写，持久性 D</td>
+</tr>
+<tr>
+<td>Undo Log</td>
+<td>InnoDB</td>
+<td>回滚 + MVCC 版本链</td>
+</tr>
+<tr>
+<td>Binlog</td>
+<td>Server</td>
+<td>逻辑日志，复制+恢复</td>
+</tr>
+</tbody></table>
+<p><strong>一条 UPDATE 完整日志流程</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> <span class="keyword">user</span> <span class="keyword">SET</span> name<span class="operator">=</span><span class="string">&#x27;new&#x27;</span> <span class="keyword">WHERE</span> id<span class="operator">=</span><span class="number">1</span></span><br><span class="line">  → Buffer Pool 查找<span class="operator">/</span>加载页</span><br><span class="line">  → 写入 Undo Log（旧值）</span><br><span class="line">  → 修改 Buffer Pool 数据页（标记脏页）</span><br><span class="line">  → 写入 Redo Log Buffer</span><br><span class="line">  → 事务提交：Redo Log fsync → Binlog fsync（两阶段提交）</span><br><span class="line">  → 后台 Checkpoint 刷脏页</span><br></pre></td></tr></table></figure>
+
+<p><strong>两阶段提交</strong>：Prepare（Redo Log）→ Binlog → Commit（Redo Log commit 标记），崩溃恢复时对比两者状态决定事务提交还是回滚。</p>
+<p><strong>Buffer Pool LRU 变种</strong>：普通 LRU 在批量全表扫描时会把热点数据全部挤出。InnoDB 变种 LRU 将链表分为 Old 区（尾部 3&#x2F;8）和 New 区（头部 5&#x2F;8），新读取的页先插入 Old 区头部，只有再次访问才移到 New 区。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：Redo Log 循环写不能用于数据恢复（Binlog 用于恢复）；两阶段提交不是分布式事务的 XA，是 MySQL 内部一致性协议。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：MVCC 版本链 → 4.5 &#x2F; Redo Log → 4.4 持久性 &#x2F; Binlog → 4.9 &#x2F; <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/#34-%E4%B8%80%E7%BA%A7%E7%BC%93%E5%AD%98%E5%92%8C%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%E5%8F%8A%E9%97%AE%E9%A2%98">MyBatis 缓存对比</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Buffer Pool LRU 变种 → 16KB 页 → Checkpoint 刷脏 → Redo Log WAL → 顺序 I/O vs 随机 I/O → Undo Log 版本链(4.5) → Binlog 三种格式(4.9) → 两阶段提交 → 崩溃恢复 → UPDATE 完整日志流程 → 与 MyBatis 缓存对比</code></p>
+<hr>
+<p><strong>整体追问链（方向四）</strong>：<code>B+Tree 三层结构 → 聚簇 vs 二级索引 → 最左前缀失效 → 覆盖索引 Using index → ICP 下推 → MRR 顺序 I/O → EXPLAIN type/key_len/Extra → ACID 四特性底层机制 → 四种隔离级别 → 三类并发问题 → MVCC Undo Log 版本链 → ReadView 可见性判定 → RC vs RR ReadView 差异 → 快照读 vs 当前读 → Record Lock/Gap Lock/Next-Key Lock → 锁退化规则 → 慢查询定位 → SQL 改写 → 深分页游标 → 分库分表 ShardingSphere → 主从复制 Binlog 三格式 → Buffer Pool LRU 变种 → Redo Log WAL → 两阶段提交 → 窗口函数 ROW_NUMBER/RANK/DENSE_RANK → CTE 递归查询 → Hash Join → Online DDL INSTANT/INPLACE/COPY → 自增锁三种模式 → utf8mb4 陷阱 → 排序规则选型 → 与 @Transactional 及 MyBatis 缓存的跨层关联</code></p>
+<hr>
+<h2 id="4-11-MySQL-8-0-新特性（窗口函数-CTE-Hash-Join-不可见索引）"><a href="#4-11-MySQL-8-0-新特性（窗口函数-CTE-Hash-Join-不可见索引）" class="headerlink" title="4.11 MySQL 8.0 新特性（窗口函数 &#x2F; CTE &#x2F; Hash Join &#x2F; 不可见索引）"></a>4.11 MySQL 8.0 新特性（窗口函数 &#x2F; CTE &#x2F; Hash Join &#x2F; 不可见索引）</h2><p><strong>一句话原理</strong>：MySQL 8.0 引入了窗口函数、CTE、Hash Join、不可见索引等重大特性，弥补了与传统商业数据库的功能差距。</p>
+<hr>
+<h4 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h4><p>窗口函数在”窗口”（一组行）上执行计算，<strong>不改变返回的行数</strong>——这是与 GROUP BY 最本质的区别。GROUP BY 会压缩行数，窗口函数保留每一行明细的同时进行聚合&#x2F;排序&#x2F;偏移计算。</p>
+<p><strong>排名函数</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, department, salary,</span><br><span class="line">    <span class="built_in">ROW_NUMBER</span>() <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department <span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> row_num,</span><br><span class="line">    <span class="built_in">RANK</span>()       <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department <span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> rnk,</span><br><span class="line">    <span class="built_in">DENSE_RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department <span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> dense_rnk,</span><br><span class="line">    <span class="built_in">NTILE</span>(<span class="number">4</span>)     <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department <span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> quartile</span><br><span class="line"><span class="keyword">FROM</span> employee;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>同值编号策略</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ROW_NUMBER()</code></td>
+<td>同值不同号（严格顺序）</td>
+<td>分页、去重</td>
+</tr>
+<tr>
+<td><code>RANK()</code></td>
+<td>同值同号，跳过后续名次</td>
+<td>排名榜（并列后跳过）</td>
+</tr>
+<tr>
+<td><code>DENSE_RANK()</code></td>
+<td>同值同号，不跳过</td>
+<td>密集排名（并列后连续）</td>
+</tr>
+<tr>
+<td><code>NTILE(N)</code></td>
+<td>平均分 N 组</td>
+<td>分桶分析</td>
+</tr>
+</tbody></table>
+<p><strong>分析函数（前后行访问）</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- LAG: 前一行的值，LEAD: 后一行的值</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="type">time</span>, price,</span><br><span class="line">    <span class="built_in">LAG</span>(price, <span class="number">1</span>)  <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="type">time</span>) <span class="keyword">AS</span> prev_price,    <span class="comment">-- 上一行</span></span><br><span class="line">    <span class="built_in">LEAD</span>(price, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="type">time</span>) <span class="keyword">AS</span> next_price     <span class="comment">-- 下一行</span></span><br><span class="line"><span class="keyword">FROM</span> stock_history;</span><br></pre></td></tr></table></figure>
+
+<p><strong>帧边界子句</strong>：定义窗口函数的计算范围：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING: 当前行 + 前一行 + 后一行</span></span><br><span class="line"><span class="comment">-- ROWS UNBOUNDED PRECEDING: 窗口第一行到当前行</span></span><br><span class="line"><span class="comment">-- RANGE BETWEEN ...: 按值范围（而非行号）确定边界</span></span><br><span class="line"><span class="built_in">SUM</span>(salary) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> hire_date <span class="keyword">ROWS</span> <span class="keyword">BETWEEN</span> <span class="number">1</span> PRECEDING <span class="keyword">AND</span> <span class="number">1</span> FOLLOWING)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关联知识点</strong>：窗口函数保留明细 vs GROUP BY 压缩 → 4.2 覆盖索引（分析查询的索引优化）</p>
+</blockquote>
+<hr>
+<h4 id="CTE（公用表表达式）"><a href="#CTE（公用表表达式）" class="headerlink" title="CTE（公用表表达式）"></a>CTE（公用表表达式）</h4><p><strong>非递归 CTE</strong>：替代嵌套子查询，提升可读性：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> dept_avg <span class="keyword">AS</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> department, <span class="built_in">AVG</span>(salary) <span class="keyword">AS</span> avg_salary</span><br><span class="line">    <span class="keyword">FROM</span> employee <span class="keyword">GROUP</span> <span class="keyword">BY</span> department</span><br><span class="line">),</span><br><span class="line">high_earners <span class="keyword">AS</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> e.name, e.salary, d.avg_salary</span><br><span class="line">    <span class="keyword">FROM</span> employee e <span class="keyword">JOIN</span> dept_avg d <span class="keyword">USING</span>(department)</span><br><span class="line">    <span class="keyword">WHERE</span> e.salary <span class="operator">&gt;</span> d.avg_salary <span class="operator">*</span> <span class="number">1.5</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> high_earners;</span><br></pre></td></tr></table></figure>
+
+<p><strong>递归 CTE</strong>：处理树形结构（组织架构、分类树）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> <span class="keyword">RECURSIVE</span> org_tree <span class="keyword">AS</span> (</span><br><span class="line">    <span class="comment">-- 锚点：根节点</span></span><br><span class="line">    <span class="keyword">SELECT</span> id, name, parent_id, <span class="number">1</span> <span class="keyword">AS</span> level</span><br><span class="line">    <span class="keyword">FROM</span> organization <span class="keyword">WHERE</span> parent_id <span class="keyword">IS</span> <span class="keyword">NULL</span></span><br><span class="line">    <span class="keyword">UNION</span> <span class="keyword">ALL</span></span><br><span class="line">    <span class="comment">-- 递归：逐层向下</span></span><br><span class="line">    <span class="keyword">SELECT</span> o.id, o.name, o.parent_id, t.level <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">FROM</span> organization o <span class="keyword">JOIN</span> org_tree t <span class="keyword">ON</span> o.parent_id <span class="operator">=</span> t.id</span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> org_tree <span class="keyword">ORDER</span> <span class="keyword">BY</span> level, id;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：递归 CTE 必须包含 <code>UNION ALL</code>（不能是 UNION）；递归部分必须有终止条件（通常是 WHERE 条件限制递归深度）；<code>cte_max_recursion_depth</code> 参数控制最大递归深度（默认 1000）。</p>
+</blockquote>
+<hr>
+<h4 id="Hash-Join"><a href="#Hash-Join" class="headerlink" title="Hash Join"></a>Hash Join</h4><p>MySQL 8.0.18+ 引入，<strong>等值连接且无索引时自动使用</strong>。两阶段执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Build Phase：选择小表（build table），逐行计算 hash 存入内存 hash 表</span><br><span class="line">  ↓</span><br><span class="line">Probe Phase：扫描大表（probe table），对每行计算 hash → 到 hash 表中探测匹配</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看方式</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN FORMAT<span class="operator">=</span>TREE</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders o <span class="keyword">JOIN</span> customers c <span class="keyword">ON</span> o.customer_id <span class="operator">=</span> c.id;</span><br><span class="line"><span class="comment">-- 输出类似：</span></span><br><span class="line"><span class="comment">-- -&gt; Inner hash join (o.customer_id = c.id)  (cost=...)</span></span><br><span class="line"><span class="comment">--     -&gt; Table scan on o  (cost=...)</span></span><br><span class="line"><span class="comment">--     -&gt; Hash</span></span><br><span class="line"><span class="comment">--         -&gt; Table scan on c  (cost=...)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>限制条件</strong>：</p>
+<ul>
+<li>仅适用于等值 JOIN（非等值连接不会用 Hash Join）</li>
+<li>不支持 LEFT&#x2F;RIGHT JOIN 中的被驱动表</li>
+<li>当 build table 过大超出 <code>join_buffer_size</code>（默认 256K）时，会溢出到磁盘（chunk 分片）</li>
+</ul>
+<blockquote>
+<p><strong>常见陷阱</strong>：Hash Join 不是在所有 JOIN 场景都优于 NLJ（Index Nested-Loop Join）。有索引时 NLJ 通常更快；Hash Join 的优势在于大表无索引等值连接场景。</p>
+</blockquote>
+<hr>
+<h4 id="不可见索引与降序索引"><a href="#不可见索引与降序索引" class="headerlink" title="不可见索引与降序索引"></a>不可见索引与降序索引</h4><p><strong>不可见索引</strong>：优化器不会使用的索引，用于安全测试删除索引的影响：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> employee <span class="keyword">ALTER</span> INDEX idx_salary INVISIBLE;</span><br><span class="line"><span class="comment">-- 查看查询计划是否变化</span></span><br><span class="line">EXPLAIN <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> employee <span class="keyword">WHERE</span> salary <span class="operator">&gt;</span> <span class="number">10000</span>;</span><br><span class="line"><span class="keyword">ALTER TABLE</span> employee <span class="keyword">ALTER</span> INDEX idx_salary VISIBLE;  <span class="comment">-- 恢复</span></span><br></pre></td></tr></table></figure>
+
+<p>限制：主键不能设为不可见。</p>
+<p><strong>降序索引</strong>：MySQL 8.0 真正实现降序索引（5.7 只解析 DESC 关键字但实际建升序索引）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_dept_salary <span class="keyword">ON</span> employee(dept_id <span class="keyword">ASC</span>, salary <span class="keyword">DESC</span>);</span><br><span class="line"><span class="comment">-- 查询 `WHERE dept_id=1 ORDER BY salary DESC` 直接走索引，无需 filesort</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="直方图"><a href="#直方图" class="headerlink" title="直方图"></a>直方图</h4><p>帮助优化器在无索引列上做更好的执行计划选择：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建直方图（扫描全表，将数据分布统计到 N 个桶）</span></span><br><span class="line">ANALYZE <span class="keyword">TABLE</span> employee <span class="keyword">UPDATE</span> HISTOGRAM <span class="keyword">ON</span> salary <span class="keyword">WITH</span> <span class="number">100</span> BUCKETS;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看直方图信息</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> information_schema.COLUMN_STATISTICS</span><br><span class="line"><span class="keyword">WHERE</span> TABLE_NAME <span class="operator">=</span> <span class="string">&#x27;employee&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 删除直方图</span></span><br><span class="line">ANALYZE <span class="keyword">TABLE</span> employee <span class="keyword">DROP</span> HISTOGRAM <span class="keyword">ON</span> salary;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关联知识点</strong>：不可见索引 → 4.2 索引优化 &#x2F; 降序索引 → 4.3 EXPLAIN（避免 filesort）&#x2F; 直方图 → 索引选择性</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>窗口函数 vs GROUP BY 核心区别 → ROW_NUMBER/RANK/DENSE_RANK 对比 → NTILE 分桶 → LAG/LEAD 前后行访问 → 帧边界子句 ROWS/RANGE → 非递归 CTE 替代子查询 → WITH RECURSIVE 树形查询 → 递归终止条件 → Hash Join Build+Probe 两阶段 → Hash Join vs NLJ 选型 → 不可见索引安全测试 → 降序索引避免 filesort → 直方图辅助优化器</code></p>
+<hr>
+<h2 id="4-12-字符集陷阱与排序规则"><a href="#4-12-字符集陷阱与排序规则" class="headerlink" title="4.12 字符集陷阱与排序规则"></a>4.12 字符集陷阱与排序规则</h2><p><strong>一句话原理</strong>：MySQL 的 <code>utf8</code> 是伪 UTF-8（实际是 utf8mb3，最多 3 字节），存储 emoji&#x2F;生僻字必须用 <code>utf8mb4</code>。排序规则的选择影响字符串比较和 ORDER BY 结果。</p>
+<hr>
+<h4 id="utf8-陷阱"><a href="#utf8-陷阱" class="headerlink" title="utf8 陷阱"></a>utf8 陷阱</h4><table>
+<thead>
+<tr>
+<th>字符集</th>
+<th align="center">最大字节</th>
+<th>覆盖范围</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>utf8</code> &#x2F; <code>utf8mb3</code></td>
+<td align="center">3 字节</td>
+<td>Unicode BMP（U+0000 至 U+FFFF）</td>
+<td>不支持 4 字节字符（emoji、生僻汉字）</td>
+</tr>
+<tr>
+<td><code>utf8mb4</code></td>
+<td align="center">4 字节</td>
+<td>完整 Unicode（U+0000 至 U+10FFFF）</td>
+<td>utf8 的超集，兼容所有字符</td>
+</tr>
+</tbody></table>
+<p><strong>问题场景</strong>：用户输入 emoji（如 👍）、生僻汉字（如 𠮟），写入 <code>utf8</code> 列时报错：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 表使用 utf8 字符集</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> <span class="keyword">user</span> (name <span class="type">VARCHAR</span>(<span class="number">100</span>)) <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8;</span><br><span class="line"><span class="keyword">INSERT INTO</span> <span class="keyword">user</span> <span class="keyword">VALUES</span> (<span class="string">&#x27;用户👍&#x27;</span>);  <span class="comment">-- ❌ Error: Incorrect string value</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> <span class="keyword">user</span> <span class="keyword">CONVERT</span> <span class="keyword">TO</span> <span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci;</span><br><span class="line"><span class="comment">-- 或创建时指定</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> <span class="keyword">user</span> (name <span class="type">VARCHAR</span>(<span class="number">100</span>)) <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8mb4;</span><br></pre></td></tr></table></figure>
+
+<p><strong>MySQL 8.0 的变化</strong>：默认字符集从 <code>latin1</code> 改为 <code>utf8mb4</code>（MySQL 8.0.1+），默认排序规则为 <code>utf8mb4_0900_ai_ci</code>。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：<code>utf8mb4</code> 是 <code>utf8</code> 的超集，从 <code>utf8</code> 改为 <code>utf8mb4</code> 不会丢失数据；但反过来（<code>utf8mb4</code> → <code>utf8</code>）可能因 4 字节字符无法截断而失败。VARCHAR 字段改为 utf8mb4 后字符数上限降低（4 字节占更多空间），但 MySQL 实际按字节存储，影响已存在的数据行长度。</p>
+</blockquote>
+<hr>
+<h4 id="排序规则选型"><a href="#排序规则选型" class="headerlink" title="排序规则选型"></a>排序规则选型</h4><table>
+<thead>
+<tr>
+<th>排序规则</th>
+<th align="center">版本</th>
+<th>特点</th>
+<th align="center">性能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>utf8mb4_general_ci</code></td>
+<td align="center">MySQL 4.1+</td>
+<td>排序算法简单，Unicode 支持不完整（如 ß 和 ss 视为不同）</td>
+<td align="center">最快</td>
+</tr>
+<tr>
+<td><code>utf8mb4_unicode_ci</code></td>
+<td align="center">MySQL 5.0+</td>
+<td>基于 Unicode 标准排序规则（UCA 4.0），准确完整</td>
+<td align="center">稍慢</td>
+</tr>
+<tr>
+<td><code>utf8mb4_0900_ai_ci</code></td>
+<td align="center">MySQL 8.0+</td>
+<td>基于 Unicode 9.0（UCA 9.0），<code>ai</code>&#x3D;不区分重音，<code>ci</code>&#x3D;不区分大小写</td>
+<td align="center">与 unicode_ci 接近</td>
+</tr>
+</tbody></table>
+<p><strong>后缀含义</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>后缀</th>
+<th>含义</th>
+<th>示例对比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>_bin</code></td>
+<td>二进制比较（按字节值）</td>
+<td>‘a’ !&#x3D; ‘A’</td>
+</tr>
+<tr>
+<td><code>_ci</code></td>
+<td>Case Insensitive，不区分大小写</td>
+<td>‘a’ &#x3D; ‘A’</td>
+</tr>
+<tr>
+<td><code>_ai_ci</code></td>
+<td>Accent Insensitive + Case Insensitive</td>
+<td>‘a’ &#x3D; ‘á’ &#x3D; ‘A’</td>
+</tr>
+<tr>
+<td><code>_as</code></td>
+<td>Accent Sensitive，区分重音</td>
+<td>‘a’ !&#x3D; ‘á’</td>
+</tr>
+<tr>
+<td><code>_cs</code></td>
+<td>Case Sensitive，区分大小写</td>
+<td>‘a’ !&#x3D; ‘A’</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议</strong>：MySQL 8.0 新项目用默认的 <code>utf8mb4_0900_ai_ci</code>；MySQL 5.7 迁移项目用 <code>utf8mb4_unicode_ci</code>（兼容性更好）；需要精确二进制比较用 <code>_bin</code>；需要严格大小写区分用 <code>_cs</code>。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：排序规则不一致的字段 JOIN 可能导致索引失效（隐式转换）；更改排序规则后已有数据的 ORDER BY 结果可能变化；utf8mb4 的索引长度限制比 utf8 更严格（最大 767 字节 &#x2F; 4 &#x3D; 191 字符）。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：字符集 → 4.7 SQL 优化（隐式类型转换导致索引失效的类似逻辑）</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>utf8 陷阱(实际是 utf8mb3) → 4字节字符(emoji)写入报错 → utf8mb4 完整 UTF-8 → MySQL 8.0 默认 utf8mb4 → 排序规则三种对比(general/unicode/0900) → 后缀含义(bin/ci/ai_ci/as/cs) → 排序规则不一致导致索引失效 → 索引长度限制</code></p>
+<hr>
+<h2 id="4-13-Online-DDL"><a href="#4-13-Online-DDL" class="headerlink" title="4.13 Online DDL"></a>4.13 Online DDL</h2><p><strong>一句话原理</strong>：MySQL 8.0 支持三种 DDL 算法：INSTANT（仅改元数据，秒级完成）、INPLACE（原表修改，允许并发 DML）、COPY（临时表复制，最重）。选择合适的算法可以避免生产环境 DDL 阻塞写入。</p>
+<hr>
+<h4 id="ALGORITHM-三种模式"><a href="#ALGORITHM-三种模式" class="headerlink" title="ALGORITHM 三种模式"></a>ALGORITHM 三种模式</h4><table>
+<thead>
+<tr>
+<th>算法</th>
+<th align="center">版本</th>
+<th>原理</th>
+<th align="center">并发 DML</th>
+<th align="center">磁盘空间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>INSTANT</code></td>
+<td align="center">8.0.12+</td>
+<td>只修改数据字典元数据</td>
+<td align="center">允许</td>
+<td align="center">无额外空间</td>
+</tr>
+<tr>
+<td><code>INPLACE</code></td>
+<td align="center">5.6+</td>
+<td>原表直接修改，逐条记录处理</td>
+<td align="center">允许（LOCK&#x3D;NONE）</td>
+<td align="center">重建索引时需额外空间</td>
+</tr>
+<tr>
+<td><code>COPY</code></td>
+<td align="center">始终</td>
+<td>创建临时新表，拷贝数据，RENAME 替换</td>
+<td align="center">不允许</td>
+<td align="center">双倍空间</td>
+</tr>
+</tbody></table>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 显式指定 ALGORITHM 和 LOCK</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> employee <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> age <span class="type">INT</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>,</span><br><span class="line">    ALGORITHM<span class="operator">=</span>INSTANT,</span><br><span class="line">    LOCK<span class="operator">=</span><span class="keyword">NONE</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>INSTANT（8.0.12+）</strong>：</p>
+<ul>
+<li>仅修改数据字典中的元信息，不操作数据文件，操作秒级完成</li>
+<li>8.0.12 仅支持 ADD COLUMN（顺序加列，不能指定位置）</li>
+<li>8.0.29 增加支持 INSTANT DROP COLUMN</li>
+<li><strong>限制</strong>：不支持压缩表、全文索引表、临时表；一行最多 64 次 INSTANT 变更（超过自动使用 INPLACE）</li>
+</ul>
+<p><strong>INPLACE</strong>：</p>
+<ul>
+<li>原表直接修改（不拷贝临时表），通过 Row Log 记录变更</li>
+<li>支持并发 DML（LOCK&#x3D;NONE 时），DDL 期间允许读写</li>
+<li>加二级索引时，需要建立排序文件用于索引构建</li>
+<li>需要额外的 undo&#x2F;redo log 空间（取决于并发 DML 量）</li>
+</ul>
+<p><strong>COPY</strong>：</p>
+<ul>
+<li><code>CREATE TABLE new</code> → 逐条拷贝数据 → RENAME 替换原表</li>
+<li>需要双倍磁盘空间</li>
+<li>全程不能有并发 DML（LOCK&#x3D;EXCLUSIVE）</li>
+<li>目前已经是大多数 DDL 操作的退路选项</li>
+</ul>
+<hr>
+<h4 id="LOCK-配置"><a href="#LOCK-配置" class="headerlink" title="LOCK 配置"></a>LOCK 配置</h4><table>
+<thead>
+<tr>
+<th>LOCK 模式</th>
+<th align="center">允许并发读</th>
+<th align="center">允许并发写</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>NONE</code></td>
+<td align="center">是</td>
+<td align="center">是</td>
+<td>生产环境核心表 DDL</td>
+</tr>
+<tr>
+<td><code>SHARED</code></td>
+<td align="center">是</td>
+<td align="center">否</td>
+<td>允许只读场景</td>
+</tr>
+<tr>
+<td><code>EXCLUSIVE</code></td>
+<td align="center">否</td>
+<td align="center">否</td>
+<td>紧急修复、初始化</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="常见-DDL-操作支持矩阵"><a href="#常见-DDL-操作支持矩阵" class="headerlink" title="常见 DDL 操作支持矩阵"></a>常见 DDL 操作支持矩阵</h4><table>
+<thead>
+<tr>
+<th>DDL 操作</th>
+<th align="center">最低 ALGORITHM</th>
+<th align="center">推荐 LOCK</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ADD COLUMN</td>
+<td align="center">INSTANT（8.0.12+）</td>
+<td align="center">NONE</td>
+<td>只能顺序加列，不能指定位置</td>
+</tr>
+<tr>
+<td>DROP COLUMN</td>
+<td align="center">INSTANT（8.0.29+）</td>
+<td align="center">NONE</td>
+<td>无需重建表</td>
+</tr>
+<tr>
+<td>ADD INDEX</td>
+<td align="center">INPLACE</td>
+<td align="center">NONE</td>
+<td>需构建排序文件</td>
+</tr>
+<tr>
+<td>DROP INDEX</td>
+<td align="center">INPLACE</td>
+<td align="center">NONE</td>
+<td>仅修改元数据</td>
+</tr>
+<tr>
+<td>CHANGE COLUMN</td>
+<td align="center">COPY</td>
+<td align="center">EXCLUSIVE</td>
+<td>重命名+类型变更需 COPY</td>
+</tr>
+<tr>
+<td>ADD FULLTEXT INDEX</td>
+<td align="center">COPY</td>
+<td align="center">SHARED</td>
+<td>不支持 INPLACE</td>
+</tr>
+<tr>
+<td>修改列默认值</td>
+<td align="center">INSTANT</td>
+<td align="center">NONE</td>
+<td>仅改元数据</td>
+</tr>
+<tr>
+<td>RENAME TABLE</td>
+<td align="center">INSTANT</td>
+<td align="center">NONE</td>
+<td>仅改元数据</td>
+</tr>
+<tr>
+<td>ALTER INDEX INVISIBLE</td>
+<td align="center">INSTANT</td>
+<td align="center">NONE</td>
+<td>仅改元数据</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li><code>ALGORITHM=INSTANT</code> 不是万能药——加 NOT NULL DEFAULT 列仍需要扫描行，INSTANT 只处理元数据</li>
+<li>8.0 之前 Online DDL 会通过临时表空间记录并发 DML 变更，大事务并发时可能导致临时表空间撑爆</li>
+<li>Online DDL 过程中 <code>ALTER TABLE ... WAIT N</code> 设置等待锁超时，超时后回滚 DDL 不影响业务</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：DDL 锁 → 4.6 InnoDB 锁机制 &#x2F; 索引构建 → 4.1 B+Tree 重建</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>DDL 三种算法(INSTANT/INPLACE/COPY) → INSTANT 原理(改元数据) → INSTANT 限制(64次/不支持压缩表) → INPLACE 逐条处理+Row Log → COPY 双倍空间 → LOCK 四种配置(NONE/SHARED/EXCLUSIVE) → ADD COLUMN INSTANT → ADD INDEX INPLACE+NONE → CHANGE COLUMN COPY → INSTANT NOT NULL DEFAULT 陷阱 → WAIT N 超时控制</code></p>
+<hr>
+<h2 id="4-14-MySQL-自增锁"><a href="#4-14-MySQL-自增锁" class="headerlink" title="4.14 MySQL 自增锁"></a>4.14 MySQL 自增锁</h2><p><strong>一句话原理</strong>：<code>innodb_autoinc_lock_mode</code> 控制自增主键的加锁策略：传统模式（表级锁）→ 连续模式（互斥锁+表级锁）→ 交错模式（纯互斥锁，最高并发）。自增值 MySQL 8.0 通过 redo log 持久化。</p>
+<hr>
+<h4 id="innodb-autoinc-lock-mode-三种模式"><a href="#innodb-autoinc-lock-mode-三种模式" class="headerlink" title="innodb_autoinc_lock_mode 三种模式"></a>innodb_autoinc_lock_mode 三种模式</h4><table>
+<thead>
+<tr>
+<th align="center">模式</th>
+<th align="center">名称</th>
+<th align="center">simple insert</th>
+<th align="center">bulk insert</th>
+<th align="center">连续性</th>
+<th align="center">并发度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">传统模式</td>
+<td align="center">表级锁（AUTO-INC 锁）</td>
+<td align="center">表级锁</td>
+<td align="center">最高</td>
+<td align="center">最低</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">连续模式（默认）</td>
+<td align="center">轻量互斥锁（mutex）</td>
+<td align="center">表级锁</td>
+<td align="center">高</td>
+<td align="center">中</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">交错模式</td>
+<td align="center">轻量互斥锁</td>
+<td align="center">轻量互斥锁</td>
+<td align="center">不保证连续</td>
+<td align="center">最高</td>
+</tr>
+</tbody></table>
+<p><strong>simple insert vs bulk insert</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>插入类型</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>simple insert</td>
+<td>插入行数预先可知</td>
+<td><code>INSERT INTO t VALUES(1), (2), (3)</code></td>
+</tr>
+<tr>
+<td>bulk insert</td>
+<td>插入行数预先不知</td>
+<td><code>INSERT ... SELECT</code>、<code>LOAD DATA</code>、<code>INSERT ... ON DUPLICATE KEY UPDATE</code></td>
+</tr>
+</tbody></table>
+<p><strong>模式 1（连续，MySQL 默认）</strong>：simple insert 使用轻量级互斥锁（<code>AUTO-INC 互斥量</code>），语句开始时获取，分配完自增值立即释放。bulk insert 使用表级 AUTO-INC 锁，整个语句期间保持，结束后释放。保证每个语句内的自增值是连续的。<strong>这是 MySQL 5.1-8.0 的默认模式</strong>。</p>
+<p><strong>模式 2（交错）</strong>：所有 INSERT-like 操作都使用轻量互斥锁，无表级锁。并发最高，但 <code>INSERT ... SELECT</code> 这种 bulk insert 会预先申请一批自增值，实际插入的行数少于申请的数量，导致空洞。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">模式 1 → simple insert: 互斥锁（快，不影响并发）</span><br><span class="line">          bulk insert: 表级锁（串行，保证语句级连续）</span><br><span class="line">模式 2 → 全部互斥锁（最高并发，但自增号可能乱序/空洞）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：模式 2 在 statement-based 复制下不安全（从库自增值与主库不一致），MySQL 8.0 推荐 binlog_format&#x3D;ROW 时使用模式 2 获取更高并发。</p>
+</blockquote>
+<hr>
+<h4 id="自增值不连续的原因"><a href="#自增值不连续的原因" class="headerlink" title="自增值不连续的原因"></a>自增值不连续的原因</h4><table>
+<thead>
+<tr>
+<th>原因</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事务回滚</td>
+<td>自增值不回退（已分配的 ID 即使事务回滚也不会重新使用）</td>
+</tr>
+<tr>
+<td>唯一键冲突</td>
+<td>INSERT 失败前已分配的自增值被消耗</td>
+</tr>
+<tr>
+<td>批量插入预留</td>
+<td><code>INSERT ... SELECT</code> 预申请多个 ID，实际插入少于申请数</td>
+</tr>
+<tr>
+<td>MySQL 5.7 重启</td>
+<td>每次重启取 <code>MAX(id) + 1</code> 作为初始值（可能覆盖之前预分配的 ID）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="MySQL-8-0-自增持久化改进"><a href="#MySQL-8-0-自增持久化改进" class="headerlink" title="MySQL 8.0 自增持久化改进"></a>MySQL 8.0 自增持久化改进</h4><p><strong>MySQL 5.7 的问题</strong>：自增值存储在内存中，重启后通过 <code>SELECT MAX(id) + 1</code> 恢复。如果重启前有预分配但未使用的自增值，重启后会丢失。</p>
+<p><strong>MySQL 8.0 的改进</strong>：自增值通过 <strong>redo log</strong> 持久化，重启后可以从 redo log 恢复自增值状态，不会丢失未使用的预分配值。每次自增值变更都写入 redolog：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查看当前自增值</span></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE TABLE</span> employee\G</span><br><span class="line"><span class="comment">-- AUTO_INCREMENT=1001 显示当前自增值</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 修改自增值（仅能改大不能改小）</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> employee AUTO_INCREMENT <span class="operator">=</span> <span class="number">2000</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：自增值大于 <code>MAX(id)</code> 是正常的（已分配但未使用或已回滚）。如果自增值回卷（<code>MAX(id)</code> 接近 <code>AUTO_INCREMENT</code>），需要手动 <code>ALTER TABLE ... AUTO_INCREMENT = MAX(id) + 1</code> 修复。设置自增值不能小于当前 <code>MAX(id)</code>。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：自增锁 → 4.6 锁机制（表级锁 vs 行级锁对比）&#x2F; redo log 持久化 → 4.10 InnoDB 内存结构 &#x2F; 自增主键 → 4.1 聚簇索引（B+Tree 顺序写入优化）</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>innodb_autoinc_lock_mode 三种模式(0/1/2) → simple insert vs bulk insert 区别 → 模式 1 连续模式(simple互斥锁+bulk表级锁) → 模式 2 交错模式(全部互斥锁) → statement-based 复制不安全 → 自增不连续四大原因(事务回滚/键冲突/批量预留/重启) → MySQL 8.0 redo log 持久化 → 自增值手动修改</code></p>
+<hr>
+<p><strong>整体追问链（方向四 更新）</strong>：<code>B+Tree 三层结构 → 聚簇 vs 二级索引 → 最左前缀失效 → 覆盖索引 Using index → ICP 下推 → MRR 顺序 I/O → EXPLAIN type/key_len/Extra → ACID 四特性底层机制 → 四种隔离级别 → 三类并发问题 → MVCC Undo Log 版本链 → ReadView 可见性判定 → RC vs RR ReadView 差异 → 快照读 vs 当前读 → Record Lock/Gap Lock/Next-Key Lock → 锁退化规则 → 慢查询定位 → SQL 改写 → 深分页游标 → 分库分表 ShardingSphere → 主从复制 Binlog 三格式 → Buffer Pool LRU 变种 → Redo Log WAL → 两阶段提交 → 窗口函数 ROW_NUMBER/RANK/DENSE_RANK → CTE 递归查询 → Hash Join Build+Probe → 不可见索引安全测试 → 直方图统计 → utf8mb3 陷阱→排序规则选型(0900/unicode/general) → Online DDL INSTANT/INPLACE/COPY → LOCK 配置(NONE/SHARED/EXCLUSIVE) → 自增锁三种模式(0 表级锁/1 连续/2 交错) → 自增不连续原因 → 8.0 redo log 持久化 → 与 @Transactional 及 MyBatis 缓存的跨层关联</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/">https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/research/">research</a><a class="post-meta__tags" href="/tags/interview/">interview</a><a class="post-meta__tags" href="/tags/guide/">guide</a><a class="post-meta__tags" href="/tags/java/">java</a><a class="post-meta__tags" href="/tags/java%E9%9D%A2%E8%AF%95/">java面试</a><a class="post-meta__tags" href="/tags/mysql/">mysql</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/" title="java知识规划——spring"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">java知识规划——spring</div></div><div class="info-2"><div class="info-item-1">java知识规划——spring 本文档覆盖面试权重 25% 的 Spring 知识体系，按”容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全”层层递进。每节末尾标注与 Java 核心、AI 开发 及 Spring Cloud 微服务 方向的知识关联。   2.1 Spring IoC 容器覆盖 Bean 生命周期全流程、三级缓存循环依赖、BeanFactory 与 ApplicationContext 的区别。  Bean 生命周期全流程Spring IoC 容器中一个 Bean 从创建到销毁经历以下步骤（最核心的 10 步）： 123456789101112131415161718192021222324252627282930① 实例化（Instantiation）   通过反射（Constructor.newInstance）创建原始对象   ↓② 属性赋值（Population）   @Autowired / @Resource / @Value 完成依赖注入   ↓③ Aware 接口回调   BeanNameAware.setBeanN...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/" title="java知识规划——mybatis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">java知识规划——mybatis</div></div><div class="info-2"><div class="info-item-1">java知识规划——mybatis 本文档覆盖面试权重 15% 的 MyBatis 知识体系。从 SQL 参数绑定到高级映射逐层递进。每节末尾标注与 Java 核心、Spring 生态 及 MySQL 方向的知识关联。   3.1 #{} vs ${} 及 SQL 注入防范一句话原理：#{} 走预编译（PreparedStatement + ? 占位符），参数由 TypeHandler 安全设置，防 SQL 注入；${} 直接字符串替换拼接，仅用于表名&#x2F;列名等动态标识符。  预编译机制#{} 在 MyBatis 解析阶段被替换为 ?，由 JDBC 的 PreparedStatement.setXxx(index, value) 安全设置： 1234&lt;!-- XML 映射 --&gt;&lt;select id=&quot;findByUsername&quot; resultType=&quot;User&quot;&gt;    SELECT * FROM user WHERE username = #&#123;username&#125;&lt;/selec...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="java知识规划——分布式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">java知识规划——分布式系统</div></div><div class="info-2"><div class="info-item-1">java知识规划——分布式系统 本文档是 Java 知识规划体系的理论补全，按”理论基石 → 一致性协议 → ID → 事务 → 锁 → 存储 → RPC → 可观测 → 配置 → 设计思维”递进。与 Spring Cloud 微服务方向的关系：微服务是实践，分布式理论是底层原理。建议先读微服务方向再读本文档。   7.1 CAP 定理与 BASE 理论一句话原理：分布式系统在 Consistency（一致性）、Availability（可用性）、Partition Tolerance（分区容错性）三者中最多同时满足两个。网络分区是基础设施的必然现象（P 必须选），实际是在 C 和 A 之间取舍。  CAP 不三角123456C（一致性）：所有节点在同一时刻看到同一份数据A（可用性）：每次请求都能收到非错响应（不保证数据最新）P（分区容错性）：网络分区时系统仍能正常工作P 是必选——网络分区一定会发生，不可选择忽略。实际决策：CP（优先一致，允许不可用）vs AP（优先可用，接受最终一致）  两级节点场景证明：网络分区发生时，节点 N1 和 N2 无法通信。如果允许 N1 接受写...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="java知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——核心</div></div><div class="info-2"><div class="info-item-1">java知识规划——核心 本文档覆盖面试权重 30% 的 Java 核心知识，按”语言特性 → 运行时原理 → 并发 → 数据结构 → IO → 设计”的逻辑递进。与 Spring 生态体系、MyBatis、MySQL、AI 开发等方向的知识关联见总览文档的跨域链路。  1.1 Java 版本特性演进（8→11→17→21）涵盖 Java 8&#x2F;11&#x2F;17&#x2F;21 四个 LTS 版本的核心特性，重点理解 Lambda 编译原理、Stream 惰性求值、虚拟线程并发模型、Record 与模式匹配的语言级增强。  Lambda 与 invokedynamicJava 8 Lambda 的编译方式与匿名内部类有本质区别：  匿名内部类：javac 编译为独立的 OuterClass$1.class 文件，每次调用经历类加载、验证、准备完整流程 Lambda 表达式：javac 生成一条 invokedynamic 指令，首次调用时通过 BootstrapMethods 属性中的 LambdaMetafactory.metafactory() 动态生成本地内部类...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%80%BB%E8%A7%88/" title="java知识规划——总览"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——总览</div></div><div class="info-2"><div class="info-item-1">java知识规划——总览 本文档是 Java 面试知识体系的总览导航图，按八大方向组织。每个方向有独立的规划文档，通过本文档可快速跳转。   知识体系总览123456┌──────────────────────────────────────────────────────────────────────────────────────────────┐│                                    Java 面试知识体系                                          │├──────────────┬─────────────┬──────────────┬──────────┬──────────┬────────────┬────────┬────────┤│  Java 核心   │  Spring      │ Spring Cloud │ MyBatis  │  MySQL    │  AI 开发    │ Redis  │分布式  ││  (25%)       │  (20%)       │  (5...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/" title="java知识规划——redis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">java知识规划——redis</div></div><div class="info-2"><div class="info-item-1">java知识规划——redis 本文档覆盖 Redis 面试知识体系，按”数据结构 → 持久化 → 集群 → 过期淘汰 → 分布式锁 → 缓存设计 → 事务 Lua → 高级特性 → Redisson → 实战场景”层层递进。每节末尾标注与 Java 核心、Spring Cloud 微服务 及 MySQL 方向的知识关联。   6.1 核心数据结构与底层编码一句话原理：Redis 有 9 种核心数据结构，每种底层由 2-3 种编码实现，根据数据特征自动切换。理解 RedisObject 和编码转换条件是区分”会用”和”懂原理”的关键。  RedisObject 头部每个 key 的 value 在 Redis 中存储为 redisObject： 12345678┌──────────────────────────────────────────┐│ redisObject 头部（16 bytes, 64-bit）       ││ type:4bit（String/List/Set/ZSet/Hash）    ││ encoding:4bit（int/embstr/raw/ht...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94ai%E5%BC%80%E5%8F%91/" title="java知识规划——ai开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——ai开发</div></div><div class="info-2"><div class="info-item-1">java知识规划——ai开发 本文档覆盖面试权重 10% 的 AI 开发知识，以 LangChain4j 框架为主线，从 AiServices 核心架构到模型集成、RAG、Tool Calling、会话记忆、流式响应逐层展开。每个知识点与 Java 核心 及 Spring 生态 的知识关联标注在末尾。   5.1 核心架构与 AiServices涵盖 AiServices 动态代理原理、ChatLanguageModel 统一抽象、核心组件体系以及 LangChain4j 与 Spring AI 的选型对比。  AiServices 动态代理原理AiServices 是 LangChain4j 的核心入口，底层基于 JDK 动态代理实现： 12345678// 定义 AI Service 接口interface Assistant &#123;    String chat(String userMessage);&#125;// AiServices.create() 创建代理实例Assistant assistant = AiServices.create(Assistant...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/" title="java知识规划——spring"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——spring</div></div><div class="info-2"><div class="info-item-1">java知识规划——spring 本文档覆盖面试权重 25% 的 Spring 知识体系，按”容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全”层层递进。每节末尾标注与 Java 核心、AI 开发 及 Spring Cloud 微服务 方向的知识关联。   2.1 Spring IoC 容器覆盖 Bean 生命周期全流程、三级缓存循环依赖、BeanFactory 与 ApplicationContext 的区别。  Bean 生命周期全流程Spring IoC 容器中一个 Bean 从创建到销毁经历以下步骤（最核心的 10 步）： 123456789101112131415161718192021222324252627282930① 实例化（Instantiation）   通过反射（Constructor.newInstance）创建原始对象   ↓② 属性赋值（Population）   @Autowired / @Resource / @Value 完成依赖注入   ↓③ Aware 接口回调   BeanNameAware.setBeanN...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql"><span class="toc-number">1.</span> <span class="toc-text">java知识规划——mysql</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-B-Tree-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E8%81%9A%E7%B0%87-vs-%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95-%E6%9C%80%E5%B7%A6%E5%89%8D%E7%BC%80"><span class="toc-number">1.1.</span> <span class="toc-text">4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#B-Tree-%E4%B8%89%E5%B1%82%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.1.</span> <span class="toc-text">B+Tree 三层结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96%EF%BC%88%E8%A6%86%E7%9B%96%E7%B4%A2%E5%BC%95-%E7%B4%A2%E5%BC%95%E4%B8%8B%E6%8E%A8-ICP-MRR%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">4.2 索引优化（覆盖索引 &#x2F; 索引下推 ICP &#x2F; MRR）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-EXPLAIN-%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E8%A7%A3%E8%AF%BB"><span class="toc-number">1.3.</span> <span class="toc-text">4.3 EXPLAIN 执行计划解读</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#type-%E5%88%86%E7%BA%A7%EF%BC%88%E6%80%A7%E8%83%BD%E4%BB%8E%E9%AB%98%E5%88%B0%E4%BD%8E%EF%BC%89"><span class="toc-number">1.3.1.</span> <span class="toc-text">type 分级（性能从高到低）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-4-%E4%BA%8B%E5%8A%A1-ACID-%E4%B8%8E%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="toc-number">1.4.</span> <span class="toc-text">4.4 事务 ACID 与隔离级别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-5-MVCC-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%EF%BC%88Undo-Log-ReadView%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">4.5 MVCC 实现原理（Undo Log + ReadView）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ReadView-%E5%8F%AF%E8%A7%81%E6%80%A7%E5%88%A4%E5%AE%9A"><span class="toc-number">1.5.1.</span> <span class="toc-text">ReadView 可见性判定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-6-InnoDB-%E9%94%81%E6%9C%BA%E5%88%B6%EF%BC%88%E8%A1%8C%E9%94%81-Gap-Lock-Next-Key-Lock%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">4.6 InnoDB 锁机制（行锁 &#x2F; Gap Lock &#x2F; Next-Key Lock）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%94%81%E5%88%86%E7%B1%BB"><span class="toc-number">1.6.1.</span> <span class="toc-text">锁分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-7-SQL-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5"><span class="toc-number">1.7.</span> <span class="toc-text">4.7 SQL 优化策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-8-%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%EF%BC%88ShardingSphere-%E5%8E%9F%E7%90%86%EF%BC%89"><span class="toc-number">1.8.</span> <span class="toc-text">4.8 分库分表（ShardingSphere 原理）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-9-%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%88Binlog%EF%BC%89"><span class="toc-number">1.9.</span> <span class="toc-text">4.9 主从复制（Binlog）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-10-InnoDB-%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84%EF%BC%88Buffer-Pool-Redo-Log-Undo-Log-Binlog%EF%BC%89"><span class="toc-number">1.10.</span> <span class="toc-text">4.10 InnoDB 内存结构（Buffer Pool &#x2F; Redo Log &#x2F; Undo Log &#x2F; Binlog）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-11-MySQL-8-0-%E6%96%B0%E7%89%B9%E6%80%A7%EF%BC%88%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0-CTE-Hash-Join-%E4%B8%8D%E5%8F%AF%E8%A7%81%E7%B4%A2%E5%BC%95%EF%BC%89"><span class="toc-number">1.11.</span> <span class="toc-text">4.11 MySQL 8.0 新特性（窗口函数 &#x2F; CTE &#x2F; Hash Join &#x2F; 不可见索引）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0"><span class="toc-number">1.11.1.</span> <span class="toc-text">窗口函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CTE%EF%BC%88%E5%85%AC%E7%94%A8%E8%A1%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%EF%BC%89"><span class="toc-number">1.11.2.</span> <span class="toc-text">CTE（公用表表达式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hash-Join"><span class="toc-number">1.11.3.</span> <span class="toc-text">Hash Join</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E5%8F%AF%E8%A7%81%E7%B4%A2%E5%BC%95%E4%B8%8E%E9%99%8D%E5%BA%8F%E7%B4%A2%E5%BC%95"><span class="toc-number">1.11.4.</span> <span class="toc-text">不可见索引与降序索引</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%B4%E6%96%B9%E5%9B%BE"><span class="toc-number">1.11.5.</span> <span class="toc-text">直方图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-12-%E5%AD%97%E7%AC%A6%E9%9B%86%E9%99%B7%E9%98%B1%E4%B8%8E%E6%8E%92%E5%BA%8F%E8%A7%84%E5%88%99"><span class="toc-number">1.12.</span> <span class="toc-text">4.12 字符集陷阱与排序规则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#utf8-%E9%99%B7%E9%98%B1"><span class="toc-number">1.12.1.</span> <span class="toc-text">utf8 陷阱</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%92%E5%BA%8F%E8%A7%84%E5%88%99%E9%80%89%E5%9E%8B"><span class="toc-number">1.12.2.</span> <span class="toc-text">排序规则选型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-13-Online-DDL"><span class="toc-number">1.13.</span> <span class="toc-text">4.13 Online DDL</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ALGORITHM-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.13.1.</span> <span class="toc-text">ALGORITHM 三种模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#LOCK-%E9%85%8D%E7%BD%AE"><span class="toc-number">1.13.2.</span> <span class="toc-text">LOCK 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81-DDL-%E6%93%8D%E4%BD%9C%E6%94%AF%E6%8C%81%E7%9F%A9%E9%98%B5"><span class="toc-number">1.13.3.</span> <span class="toc-text">常见 DDL 操作支持矩阵</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-14-MySQL-%E8%87%AA%E5%A2%9E%E9%94%81"><span class="toc-number">1.14.</span> <span class="toc-text">4.14 MySQL 自增锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#innodb-autoinc-lock-mode-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.14.1.</span> <span class="toc-text">innodb_autoinc_lock_mode 三种模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%A2%9E%E5%80%BC%E4%B8%8D%E8%BF%9E%E7%BB%AD%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.14.2.</span> <span class="toc-text">自增值不连续的原因</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MySQL-8-0-%E8%87%AA%E5%A2%9E%E6%8C%81%E4%B9%85%E5%8C%96%E6%94%B9%E8%BF%9B"><span class="toc-number">1.14.3.</span> <span class="toc-text">MySQL 8.0 自增持久化改进</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

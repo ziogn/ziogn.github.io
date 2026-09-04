@@ -1,0 +1,950 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OpenSpec 结合 Reasonix 使用指南 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="OpenSpec 规范驱动开发框架与 Reasonix AI 编码代理的结合使用指南：三种集成方案、OPSX 工作流与端到端实战">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenSpec 结合 Reasonix 使用指南">
+<meta property="og:url" content="https://ziogn.github.io/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="OpenSpec 规范驱动开发框架与 Reasonix AI 编码代理的结合使用指南：三种集成方案、OPSX 工作流与端到端实战">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-08-21T14:45:00.000Z">
+<meta property="article:modified_time" content="2026-08-21T15:00:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="ai-agents">
+<meta property="article:tag" content="openspec">
+<meta property="article:tag" content="reasonix">
+<meta property="article:tag" content="spec-driven-development">
+<meta property="article:tag" content="使用指南">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OpenSpec 结合 Reasonix 使用指南",
+  "url": "https://ziogn.github.io/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-08-21T14:45:00.000Z",
+  "dateModified": "2026-08-21T15:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OpenSpec 结合 Reasonix 使用指南',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">OpenSpec 结合 Reasonix 使用指南</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OpenSpec 结合 Reasonix 使用指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-21T15:00:00.000Z" title="更新于 2026-08-21 23:00:00">2026-08-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="OpenSpec-结合-Reasonix-使用指南"><a href="#OpenSpec-结合-Reasonix-使用指南" class="headerlink" title="OpenSpec 结合 Reasonix 使用指南"></a>OpenSpec 结合 Reasonix 使用指南</h1><h2 id="1-认识-OpenSpec"><a href="#1-认识-OpenSpec" class="headerlink" title="1. 认识 OpenSpec"></a>1. 认识 OpenSpec</h2><h3 id="1-1-问题：含糊的-prompt-与失控的-agent"><a href="#1-1-问题：含糊的-prompt-与失控的-agent" class="headerlink" title="1.1 问题：含糊的 prompt 与失控的 agent"></a>1.1 问题：含糊的 prompt 与失控的 agent</h3><p>直接对 AI 编码代理说”帮我加个深色模式”，通常会得到一份方向大致正确、但细节处处需要返工的代码：主题变量散落各处、没有持久化、切换时闪白、验收标准完全靠猜。需求越复杂，这种”一次性 prompt 式开发”的返工成本越高——<strong>人类和 AI 从未就”到底要构建什么”达成过一致，代码就已经写出来了</strong>。</p>
+<h3 id="1-2-OpenSpec-的定位"><a href="#1-2-OpenSpec-的定位" class="headerlink" title="1.2 OpenSpec 的定位"></a>1.2 OpenSpec 的定位</h3><p>OpenSpec（GitHub: Fission-AI&#x2F;OpenSpec）是一个开源的、面向 AI 编码助手的**规范驱动开发（Spec-Driven Development, SDD）**框架：</p>
+<ul>
+<li><strong>AI 原生</strong>：整个工作流就是为”AI 编码助手 + 人类审查”设计的</li>
+<li><strong>纯 Markdown</strong>：所有规格、提案、任务都是 <code>.md</code> 文件，无数据库、无 API key、无锁定</li>
+<li><strong>轻量</strong>：一个 npm 包 + 一个 <code>openspec/</code> 目录，不侵入你的项目结构</li>
+<li><strong>可移植</strong>：specs 与变更历史不依赖任何厂商的 prompt 格式，切换编码代理不损失任何东西</li>
+</ul>
+<p>它的核心心智模型只有一句话：</p>
+<blockquote>
+<p><strong>spec 引领，代码跟随（the spec leads, the code follows）。</strong></p>
+</blockquote>
+<p>在动手写代码之前，人类与 AI 先通过提案（proposal）、规格（specs）、设计（design）、任务清单（tasks）四层产物对齐意图；实现阶段 AI 严格按照任务清单执行；完成后变更归档回主规格，规格成为持续演进的事实来源（source of truth）。</p>
+<h3 id="1-3-OpenSpec-解决什么"><a href="#1-3-OpenSpec-解决什么" class="headerlink" title="1.3 OpenSpec 解决什么"></a>1.3 OpenSpec 解决什么</h3><table>
+<thead>
+<tr>
+<th>传统 AI 开发</th>
+<th>OpenSpec 工作流</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一个含糊 prompt 直接写码</td>
+<td>先写 proposal（为什么改）并经人类审查</td>
+</tr>
+<tr>
+<td>验收全靠猜</td>
+<td>specs 中的 GIVEN&#x2F;WHEN&#x2F;THEN 场景即验收标准</td>
+</tr>
+<tr>
+<td>任务边界模糊，agent 容易跑偏</td>
+<td>tasks.md 拆解为可勾选的原子任务</td>
+</tr>
+<tr>
+<td>需求变更后代码与文档脱节</td>
+<td>spec delta 同步合并，归档后 specs 永远反映当前状态</td>
+</tr>
+<tr>
+<td>换一个 agent 工具就得重新磨合</td>
+<td>纯 Markdown + <code>openspec update</code> 即可迁移</td>
+</tr>
+</tbody></table>
+<p>OpenSpec 特别适合<strong>既有代码库的增量开发</strong>（bug 修复、功能迭代、重构），这也是多数项目的常态。一句话原型、纯探索性实验则可以跳过它，或先用 <code>/opsx:explore</code> 想清楚再决定。</p>
+<h2 id="2-认识-Reasonix"><a href="#2-认识-Reasonix" class="headerlink" title="2. 认识 Reasonix"></a>2. 认识 Reasonix</h2><p>Reasonix 是运行在终端与桌面的 AI 编码代理平台。要理解它如何与 OpenSpec 结合，只需要掌握它与本主题相关的三个机制（依据 Reasonix v1.31.1 官方指南）：</p>
+<h3 id="2-1-Skills：四类约定目录自动发现"><a href="#2-1-Skills：四类约定目录自动发现" class="headerlink" title="2.1 Skills：四类约定目录自动发现"></a>2.1 Skills：四类约定目录自动发现</h3><p>Reasonix 按以下优先级发现项目级 skills（同名校名高优先级覆盖低优先级）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;workspace&gt;/&#123;.reasonix,.agents,.agent,.claude&#125;/skills/</span><br></pre></td></tr></table></figure>
+
+<p>布局支持两种形式：<code>&lt;name&gt;/SKILL.md</code> 目录形式，或 <code>&lt;name&gt;.md</code> 扁平文件形式。技能被识别后即出现在会话的 <code>/skill</code> 列表与 Skills 索引中，可被 <code>/name</code>、<code>run_skill</code> 或自然语言调用。</p>
+<p><strong>这一点是本文的核心前提</strong>：<code>.agents/skills/</code> 正是 OpenSpec <code>--tools agents</code> 的写入位置——两者天然对齐，这是集成方案一的原理基础。</p>
+<h3 id="2-2-Commands：约定目录的-slash-模板"><a href="#2-2-Commands：约定目录的-slash-模板" class="headerlink" title="2.2 Commands：约定目录的 slash 模板"></a>2.2 Commands：约定目录的 slash 模板</h3><p>Reasonix 从约定 commands 目录加载 slash 命令模板，目录层级映射为命令名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git/commit.md  →  /git:commit</span><br></pre></td></tr></table></figure>
+
+<p><code>dir/file.md</code> 的斜杠变为冒号。<code>.claude/commands/</code> 同样属于扫描范围，因此 OpenSpec 为 Claude Code 生成的 <code>opsx/*.md</code> 命令文件有被 Reasonix 识别的可能（见第 6 章验证方法）。</p>
+<h3 id="2-3-Instructions：AGENTS-md-自动载入"><a href="#2-3-Instructions：AGENTS-md-自动载入" class="headerlink" title="2.3 Instructions：AGENTS.md 自动载入"></a>2.3 Instructions：AGENTS.md 自动载入</h3><p><code>REASONIX.md</code>、<code>AGENTS.md</code>、<code>CLAUDE.md</code>（及各自的 <code>*.local.md</code>）都是被识别的指令文件名，启动时自动折入 system prompt，按”用户全局 → 祖先目录 → 项目目录 → 项目本地”的优先级加载。这意味着项目顶部写什么约定，agent 每次会话都会看到。</p>
+<h3 id="2-4-本仓库实证"><a href="#2-4-本仓库实证" class="headerlink" title="2.4 本仓库实证"></a>2.4 本仓库实证</h3><p>本文所在仓库（ziogn_doc）的 <code>.claude/skills/doc-do/SKILL.md</code> 就是通过 <code>.claude</code> 约定目录被 Reasonix 发现并出现在 <code>/</code> 命令列表中的——证明 Reasonix 确实扫描这些目录，而非仅理论支持。</p>
+<h2 id="3-安装与初始化"><a href="#3-安装与初始化" class="headerlink" title="3. 安装与初始化"></a>3. 安装与初始化</h2><h3 id="3-1-环境要求"><a href="#3-1-环境要求" class="headerlink" title="3.1 环境要求"></a>3.1 环境要求</h3><ul>
+<li>Node.js <strong>20.19.0 或更高</strong>（检查：<code>node --version</code>）</li>
+<li>npm（随 Node 自带）</li>
+</ul>
+<h3 id="3-2-安装-CLI"><a href="#3-2-安装-CLI" class="headerlink" title="3.2 安装 CLI"></a>3.2 安装 CLI</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @fission-ai/openspec@latest</span><br><span class="line">openspec --version</span><br></pre></td></tr></table></figure>
+
+<p>OpenSpec 会收集匿名的命令名与版本统计（telemetry），需要隐私可在安装后随时关闭：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openspec config <span class="built_in">set</span> telemetry.enabled <span class="literal">false</span></span><br><span class="line"><span class="comment"># 或环境变量：export OPENSPEC_TELEMETRY=0</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-初始化项目"><a href="#3-3-初始化项目" class="headerlink" title="3.3 初始化项目"></a>3.3 初始化项目</h3><p>进入你的代码项目根目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> your-project</span><br><span class="line">openspec init</span><br></pre></td></tr></table></figure>
+
+<p>交互式初始化会提示你选择 AI 工具（支持 30+ 工具）。若目标是结合 Reasonix，非交互方式更直接——选择 <code>agents</code>（vendor-neutral 共享目标，写入 <code>.agents/skills/</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openspec init --tools agents --force</span><br></pre></td></tr></table></figure>
+
+<p><code>--force</code> 自动清理旧版本遗留文件而不打断脚本。初始化生成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">your-project/</span><br><span class="line">├── openspec/</span><br><span class="line">│   ├── specs/          # 主规格（事实来源）</span><br><span class="line">│   ├── changes/        # 活动变更</span><br><span class="line">│   └── config.yaml     # 项目配置（上下文）</span><br><span class="line">└── .agents/</span><br><span class="line">    └── skills/</span><br><span class="line">        └── openspec-*/ # OpenSpec 工作流技能（供 Reasonix 等 AGENTS.md 兼容工具读取）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-配置项目上下文（重要）"><a href="#3-4-配置项目上下文（重要）" class="headerlink" title="3.4 配置项目上下文（重要）"></a>3.4 配置项目上下文（重要）</h3><p><code>openspec/config.yaml</code> 用于声明技术栈、目录约定、编码规范，agent 在生成任何代码之前都会读到它：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># openspec/config.yaml</span></span><br><span class="line"><span class="attr">project:</span> <span class="string">your-project</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">后台管理系统前端</span></span><br><span class="line"><span class="attr">stack:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">React</span> <span class="number">18</span> <span class="string">+</span> <span class="string">TypeScript</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">Vite</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">Tailwind</span> <span class="string">CSS</span></span><br><span class="line"><span class="attr">conventions:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">组件放</span> <span class="string">src/components/，页面放</span> <span class="string">src/pages/</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">使用</span> <span class="string">react-query</span> <span class="string">处理服务端状态</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">提交信息遵循</span> <span class="string">Conventional</span> <span class="string">Commits</span></span><br></pre></td></tr></table></figure>
+
+<p>上下文写得越清楚，proposal&#x2F;spec&#x2F;tasks 与最终代码的贴合度越高。</p>
+<h3 id="3-5-验证初始化"><a href="#3-5-验证初始化" class="headerlink" title="3.5 验证初始化"></a>3.5 验证初始化</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openspec list          <span class="comment"># 空列表即正常（还没有 change）</span></span><br><span class="line">openspec validate --all --json   <span class="comment"># 全量校验（JSON 输出，agent 友好）</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-OpenSpec-核心概念"><a href="#4-OpenSpec-核心概念" class="headerlink" title="4. OpenSpec 核心概念"></a>4. OpenSpec 核心概念</h2><h3 id="4-1-双层目录：specs-与-changes"><a href="#4-1-双层目录：specs-与-changes" class="headerlink" title="4.1 双层目录：specs 与 changes"></a>4.1 双层目录：specs 与 changes</h3><p><code>openspec/</code> 下永远存在两个世界：</p>
+<table>
+<thead>
+<tr>
+<th>目录</th>
+<th>含义</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openspec/specs/</code></td>
+<td><strong>事实来源</strong>：系统当前应该是什么样</td>
+<td>按模块整理的 spec 文件（Requirement + Scenario）</td>
+</tr>
+<tr>
+<td><code>openspec/changes/</code></td>
+<td><strong>提议变更</strong>：正在评审&#x2F;实现中的改动</td>
+<td>每个变更一个子目录，含 proposal&#x2F;spec delta&#x2F;design&#x2F;tasks</td>
+</tr>
+</tbody></table>
+<p><code>changes/</code> 里的 spec 是<strong>增量（delta）</strong>，使用 <code>ADDED / MODIFIED / REMOVED / RENAMED</code> 标记描述”相对主规格要改什么”；完成后经 sync 合并进 <code>specs/</code>，再归档到 <code>changes/archive/YYYY-MM-DD-&lt;name&gt;/</code> 保留审计轨迹。</p>
+<h3 id="4-2-Change-生命周期（spec-driven-schema）"><a href="#4-2-Change-生命周期（spec-driven-schema）" class="headerlink" title="4.2 Change 生命周期（spec-driven schema）"></a>4.2 Change 生命周期（spec-driven schema）</h3><p>一次变更（change）走完以下产物链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">proposal.md  为什么改（动机、目标、非目标）</span><br><span class="line">    ↓</span><br><span class="line">specs/*.md   改成什么样（Requirement + GIVEN/WHEN/THEN 场景 = 验收标准）</span><br><span class="line">    ↓</span><br><span class="line">design.md    怎么改（技术方案、模块影响）</span><br><span class="line">    ↓</span><br><span class="line">tasks.md     动手清单（1.1 / 1.2 / 2.1 编号，实现时逐项勾选）</span><br><span class="line">    ↓</span><br><span class="line">apply → verify → sync → archive</span><br></pre></td></tr></table></figure>
+
+<p>一个典型 change 目录：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">openspec/changes/add-dark-mode/</span><br><span class="line">├── .openspec.yaml        # 变更元数据（schema、创建日期）</span><br><span class="line">├── proposal.md           # 为什么改</span><br><span class="line">├── specs/</span><br><span class="line">│   └── ui/spec.md        # delta：ADDED 深色模式需求的场景</span><br><span class="line">├── design.md             # 技术方案：CSS 变量 + localStorage 持久化</span><br><span class="line">└── tasks.md              # 1.1 创建 ThemeContext；1.2 添加 CSS 变量；...</span><br></pre></td></tr></table></figure>
+
+<p>任务清单格式（tasks.md 实现时由 agent 勾选）：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 1. 主题状态</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> [ ] 1.1 创建 ThemeContext，提供主题状态与切换方法</span><br><span class="line"><span class="bullet">-</span> [ ] 1.2 接入 localStorage 持久化用户选择</span><br><span class="line"></span><br><span class="line"><span class="section">## 2. 样式</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> [ ] 2.1 定义深色模式 CSS 变量</span><br><span class="line"><span class="bullet">-</span> [ ] 2.2 切换组件绑定 ThemeContext</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-验收标准：GIVEN-WHEN-THEN-场景"><a href="#4-3-验收标准：GIVEN-WHEN-THEN-场景" class="headerlink" title="4.3 验收标准：GIVEN&#x2F;WHEN&#x2F;THEN 场景"></a>4.3 验收标准：GIVEN&#x2F;WHEN&#x2F;THEN 场景</h3><p>spec 中的每个 Requirement 都配 Scenario，这是 AI 实现与人类验收的共同依据：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## Requirement: 深色模式切换</span></span><br><span class="line"></span><br><span class="line"><span class="section">### Scenario: 用户切换主题</span></span><br><span class="line"><span class="bullet">-</span> <span class="strong">**GIVEN**</span> 用户已打开应用</span><br><span class="line"><span class="bullet">-</span> <span class="strong">**WHEN**</span> 用户点击切换按钮选择深色模式</span><br><span class="line"><span class="bullet">-</span> <span class="strong">**THEN**</span> 页面立即应用深色主题</span><br><span class="line"><span class="bullet">-</span> <span class="strong">**AND**</span> 刷新页面后主题保持深色</span><br><span class="line"></span><br><span class="line"><span class="section">### Scenario: 系统偏好</span></span><br><span class="line"><span class="bullet">-</span> <span class="strong">**GIVEN**</span> 用户系统为深色偏好且从未手动选择</span><br><span class="line"><span class="bullet">-</span> <span class="strong">**WHEN**</span> 应用首次加载</span><br><span class="line"><span class="bullet">-</span> <span class="strong">**THEN**</span> 应用自动使用深色主题</span><br></pre></td></tr></table></figure>
+
+<p><code>openspec validate --strict</code> 会检查场景完整性——缺失的 GIVEN&#x2F;WHEN&#x2F;THEN 直接报错，从流程上堵住”需求没写清就开写”。</p>
+<h3 id="4-4-双通道：终端-CLI-与对话-OPSX"><a href="#4-4-双通道：终端-CLI-与对话-OPSX" class="headerlink" title="4.4 双通道：终端 CLI 与对话 OPSX"></a>4.4 双通道：终端 CLI 与对话 OPSX</h3><p>OpenSpec 有两类命令，运行在两个地方：</p>
+<table>
+<thead>
+<tr>
+<th>通道</th>
+<th>形式</th>
+<th>运行位置</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CLI</td>
+<td><code>openspec ...</code></td>
+<td>终端</td>
+<td>初始化、校验、浏览、归档等确定性操作</td>
+</tr>
+<tr>
+<td>OPSX</td>
+<td><code>/opsx:propose</code> 等</td>
+<td>AI 助手对话</td>
+<td>由 agent 执行的规划&#x2F;实现工作流</td>
+</tr>
+</tbody></table>
+<p>AI 代理在实现过程中主要与 CLI 交互（<code>openspec status --change &lt;name&gt; --json</code> 获取下一步指令、<code>openspec validate</code> 自检），OPSX 命令则把”走哪个流程”的编排交给了 agent 的技能&#x2F;命令文件。本章”认识”就到这里，两类命令的具体用法在第 7、8 章实战中呈现。</p>
+<h2 id="5-结合方案一：-agents-技能集成（推荐）"><a href="#5-结合方案一：-agents-技能集成（推荐）" class="headerlink" title="5. 结合方案一：.agents 技能集成（推荐）"></a>5. 结合方案一：<code>.agents</code> 技能集成（推荐）</h2><h3 id="5-1-原理"><a href="#5-1-原理" class="headerlink" title="5.1 原理"></a>5.1 原理</h3><p>OpenSpec 的 <code>agents</code> 工具 ID 是<strong>厂商中立</strong>目标：把工作流技能写入 <code>.agents/skills/openspec-*/SKILL.md</code>——这是被众多 AGENTS.md 兼容工具读取的共享根。而 Reasonix 的 skills 扫描目录恰好包含 <code>&lt;workspace&gt;/.agents/skills/</code>（见第 2 章）。二者零配置对齐。</p>
+<p>额外收益：如果你同时使用其他支持 <code>.agents/skills</code> 的编码代理（如 Codex），一份技能树全部生效，无需为每个工具单独生成。</p>
+<h3 id="5-2-操作步骤"><a href="#5-2-操作步骤" class="headerlink" title="5.2 操作步骤"></a>5.2 操作步骤</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> your-project</span><br><span class="line">npm install -g @fission-ai/openspec@latest   <span class="comment"># 首次安装</span></span><br><span class="line">openspec init --tools agents --force         <span class="comment"># 生成 .agents/skills/openspec-*/</span></span><br></pre></td></tr></table></figure>
+
+<p>检查产物：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> .agents/skills/</span><br><span class="line"><span class="comment"># openspec-apply-change/  openspec-archive-change/  openspec-explore/</span></span><br><span class="line"><span class="comment"># openspec-propose/  openspec-sync-specs/  openspec-update-change/  ...</span></span><br></pre></td></tr></table></figure>
+
+<p>然后<strong>在新的 Reasonix 会话中</strong>（技能在会话启动时加载），<code>/</code> 命令列表或技能列表里应出现 <code>openspec-*</code> 系列。</p>
+<h3 id="5-3-技能名映射"><a href="#5-3-技能名映射" class="headerlink" title="5.3 技能名映射"></a>5.3 技能名映射</h3><p>core profile 默认生成 6 个技能，对应 OPSX 核心工作流：</p>
+<table>
+<thead>
+<tr>
+<th>技能名</th>
+<th>对应命令</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openspec-explore</code></td>
+<td><code>/opsx:explore</code></td>
+<td>实现前先探讨：读代码、对比方案、把模糊想法收敛成计划</td>
+</tr>
+<tr>
+<td><code>openspec-propose</code></td>
+<td><code>/opsx:propose</code></td>
+<td>一步创建 change 并生成 proposal&#x2F;specs&#x2F;design&#x2F;tasks</td>
+</tr>
+<tr>
+<td><code>openspec-apply-change</code></td>
+<td><code>/opsx:apply</code></td>
+<td>按 tasks.md 逐项实现并勾选</td>
+</tr>
+<tr>
+<td><code>openspec-update-change</code></td>
+<td><code>/opsx:update</code></td>
+<td>修订提案类产物并保持各文件一致（不改代码）</td>
+</tr>
+<tr>
+<td><code>openspec-sync-specs</code></td>
+<td><code>/opsx:sync</code></td>
+<td>把 delta spec 合并进主 specs（archive 会自动提示，一般无需手动）</td>
+</tr>
+<tr>
+<td><code>openspec-archive-change</code></td>
+<td><code>/opsx:archive</code></td>
+<td>归档已完成 change（含 sync 提示）</td>
+</tr>
+</tbody></table>
+<p>扩展工作流（<code>openspec config profile</code> 启用后生成）：<code>openspec-new-change</code>、<code>openspec-continue-change</code>、<code>openspec-ff-change</code>、<code>openspec-verify-change</code>、<code>openspec-bulk-archive-change</code>、<code>openspec-onboard</code>。</p>
+<h3 id="5-4-调用方式"><a href="#5-4-调用方式" class="headerlink" title="5.4 调用方式"></a>5.4 调用方式</h3><p>在 Reasonix 会话中，三种方式皆可：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 1. 斜杠技能调用</span><br><span class="line">/openspec-propose add-dark-mode</span><br><span class="line"></span><br><span class="line"># 2. 自然语言指定技能</span><br><span class="line">请使用 openspec-propose 技能为&quot;添加深色模式&quot;创建变更提案</span><br><span class="line"></span><br><span class="line"># 3. 直接描述意图（agent 自动选择合适技能）</span><br><span class="line">为项目添加深色模式支持，走完整的 OpenSpec change 流程</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-注意事项"><a href="#5-5-注意事项" class="headerlink" title="5.5 注意事项"></a>5.5 注意事项</h3><ul>
+<li><code>agents</code> 目标<strong>只写技能、不生成命令文件</strong>（无命令适配器），所以没有 <code>/opsx:xxx</code> 形式的对话命令——按技能名调用即可，行为是等价的</li>
+<li>OpenSpec <strong>不会创建或修改 AGENTS.md</strong>（旧版遗留的标记块会在 <code>openspec update</code> 时被清理）</li>
+<li>OpenSpec 只管理 <code>.agents/skills/</code> 下的 <code>openspec-*</code> 目录与 <code>.openspec-target</code> 标记文件，其余文件一律不动；但 <code>openspec update</code> 会<strong>覆盖重写</strong>技能目录内的内容，如需定制请复制到自有技能目录</li>
+</ul>
+<h2 id="6-结合方案二：-claude-技能-命令集成"><a href="#6-结合方案二：-claude-技能-命令集成" class="headerlink" title="6. 结合方案二：.claude 技能 + 命令集成"></a>6. 结合方案二：<code>.claude</code> 技能 + 命令集成</h2><h3 id="6-1-原理"><a href="#6-1-原理" class="headerlink" title="6.1 原理"></a>6.1 原理</h3><p><code>.claude</code> 同样在 Reasonix 的 skills 约定目录列表中（本仓库的 doc-do 技能即由此被发现）。选择 <code>claude</code> 工具 ID 会额外生成<strong>对话命令文件</strong>（<code>.claude/commands/opsx/*.md</code>），理论上可获得 <code>/opsx:xxx</code> 形式的命令入口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openspec init --tools claude --force</span><br></pre></td></tr></table></figure>
+
+<p>生成物：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.claude/</span><br><span class="line">├── skills/</span><br><span class="line">│   └── openspec-*/SKILL.md      # 同样的技能树</span><br><span class="line">└── commands/</span><br><span class="line">    └── opsx/</span><br><span class="line">        └── propose.md / apply.md / archive.md ...   # OPSX 对话命令</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-在-Reasonix-中的可用性"><a href="#6-2-在-Reasonix-中的可用性" class="headerlink" title="6.2 在 Reasonix 中的可用性"></a>6.2 在 Reasonix 中的可用性</h3><ul>
+<li><strong>技能部分</strong>：<code>.claude/skills/openspec-*/</code> 与方案一相同，Reasonix 必然发现（已实证）</li>
+<li><strong>命令部分</strong>：Reasonix 从约定 commands 目录加载 slash 模板，<code>.claude/commands/</code> 属于扫描范围；若生成文件为 <code>opsx/propose.md</code> 形式，命令名为 <code>/opsx:propose</code></li>
+<li><strong>验证方法</strong>：新会话中键入 <code>/</code> 查看命令列表是否出现 <code>opsx</code> 系列；未出现则说明当前版本 Reasonix 不扫描该子路径，退回技能调用或方案三</li>
+</ul>
+<h3 id="6-3-与方案一的权衡"><a href="#6-3-与方案一的权衡" class="headerlink" title="6.3 与方案一的权衡"></a>6.3 与方案一的权衡</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>方案一 <code>.agents</code></th>
+<th>方案二 <code>.claude</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>命令入口</td>
+<td>无（按技能名调用）</td>
+<td>有 <code>/opsx:xxx</code>（待实测确认）</td>
+</tr>
+<tr>
+<td>多代理共享</td>
+<td>优（Codex 等也读 <code>.agents</code>）</td>
+<td>仅 Claude 系</td>
+</tr>
+<tr>
+<td>Reasonix 发现性</td>
+<td>官方文档明确</td>
+<td>技能部分实证、命令部分待验证</td>
+</tr>
+<tr>
+<td>与 OpenSpec 官方工具表</td>
+<td><code>agents</code> 是专门为共享场景设计的目标</td>
+<td><code>claude</code> 面向 Claude Code 集成</td>
+</tr>
+</tbody></table>
+<p><strong>建议</strong>：追求稳妥与共享选方案一；如果你想优先尝试 <code>/opsx:</code> 命令形式且项目只用 Claude 系工具，选方案二；两者同时 <code>--tools agents,claude</code> 也是允许的（各自写各自目录）。</p>
+<h2 id="7-结合方案三：CLI-对话驱动（兜底）"><a href="#7-结合方案三：CLI-对话驱动（兜底）" class="headerlink" title="7. 结合方案三：CLI 对话驱动（兜底）"></a>7. 结合方案三：CLI 对话驱动（兜底）</h2><h3 id="7-1-原理"><a href="#7-1-原理" class="headerlink" title="7.1 原理"></a>7.1 原理</h3><p>OpenSpec 的技能文件本质是”告诉 agent 如何走流程”的提示工程。不生成任何技能文件，直接告诉 agent 按 OpenSpec 流程操作 CLI，同样能获得完整工作流——这对所有 AI 代理通用，也适合不想在仓库里增加技能文件的场景。</p>
+<h3 id="7-2-初始化"><a href="#7-2-初始化" class="headerlink" title="7.2 初始化"></a>7.2 初始化</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @fission-ai/openspec@latest</span><br><span class="line"><span class="built_in">cd</span> your-project</span><br><span class="line">openspec init --tools none --force   <span class="comment"># 不生成任何工具集成文件</span></span><br></pre></td></tr></table></figure>
+
+<p><code>openspec/</code> 目录照常创建，只是跳过工具配置。</p>
+<h3 id="7-3-会话提示词模板"><a href="#7-3-会话提示词模板" class="headerlink" title="7.3 会话提示词模板"></a>7.3 会话提示词模板</h3><p>在 Reasonix（或任何代理）会话中，用一段固定话术建立工作流约定（可写入项目 CLAUDE.md 使其长期生效）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">本项目使用 OpenSpec 规范驱动开发。所有功能/修复/重构都按以下流程执行：</span><br><span class="line"></span><br><span class="line">1. 先运行 `openspec new change &lt;kebab-case-name&gt;` 创建变更</span><br><span class="line">2. 编写 proposal.md（动机与目标），等待我确认</span><br><span class="line">3. 编写 specs/（Requirement + GIVEN/WHEN/THEN 场景）、design.md、tasks.md</span><br><span class="line">4. 运行 `openspec validate --strict` 校验，通过后等待我确认</span><br><span class="line">5. 按 tasks.md 逐项实现，每完成一项勾选 [x]，实现期间可运行 `openspec status --change &lt;name&gt; --json` 确认进度</span><br><span class="line">6. 全部完成运行 `openspec validate --all`，然后执行 `openspec archive &lt;name&gt;`（归档前询问我是否 sync）</span><br></pre></td></tr></table></figure>
+
+<p>关键命令速查（agent 模式全部支持 <code>--json</code> 输出）：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openspec list</code></td>
+<td>查看全部 changes&#x2F;specs</td>
+</tr>
+<tr>
+<td><code>openspec show &lt;name&gt;</code></td>
+<td>查看某个 change 内容</td>
+</tr>
+<tr>
+<td><code>openspec status --change &lt;name&gt;</code></td>
+<td>查看产物完成状态与下一步</td>
+</tr>
+<tr>
+<td><code>openspec validate &lt;name&gt;</code> &#x2F; <code>--strict</code></td>
+<td>校验变更完整性</td>
+</tr>
+<tr>
+<td><code>openspec instructions --change &lt;name&gt;</code></td>
+<td>获取”下一步该创建什么”的指令</td>
+</tr>
+<tr>
+<td><code>openspec new change &lt;name&gt;</code></td>
+<td>创建变更骨架</td>
+</tr>
+<tr>
+<td><code>openspec archive &lt;name&gt;</code> &#x2F; <code>--yes</code></td>
+<td>归档变更（非交互需 <code>--yes</code>）</td>
+</tr>
+</tbody></table>
+<h3 id="7-4-适用场景"><a href="#7-4-适用场景" class="headerlink" title="7.4 适用场景"></a>7.4 适用场景</h3><ul>
+<li>临时&#x2F;一次性项目，不想留下 <code>.agents</code> 或 <code>.claude</code> 目录</li>
+<li>CI 流水线或脚本化流程（agent 通过命令行驱动）</li>
+<li>你的代理工具暂不支持技能目录，且不想手工移植</li>
+<li>团队想统一”流程约定写在 CLAUDE.md”的单一事实来源</li>
+</ul>
+<h2 id="8-端到端实战：一个完整-change"><a href="#8-端到端实战：一个完整-change" class="headerlink" title="8. 端到端实战：一个完整 change"></a>8. 端到端实战：一个完整 change</h2><p>以”为现有 Web 项目添加深色模式”为例，走通结合方案一（<code>.agents</code> 技能）+ Reasonix 的全流程。</p>
+<h3 id="8-1-Explore：先想清楚（可选）"><a href="#8-1-Explore：先想清楚（可选）" class="headerlink" title="8.1 Explore：先想清楚（可选）"></a>8.1 Explore：先想清楚（可选）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">你: /openspec-explore</span><br><span class="line">    我们想支持深色模式，但不确定用 CSS 变量还是 Tailwind dark 类，帮我调研现有样式结构</span><br><span class="line">AI: 读取代码后给出对比与建议，并提示可 /openspec-propose 开启变更</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-Propose：创建变更与规划产物"><a href="#8-2-Propose：创建变更与规划产物" class="headerlink" title="8.2 Propose：创建变更与规划产物"></a>8.2 Propose：创建变更与规划产物</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">你: /openspec-propose add-dark-mode</span><br><span class="line">AI: Created openspec/changes/add-dark-mode/</span><br><span class="line">    ✓ proposal.md   （为什么改、目标、非目标）</span><br><span class="line">    ✓ specs/ui/spec.md  （ADDED 深色模式需求 + 3 个场景）</span><br><span class="line">    ✓ design.md     （CSS 变量方案 + localStorage 持久化）</span><br><span class="line">    ✓ tasks.md      （1.1 ThemeContext / 1.2 持久化 / 2.1 CSS 变量 / 2.2 切换组件）</span><br><span class="line">    Ready for implementation. Run /openspec-apply-change.</span><br></pre></td></tr></table></figure>
+
+<p>此时<strong>一行代码都还没写</strong>。你逐份 review 四个文件，发现遗漏就 <code>/openspec-update-change</code> 修订；确认无误后校验：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openspec validate add-dark-mode --strict</span><br><span class="line"><span class="comment"># ✓ proposal, specs, design, tasks 全部有效</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-Apply：按任务实现"><a href="#8-3-Apply：按任务实现" class="headerlink" title="8.3 Apply：按任务实现"></a>8.3 Apply：按任务实现</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">你: /openspec-apply-change add-dark-mode</span><br><span class="line">AI: 读取 tasks.md，逐项实现并勾选：</span><br><span class="line">    Working on 1.1: 创建 ThemeContext ...   [x] 1.1</span><br><span class="line">    Working on 1.2: localStorage 持久化 ... [x] 1.2</span><br><span class="line">    Working on 2.1: 定义深色 CSS 变量 ...   [x] 2.1</span><br><span class="line">    Working on 2.2: 切换组件绑定 ...        [x] 2.2</span><br><span class="line">    运行 npm test -- --run 通过，无回归</span><br></pre></td></tr></table></figure>
+
+<p>中途被打断也没关系，重新调用时 agent 会从 tasks.md 未勾选项续做。</p>
+<h3 id="8-4-Verify-Archive：校验并归档"><a href="#8-4-Verify-Archive：校验并归档" class="headerlink" title="8.4 Verify + Archive：校验并归档"></a>8.4 Verify + Archive：校验并归档</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">你: /openspec-verify-change add-dark-mode</span><br><span class="line">AI: COMPLETENESS ✓ 4/4 任务完成 ✓ 场景已覆盖</span><br><span class="line">    CORRECTNESS  ✓ 实现符合 spec 意图（警告：系统偏好场景无单测覆盖）</span><br><span class="line">    COHERENCE    ✓ 与 design.md 一致</span><br><span class="line">    Critical: 0  Warnings: 1</span><br><span class="line"></span><br><span class="line">你: /openspec-archive-change add-dark-mode</span><br><span class="line">AI: 检测到 delta specs 未同步 → 已合并进 openspec/specs/ui/spec.md</span><br><span class="line">    ✓ 变更归档至 openspec/changes/archive/2026-08-21-add-dark-mode/</span><br></pre></td></tr></table></figure>
+
+<p>归档后主 specs 即反映”项目已支持深色模式”，后续任何 change 都以它为基线。</p>
+<h3 id="8-5-全程命令轨迹（终端视角）"><a href="#8-5-全程命令轨迹（终端视角）" class="headerlink" title="8.5 全程命令轨迹（终端视角）"></a>8.5 全程命令轨迹（终端视角）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">openspec list                                   <span class="comment"># 查看活动 changes</span></span><br><span class="line">openspec show add-dark-mode                     <span class="comment"># 查看产物内容</span></span><br><span class="line">openspec status --change add-dark-mode          <span class="comment"># 查看进度</span></span><br><span class="line">openspec validate --all                         <span class="comment"># 全量校验</span></span><br><span class="line">git add openspec/ &amp;&amp; git commit -m <span class="string">&quot;feat: dark mode (spec)&quot;</span>   <span class="comment"># 随代码一起提交</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="9-最佳实践与注意事项"><a href="#9-最佳实践与注意事项" class="headerlink" title="9. 最佳实践与注意事项"></a>9. 最佳实践与注意事项</h2><h3 id="9-1-写清楚-config-yaml"><a href="#9-1-写清楚-config-yaml" class="headerlink" title="9.1 写清楚 config.yaml"></a>9.1 写清楚 config.yaml</h3><p>项目上下文（技术栈、目录约定、规范）是 AI 生成贴合代码的前提。它比任何 prompt 都稳定——每个 change 的每个产物都会引用它。</p>
+<h3 id="9-2-始终显式指定-change-名"><a href="#9-2-始终显式指定-change-名" class="headerlink" title="9.2 始终显式指定 change 名"></a>9.2 始终显式指定 change 名</h3><p><code>/openspec-apply-change add-dark-mode</code> 优于不带名的调用。多变更并行时，带名调用不会误伤其他 change，agent 也无需猜上下文。</p>
+<h3 id="9-3-并行-change-与-spec-冲突"><a href="#9-3-并行-change-与-spec-冲突" class="headerlink" title="9.3 并行 change 与 spec 冲突"></a>9.3 并行 change 与 spec 冲突</h3><p>多个并行 change 同时改动同一模块的 spec 时，归档顺序决定合并结果。<code>openspec-bulk-archive-change</code> 会检测冲突并检查真实代码后按创建顺序合并；手动归档前用 <code>openspec list</code> 确认没有互相冲突的活动变更。</p>
+<h3 id="9-4-archive-前的检查顺序"><a href="#9-4-archive-前的检查顺序" class="headerlink" title="9.4 archive 前的检查顺序"></a>9.4 archive 前的检查顺序</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openspec validate --strict  →  /openspec-verify-change  →  /openspec-archive-change</span><br></pre></td></tr></table></figure>
+
+<p>validate 保证规格完整，verify 检查实现与规格一致（警告不阻塞归档，但建议处理），archive 自动完成 sync。</p>
+<h3 id="9-5-让-agent-用好-agent-模式命令"><a href="#9-5-让-agent-用好-agent-模式命令" class="headerlink" title="9.5 让 agent 用好 agent 模式命令"></a>9.5 让 agent 用好 agent 模式命令</h3><p>status &#x2F; instructions &#x2F; show &#x2F; list 都支持 <code>--json</code>，agent 解析结构化输出比读终端文本可靠得多。在方案三的提示词模板中显式要求 agent 使用 <code>--json</code>。</p>
+<h3 id="9-6-环境变量与隐私"><a href="#9-6-环境变量与隐私" class="headerlink" title="9.6 环境变量与隐私"></a>9.6 环境变量与隐私</h3><table>
+<thead>
+<tr>
+<th>变量</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>OPENSPEC_TELEMETRY=0</code> &#x2F; <code>DO_NOT_TRACK=1</code></td>
+<td>关闭匿名统计</td>
+</tr>
+<tr>
+<td><code>OPENSPEC_NO_UPDATE_CHECK</code></td>
+<td>关闭 CLI 更新检查（CI 场景）</td>
+</tr>
+<tr>
+<td><code>OPENSPEC_NO_ANIMATION</code></td>
+<td>关闭 init 欢迎动画</td>
+</tr>
+<tr>
+<td><code>CI=true</code></td>
+<td>自动禁用 telemetry 与更新检查</td>
+</tr>
+</tbody></table>
+<h3 id="9-7-不想被覆盖的内容"><a href="#9-7-不想被覆盖的内容" class="headerlink" title="9.7 不想被覆盖的内容"></a>9.7 不想被覆盖的内容</h3><p><code>openspec update</code> 只重写 OpenSpec 自己生成的目录与标记；技能文件里的定制会被覆盖，请把定制技能复制到独立目录（如 <code>.reasonix/skills/</code> 或你的自有 skills 路径）。</p>
+<h3 id="9-8-常见报错排查"><a href="#9-8-常见报错排查" class="headerlink" title="9.8 常见报错排查"></a>9.8 常见报错排查</h3><table>
+<thead>
+<tr>
+<th>报错</th>
+<th>原因</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Change not found</code></td>
+<td>未识别 change 名</td>
+<td>显式带名调用；<code>openspec list</code> 确认目录存在</td>
+</tr>
+<tr>
+<td><code>Commands not recognized</code></td>
+<td>技能&#x2F;命令未被代理加载</td>
+<td>确认 <code>openspec init</code> 成功；<code>openspec update</code> 重生成；重启代理会话</td>
+</tr>
+<tr>
+<td><code>Schema not found</code></td>
+<td>指定的 workflow schema 不存在</td>
+<td><code>openspec schemas</code> 查看可用列表</td>
+</tr>
+<tr>
+<td><code>No artifacts ready</code></td>
+<td>产物依赖未满足</td>
+<td><code>openspec status --change &lt;name&gt;</code> 查看阻塞项</td>
+</tr>
+<tr>
+<td>validate 报场景缺失</td>
+<td>GIVEN&#x2F;WHEN&#x2F;THEN 不全</td>
+<td>按 <code>--strict</code> 提示补全场景</td>
+</tr>
+</tbody></table>
+<h2 id="10-相关资源与进阶方向"><a href="#10-相关资源与进阶方向" class="headerlink" title="10. 相关资源与进阶方向"></a>10. 相关资源与进阶方向</h2><h3 id="10-1-官方文档"><a href="#10-1-官方文档" class="headerlink" title="10.1 官方文档"></a>10.1 官方文档</h3><ul>
+<li>快速上手：<code>openspec init</code> 后的终端提示即入门引导</li>
+<li>CLI 参考：<a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/cli.md">docs&#x2F;cli.md</a></li>
+<li>OPSX 命令参考：<a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md">docs&#x2F;commands.md</a></li>
+<li>工具集成表：<a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md">docs&#x2F;supported-tools.md</a></li>
+<li>工作流模式：<a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/workflows.md">docs&#x2F;workflows.md</a></li>
+</ul>
+<h3 id="10-2-进阶方向"><a href="#10-2-进阶方向" class="headerlink" title="10.2 进阶方向"></a>10.2 进阶方向</h3><ul>
+<li><strong>Stores</strong>：独立的 OpenSpec 仓库作为跨仓库规格源——平台团队拥有 specs，各代码仓库只读引用，消除 wiki 漂移</li>
+<li><strong>Workset</strong>：个人工作视图，把分散在多处的内容组装进一个临时目录</li>
+<li><strong>自定义 Schema</strong>：<code>openspec schema init/fork</code> 创建你自己的产物类型与模板，定制团队流程</li>
+<li><strong>多代理切换</strong>：specs&#x2F;changes 是纯 Markdown，<code>openspec update</code> 即可在任意支持工具间迁移</li>
+</ul>
+<h3 id="10-3-与既有工作流的衔接"><a href="#10-3-与既有工作流的衔接" class="headerlink" title="10.3 与既有工作流的衔接"></a>10.3 与既有工作流的衔接</h3><p>OpenSpec 的”先对齐再实现”与任务拆解思路，可以和你已有的工作流管理系统（如 GSD、doc-do 一类文档工作流）互补：OpenSpec 管代码库内变更的规格与验收，文档工作流管知识库文档的生命周期。二者都以 Markdown 为事实来源，边界清晰、互不冲突。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">https://ziogn.github.io/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/openspec/">openspec</a><a class="post-meta__tags" href="/tags/reasonix/">reasonix</a><a class="post-meta__tags" href="/tags/spec-driven-development/">spec-driven-development</a><a class="post-meta__tags" href="/tags/ai-agents/">ai-agents</a><a class="post-meta__tags" href="/tags/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">使用指南</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">go语言知识规划——测试调试</div></div><div class="info-2"><div class="info-item-1">go 语言知识规划——测试调试Go 语言内置了完善的测试工具链和性能分析工具，从单元测试、基准测试、模糊测试到 CPU&#x2F;内存&#x2F;阻塞分析和调试器，均作为标准工具链的一等公民提供。本文系统梳理 Go 测试体系与性能分析调试两大方向的核心知识点，包含可运行的代码示例和常见面试追问链。  1. Go 测试体系详解Go 的测试体系以 testing 标准库为核心，原子操作的 go test 命令统一驱动。测试文件命名约定为 *_test.go，测试函数通过约定的函数签名自动识别。 1.1 基础单元测试函数签名：func TestXxx(t *testing.T)，其中 Xxx 以大写字母开头。使用 t.Error&#x2F;t.Errorf 报告失败（继续执行），或 t.Fatal&#x2F;t.Fatalf 终止测试。 12345678910// math.gopackage mathfunc Add(a, b int) int &#123;    return a + b&#125;func Subtract(a, b int) int &#123;    retu...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#OpenSpec-%E7%BB%93%E5%90%88-Reasonix-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97"><span class="toc-number">1.</span> <span class="toc-text">OpenSpec 结合 Reasonix 使用指南</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%AE%A4%E8%AF%86-OpenSpec"><span class="toc-number">1.1.</span> <span class="toc-text">1. 认识 OpenSpec</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%97%AE%E9%A2%98%EF%BC%9A%E5%90%AB%E7%B3%8A%E7%9A%84-prompt-%E4%B8%8E%E5%A4%B1%E6%8E%A7%E7%9A%84-agent"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 问题：含糊的 prompt 与失控的 agent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-OpenSpec-%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 OpenSpec 的定位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-OpenSpec-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 OpenSpec 解决什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%AE%A4%E8%AF%86-Reasonix"><span class="toc-number">1.2.</span> <span class="toc-text">2. 认识 Reasonix</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Skills%EF%BC%9A%E5%9B%9B%E7%B1%BB%E7%BA%A6%E5%AE%9A%E7%9B%AE%E5%BD%95%E8%87%AA%E5%8A%A8%E5%8F%91%E7%8E%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 Skills：四类约定目录自动发现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Commands%EF%BC%9A%E7%BA%A6%E5%AE%9A%E7%9B%AE%E5%BD%95%E7%9A%84-slash-%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 Commands：约定目录的 slash 模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Instructions%EF%BC%9AAGENTS-md-%E8%87%AA%E5%8A%A8%E8%BD%BD%E5%85%A5"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 Instructions：AGENTS.md 自动载入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%9C%AC%E4%BB%93%E5%BA%93%E5%AE%9E%E8%AF%81"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 本仓库实证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%89%E8%A3%85%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.3.</span> <span class="toc-text">3. 安装与初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B1%82"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 环境要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%89%E8%A3%85-CLI"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 安装 CLI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%9D%E5%A7%8B%E5%8C%96%E9%A1%B9%E7%9B%AE"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 初始化项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%85%8D%E7%BD%AE%E9%A1%B9%E7%9B%AE%E4%B8%8A%E4%B8%8B%E6%96%87%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="toc-number">1.3.4.</span> <span class="toc-text">3.4 配置项目上下文（重要）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E9%AA%8C%E8%AF%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.3.5.</span> <span class="toc-text">3.5 验证初始化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-OpenSpec-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.4.</span> <span class="toc-text">4. OpenSpec 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8F%8C%E5%B1%82%E7%9B%AE%E5%BD%95%EF%BC%9Aspecs-%E4%B8%8E-changes"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 双层目录：specs 与 changes</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Change-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%EF%BC%88spec-driven-schema%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 Change 生命周期（spec-driven schema）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%AA%8C%E6%94%B6%E6%A0%87%E5%87%86%EF%BC%9AGIVEN-WHEN-THEN-%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 验收标准：GIVEN&#x2F;WHEN&#x2F;THEN 场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%8F%8C%E9%80%9A%E9%81%93%EF%BC%9A%E7%BB%88%E7%AB%AF-CLI-%E4%B8%8E%E5%AF%B9%E8%AF%9D-OPSX"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 双通道：终端 CLI 与对话 OPSX</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%BB%93%E5%90%88%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A-agents-%E6%8A%80%E8%83%BD%E9%9B%86%E6%88%90%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">5. 结合方案一：.agents 技能集成（推荐）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8E%9F%E7%90%86"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 操作步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%8A%80%E8%83%BD%E5%90%8D%E6%98%A0%E5%B0%84"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3 技能名映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%B0%83%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.5.4.</span> <span class="toc-text">5.4 调用方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.5.5.</span> <span class="toc-text">5.5 注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%BB%93%E5%90%88%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A-claude-%E6%8A%80%E8%83%BD-%E5%91%BD%E4%BB%A4%E9%9B%86%E6%88%90"><span class="toc-number">1.6.</span> <span class="toc-text">6. 结合方案二：.claude 技能 + 命令集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8E%9F%E7%90%86"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%9C%A8-Reasonix-%E4%B8%AD%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 在 Reasonix 中的可用性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%8E%E6%96%B9%E6%A1%88%E4%B8%80%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 与方案一的权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E7%BB%93%E5%90%88%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9ACLI-%E5%AF%B9%E8%AF%9D%E9%A9%B1%E5%8A%A8%EF%BC%88%E5%85%9C%E5%BA%95%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">7. 结合方案三：CLI 对话驱动（兜底）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%8E%9F%E7%90%86"><span class="toc-number">1.7.1.</span> <span class="toc-text">7.1 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.7.2.</span> <span class="toc-text">7.2 初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%BC%9A%E8%AF%9D%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.7.3.</span> <span class="toc-text">7.3 会话提示词模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.7.4.</span> <span class="toc-text">7.4 适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%AE%9E%E6%88%98%EF%BC%9A%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4-change"><span class="toc-number">1.8.</span> <span class="toc-text">8. 端到端实战：一个完整 change</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-Explore%EF%BC%9A%E5%85%88%E6%83%B3%E6%B8%85%E6%A5%9A%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.8.1.</span> <span class="toc-text">8.1 Explore：先想清楚（可选）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Propose%EF%BC%9A%E5%88%9B%E5%BB%BA%E5%8F%98%E6%9B%B4%E4%B8%8E%E8%A7%84%E5%88%92%E4%BA%A7%E7%89%A9"><span class="toc-number">1.8.2.</span> <span class="toc-text">8.2 Propose：创建变更与规划产物</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Apply%EF%BC%9A%E6%8C%89%E4%BB%BB%E5%8A%A1%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.8.3.</span> <span class="toc-text">8.3 Apply：按任务实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-Verify-Archive%EF%BC%9A%E6%A0%A1%E9%AA%8C%E5%B9%B6%E5%BD%92%E6%A1%A3"><span class="toc-number">1.8.4.</span> <span class="toc-text">8.4 Verify + Archive：校验并归档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E5%85%A8%E7%A8%8B%E5%91%BD%E4%BB%A4%E8%BD%A8%E8%BF%B9%EF%BC%88%E7%BB%88%E7%AB%AF%E8%A7%86%E8%A7%92%EF%BC%89"><span class="toc-number">1.8.5.</span> <span class="toc-text">8.5 全程命令轨迹（终端视角）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.9.</span> <span class="toc-text">9. 最佳实践与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%86%99%E6%B8%85%E6%A5%9A-config-yaml"><span class="toc-number">1.9.1.</span> <span class="toc-text">9.1 写清楚 config.yaml</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%A7%8B%E7%BB%88%E6%98%BE%E5%BC%8F%E6%8C%87%E5%AE%9A-change-%E5%90%8D"><span class="toc-number">1.9.2.</span> <span class="toc-text">9.2 始终显式指定 change 名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%B9%B6%E8%A1%8C-change-%E4%B8%8E-spec-%E5%86%B2%E7%AA%81"><span class="toc-number">1.9.3.</span> <span class="toc-text">9.3 并行 change 与 spec 冲突</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-archive-%E5%89%8D%E7%9A%84%E6%A3%80%E6%9F%A5%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.9.4.</span> <span class="toc-text">9.4 archive 前的检查顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-%E8%AE%A9-agent-%E7%94%A8%E5%A5%BD-agent-%E6%A8%A1%E5%BC%8F%E5%91%BD%E4%BB%A4"><span class="toc-number">1.9.5.</span> <span class="toc-text">9.5 让 agent 用好 agent 模式命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-6-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E4%B8%8E%E9%9A%90%E7%A7%81"><span class="toc-number">1.9.6.</span> <span class="toc-text">9.6 环境变量与隐私</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-7-%E4%B8%8D%E6%83%B3%E8%A2%AB%E8%A6%86%E7%9B%96%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-number">1.9.7.</span> <span class="toc-text">9.7 不想被覆盖的内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-8-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99%E6%8E%92%E6%9F%A5"><span class="toc-number">1.9.8.</span> <span class="toc-text">9.8 常见报错排查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E7%9B%B8%E5%85%B3%E8%B5%84%E6%BA%90%E4%B8%8E%E8%BF%9B%E9%98%B6%E6%96%B9%E5%90%91"><span class="toc-number">1.10.</span> <span class="toc-text">10. 相关资源与进阶方向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3"><span class="toc-number">1.10.1.</span> <span class="toc-text">10.1 官方文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%BF%9B%E9%98%B6%E6%96%B9%E5%90%91"><span class="toc-number">1.10.2.</span> <span class="toc-text">10.2 进阶方向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E4%B8%8E%E6%97%A2%E6%9C%89%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E8%A1%94%E6%8E%A5"><span class="toc-number">1.10.3.</span> <span class="toc-text">10.3 与既有工作流的衔接</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

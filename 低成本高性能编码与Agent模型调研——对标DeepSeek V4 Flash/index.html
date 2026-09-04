@@ -1,0 +1,1071 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="多维比较（SWE-bench &#x2F; GPQA &#x2F; AA-Briefcase &#x2F; Terminal-Bench &#x2F; 价格）寻找成本低于 DeepSeek V4 Flash 且编码能力相当的模型。结论：严格替代品不存在，但有多维降本选项。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash">
+<meta property="og:url" content="https://ziogn.github.io/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="多维比较（SWE-bench &#x2F; GPQA &#x2F; AA-Briefcase &#x2F; Terminal-Bench &#x2F; 价格）寻找成本低于 DeepSeek V4 Flash 且编码能力相当的模型。结论：严格替代品不存在，但有多维降本选项。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-20T05:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-21T09:45:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="agent">
+<meta property="article:tag" content="ai">
+<meta property="article:tag" content="coding">
+<meta property="article:tag" content="cost-optimization">
+<meta property="article:tag" content="deepseek">
+<meta property="article:tag" content="glm">
+<meta property="article:tag" content="llm">
+<meta property="article:tag" content="minimax">
+<meta property="article:tag" content="model-comparison">
+<meta property="article:tag" content="qwen">
+<meta property="article:tag" content="research">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash",
+  "url": "https://ziogn.github.io/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-20T05:30:00.000Z",
+  "dateModified": "2026-07-21T09:45:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-20T05:30:00.000Z" title="发表于 2026-07-20 13:30:00">2026-07-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-21T09:45:00.000Z" title="更新于 2026-07-21 17:45:00">2026-07-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="低成本高性能编码与-Agent-模型调研——对标-DeepSeek-V4-Flash"><a href="#低成本高性能编码与-Agent-模型调研——对标-DeepSeek-V4-Flash" class="headerlink" title="低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash"></a>低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash</h1><hr>
+<h2 id="快查区：快速找到你的答案"><a href="#快查区：快速找到你的答案" class="headerlink" title="快查区：快速找到你的答案"></a>快查区：快速找到你的答案</h2><h3 id="一句话定论"><a href="#一句话定论" class="headerlink" title="一句话定论"></a>一句话定论</h3><p><strong>别找了，没有比 V4 Flash 更便宜且编码能力不输的 API 模型。</strong></p>
+<p>DeepSeek V4 Flash（输入 ¥1 &#x2F; 输出 ¥2 &#x2F; 百万 tokens，SWE-bench <strong>80.6%</strong>）在同价位段没有对手。你的实际选择只有三个方向：</p>
+<table>
+<thead>
+<tr>
+<th>你的态度</th>
+<th>推荐做法</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不能接受能力降级</td>
+<td><strong>继续用 V4 Flash + 优化使用方式</strong></td>
+<td>能力不变，做好缓存命中、错峰使用可大幅降本</td>
+</tr>
+<tr>
+<td>接受小幅降级，想省长期成本</td>
+<td><strong>自部署开源模型</strong>（见 §3）</td>
+<td>SWE-bench 73-77%，需一次性硬件投入</td>
+</tr>
+<tr>
+<td>只做简单任务，越便宜越好</td>
+<td><strong>免费 API 模型</strong>（见 §2）</td>
+<td>能力只有 59.2%，仅适合辅助轮角色</td>
+</tr>
+</tbody></table>
+<p><strong>不想看细节？选第一行即可。</strong> 下面都是为需要详细对比的人准备的。</p>
+<hr>
+<h3 id="本报告怎么读"><a href="#本报告怎么读" class="headerlink" title="本报告怎么读"></a>本报告怎么读</h3><table>
+<thead>
+<tr>
+<th>你的目的</th>
+<th>看哪里</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只想确认”没有更好的选择”</td>
+<td>看完快查区即可</td>
+</tr>
+<tr>
+<td>想了解哪些模型可以当备胎</td>
+<td>看 <strong>§2</strong></td>
+</tr>
+<tr>
+<td>想算算自部署划不划算</td>
+<td>看 <strong>§3</strong></td>
+</tr>
+<tr>
+<td>需要完整参考</td>
+<td>全看（~20 分钟）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="1-V4-Flash：为什么它是标尺"><a href="#1-V4-Flash：为什么它是标尺" class="headerlink" title="1. V4 Flash：为什么它是标尺"></a>1. V4 Flash：为什么它是标尺</h2><p>所有候选模型都归一化到 V4 Flash 这条基线。先把这个标尺看清楚。</p>
+<h3 id="定价与能力"><a href="#定价与能力" class="headerlink" title="定价与能力"></a>定价与能力</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>输入</strong>（缓存未命中）</td>
+<td>¥1 &#x2F; 百万 tokens</td>
+</tr>
+<tr>
+<td><strong>输入</strong>（缓存命中）</td>
+<td><strong>¥0.02</strong> &#x2F; 百万 tokens（降幅 98%）</td>
+</tr>
+<tr>
+<td><strong>输出</strong></td>
+<td><strong>¥2</strong> &#x2F; 百万 tokens（行业门槛价）</td>
+</tr>
+<tr>
+<td><strong>高峰时段</strong>（9-12点、14-18点）</td>
+<td>所有价格翻倍</td>
+</tr>
+<tr>
+<td><strong>上下文</strong></td>
+<td>1M tokens</td>
+</tr>
+<tr>
+<td><strong>架构</strong></td>
+<td>284B 总 &#x2F; 13B 激活 MoE</td>
+</tr>
+</tbody></table>
+<p><strong>基准能力（多维度）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>基准</th>
+<th>分数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SWE-bench Verified</strong></td>
+<td><strong>80.6%</strong></td>
+<td>编码与 bug 修复能力</td>
+</tr>
+<tr>
+<td><strong>Terminal-Bench 2.0</strong></td>
+<td>待公开</td>
+<td>终端 Agent 任务（命令执行、环境交互）</td>
+</tr>
+<tr>
+<td><strong>GPQA Diamond</strong></td>
+<td>待公开</td>
+<td>科学推理（物理&#x2F;化学&#x2F;生物）；Pro 版为 <strong>90.1%</strong></td>
+</tr>
+<tr>
+<td><strong>AA-Briefcase Elo</strong></td>
+<td>待公开</td>
+<td>智能体长程知识工作</td>
+</tr>
+</tbody></table>
+<p><strong>为什么它能做到这个价格？</strong> V4 Flash 是 284B 参数的 MoE 模型，但每次推理只激活 13B 参数——相当于你有 284B 的”知识储备”，但每次只调用 13B 干活，成本和 13B 小模型差不多。</p>
+<p><strong>定价敏感度</strong>：对编码场景来说，输出价格是第一道门槛。V4 Flash 的输出 ¥2 已经压到行业最低。输出 ¥4 以上的模型，交互式编码场景成本至少翻倍。</p>
+<hr>
+<h3 id="评测维度说明"><a href="#评测维度说明" class="headerlink" title="评测维度说明"></a>评测维度说明</h3><p>本文从 <strong>multiple dimensions</strong> 比较模型，不依赖单一基准。各维度对编码场景的意义如下：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>侧重</th>
+<th>对编码场景的意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SWE-bench Verified</strong></td>
+<td>代码修改与 bug 修复</td>
+<td><strong>核心维度</strong>。模拟 GitHub issue → 修改代码 → 测试通过的端到端流程</td>
+</tr>
+<tr>
+<td><strong>Terminal-Bench 2.0</strong></td>
+<td>终端 Agent</td>
+<td>编码 Agent 需要执行命令、操作文件系统、解析输出</td>
+</tr>
+<tr>
+<td><strong>AA-Briefcase Elo</strong></td>
+<td>智能体知识工作</td>
+<td>衡量模型在复杂多步骤工作流中的自主能力</td>
+</tr>
+<tr>
+<td><strong>AA Intelligence Index</strong></td>
+<td>综合智能</td>
+<td>融合 9 项基准（含科学推理、Agent、编码）的综合得分</td>
+</tr>
+<tr>
+<td><strong>GPQA Diamond</strong></td>
+<td>科学推理</td>
+<td>物理&#x2F;化学&#x2F;生物专家级问答，反映模型的深层推理能力</td>
+</tr>
+<tr>
+<td><strong>输出速度（tokens&#x2F;s）</strong></td>
+<td>响应效率</td>
+<td>影响交互式编码的流畅度和 Agent 多步调用总耗时</td>
+</tr>
+<tr>
+<td><strong>价格</strong></td>
+<td>成本</td>
+<td>决定大规模使用的经济可行性</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：各基准评测的是不同能力侧面。SWE-bench 分数高的模型在编码场景大概率表现好，但一个有强 Agent 能力但 SWE-bench 稍低的模型，在实际工作流中可能体验更好。<strong>看组合而非单一分数。</strong></p>
+</blockquote>
+<hr>
+<h2 id="2-比它便宜的模型有哪些"><a href="#2-比它便宜的模型有哪些" class="headerlink" title="2. 比它便宜的模型有哪些"></a>2. 比它便宜的模型有哪些</h2><p><strong>核心结论：没有严格平替。</strong> 下面这些模型在一定条件下可选，但各有取舍。按使用场景分组列出，每个模型只出现一次。</p>
+<hr>
+<h3 id="免费可用：GLM-4-7-Flash"><a href="#免费可用：GLM-4-7-Flash" class="headerlink" title="免费可用：GLM-4.7-Flash"></a>免费可用：GLM-4.7-Flash</h3><ul>
+<li><strong>定价</strong>：完全免费（但只有 1 并发）</li>
+<li><strong>SWE-bench Verified</strong>：<strong>59.2%</strong>（V4 Flash 80.6%）</li>
+<li><strong>GPQA Diamond</strong>：<strong>75.2</strong>（科学推理）</li>
+<li><strong>AA Intelligence Index</strong>：~68（较早版本 v3.x）</li>
+<li><strong>上下文</strong>：200K tokens</li>
+<li><strong>架构</strong>：30B 总 &#x2F; 3B 激活 MoE</li>
+<li><strong>本地输出速度</strong>：60-80+ tok&#x2F;s（RTX 3090&#x2F;4090）</li>
+</ul>
+<p><strong>判断：可用，但只适合”辅助轮”角色。</strong> 免费模型中编码最好的，可以处理 lint 修复、简单补全、代码解释这类轻量任务。但仓库级代码理解和多步骤 Agent 调用场景中，59.2% 意味着成功率远低于 V4 Flash。</p>
+<p><strong>推荐用法</strong>：简单任务走免费，复杂任务切回 V4 Flash。</p>
+<hr>
+<h3 id="同价位可试：MiMo-V2-5-Standard"><a href="#同价位可试：MiMo-V2-5-Standard" class="headerlink" title="同价位可试：MiMo V2.5-Standard"></a>同价位可试：MiMo V2.5-Standard</h3><ul>
+<li><strong>定价</strong>：输出 ¥2（持平 V4 Flash），缓存命中输入 ¥0.02（持平）</li>
+<li><strong>SWE-bench</strong>：不明确（低于 Pro 版）</li>
+<li><strong>AA-Briefcase Elo</strong>：Pro 版 <strong>1581</strong>（开源第一，参考值）</li>
+<li><strong>上下文</strong>：1M tokens</li>
+<li><strong>架构</strong>：1.02T 总 &#x2F; ~42B 激活 MoE</li>
+<li><strong>多模态</strong>：支持图像&#x2F;音频&#x2F;视频（V4 Flash 不支持）</li>
+</ul>
+<p><strong>判断：价格一样但编码能力不确定，可以一试，不建议直接替换主力。</strong> 它是所有候选模型中唯一在纯 API 价格上与 V4 Flash 持平的。如果你的批量处理任务不依赖最高编码能力（如文档生成、国际化翻译），可以分流到 MiMo 来释放 V4 Flash 的并发。</p>
+<hr>
+<h3 id="更便宜但有风险：DeepSeek-V3-2（中转平台）"><a href="#更便宜但有风险：DeepSeek-V3-2（中转平台）" class="headerlink" title="更便宜但有风险：DeepSeek V3.2（中转平台）"></a>更便宜但有风险：DeepSeek V3.2（中转平台）</h3><p><strong>官方渠道</strong>（输入 ¥2 &#x2F; 输出 ¥8）：全面不如 V4 Flash，不推荐。</p>
+<p><strong>数眼智能中转平台</strong>（输入 ¥1.2 &#x2F; 输出 <strong>¥1.8</strong>）：</p>
+<p>这是<strong>唯一输出价格比 V4 Flash（¥2）还低的选项</strong>。但需要注意三点：</p>
+<ol>
+<li>中转平台 SLA、并发、数据安全无官方保障</li>
+<li>128K 上下文只有 V4 Flash（1M）的 1&#x2F;8，大仓库受限</li>
+<li>编码能力 ~70%（无确切数据），实际可能低于预期</li>
+</ol>
+<p><strong>判断：可作为备选，但风险自担。</strong></p>
+<hr>
+<h3 id="其他仅供参考"><a href="#其他仅供参考" class="headerlink" title="其他仅供参考"></a>其他仅供参考</h3><p>这些模型在特定场景下有优势，但编码场景中整体性价比不如 V4 Flash：</p>
+<p><strong>Qwen3.5-Plus</strong>（输入 ¥0.8 &#x2F; 输出 ¥4.8）：</p>
+<ul>
+<li>输入比 V4 Flash 便宜 20%，但输出贵 140%</li>
+<li>编码场景中输出占成本大头，综合成本远高于 V4 Flash</li>
+<li>缺乏 SWE-bench 数据，编码能力不透明</li>
+<li><strong>GPQA Diamond</strong>：<strong>88.4%</strong>（科学推理能力强）</li>
+</ul>
+<p><strong>Gemini 2.5 Flash-Lite</strong>（~¥0.7 &#x2F; ~¥2.8）：</p>
+<ul>
+<li>输入价格低，但编码能力推测仅 40-50%（远低于 V4 Flash 的 80.6%）</li>
+<li>需要国际支付 + 国内访问不稳定</li>
+<li>不适合作为中国开发者的编码主力</li>
+</ul>
+<hr>
+<h3 id="全景对比总表"><a href="#全景对比总表" class="headerlink" title="全景对比总表"></a>全景对比总表</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输出¥&#x2F;M</th>
+<th>SWE-bench</th>
+<th>GPQA</th>
+<th>Terminal-Bench</th>
+<th>上下文</th>
+<th>一句话判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>V4 Flash（基准）</strong></td>
+<td><strong>¥2</strong></td>
+<td><strong>80.6%</strong></td>
+<td>—</td>
+<td>—</td>
+<td>1M</td>
+<td>天花板，没有平替</td>
+</tr>
+<tr>
+<td>GLM-4.7-Flash</td>
+<td><strong>¥0</strong></td>
+<td>59.2%</td>
+<td><strong>75.2</strong></td>
+<td>—</td>
+<td>200K</td>
+<td>免费辅助轮</td>
+</tr>
+<tr>
+<td>MiMo V2.5-Std</td>
+<td>¥2</td>
+<td>不明确</td>
+<td>—</td>
+<td>—</td>
+<td>1M</td>
+<td>同价可试</td>
+</tr>
+<tr>
+<td>DeepSeek V3.2（中转）</td>
+<td>¥1.8</td>
+<td>~70%</td>
+<td>—</td>
+<td>—</td>
+<td>128K</td>
+<td>最低价但有风险</td>
+</tr>
+<tr>
+<td>Qwen3.5-Plus</td>
+<td>¥4.8</td>
+<td>无数据</td>
+<td><strong>88.4%</strong></td>
+<td>—</td>
+<td>1M</td>
+<td>输入便宜输出贵</td>
+</tr>
+<tr>
+<td>Gemini 2.5 Flash-Lite</td>
+<td>~¥2.8</td>
+<td>~40-50%</td>
+<td>—</td>
+<td>—</td>
+<td>1M</td>
+<td>不适合编码</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="3-自己部署划算吗"><a href="#3-自己部署划算吗" class="headerlink" title="3. 自己部署划算吗"></a>3. 自己部署划算吗</h2><p>API 找不到更便宜的，但自部署可以——一次性硬件投入，后续调用成本近似为零。</p>
+<hr>
+<h3 id="推荐方案：Qwen3-6-35B-A3B"><a href="#推荐方案：Qwen3-6-35B-A3B" class="headerlink" title="推荐方案：Qwen3.6-35B-A3B"></a>推荐方案：Qwen3.6-35B-A3B</h3><p><strong>唯一能在消费级 GPU 上自部署且编码能力接近 V4 Flash 的模型。</strong></p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SWE-bench Verified</td>
+<td><strong>73.4%</strong>（差距 7.2 个百分点）</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>35B 总 &#x2F; <strong>3B 激活</strong> MoE</td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>262K（可扩展至 1M）</td>
+</tr>
+<tr>
+<td>开源协议</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>硬件</td>
+<td>RTX 4090 单卡即可（Q4 量化，16-24GB）</td>
+</tr>
+<tr>
+<td>推理速度</td>
+<td>~112 tokens&#x2F;s</td>
+</tr>
+</tbody></table>
+<h3 id="能力更接近：Qwen3-6-27B"><a href="#能力更接近：Qwen3-6-27B" class="headerlink" title="能力更接近：Qwen3.6-27B"></a>能力更接近：Qwen3.6-27B</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SWE-bench Verified</td>
+<td><strong>77.2%</strong>（差距仅 3.4 个百分点）</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>27B 稠密模型</td>
+</tr>
+<tr>
+<td>硬件需求</td>
+<td>~54GB（FP16），量化后 ~20-28GB</td>
+</tr>
+<tr>
+<td>注意</td>
+<td>单卡 RTX 4090 略吃紧，建议 48GB+ 显存</td>
+</tr>
+</tbody></table>
+<p><strong>如何选择</strong>：</p>
+<ul>
+<li>有 RTX 4090（24GB）→ <strong>35B-A3B</strong>，量化后稳定运行</li>
+<li>有 48GB+ 显存（双卡或专业卡）→ <strong>27B</strong>，能力更接近 V4 Flash</li>
+</ul>
+<h3 id="轻量备选"><a href="#轻量备选" class="headerlink" title="轻量备选"></a>轻量备选</h3><ul>
+<li><strong>GLM-4.7-Flash 自部署</strong>（30B&#x2F;3B MoE，16GB 可运行）：但 API 已免费，自部署价值有限</li>
+<li><strong>Gemma 4-31B</strong>（谷歌开源，31B 稠密）：数学推理极强（AIME 89.2%），但 SWE-bench 无数据，编码能力不确定</li>
+</ul>
+<hr>
+<h3 id="自部署经济性分析"><a href="#自部署经济性分析" class="headerlink" title="自部署经济性分析"></a>自部署经济性分析</h3><p><strong>假设</strong>：</p>
+<ul>
+<li>V4 Flash API 综合加权均价约 ¥1.5&#x2F;百万 tokens</li>
+<li>硬件 RTX 4090（¥15,000）+ 电费 ¥50&#x2F;月，分 24 个月摊销（¥675&#x2F;月）</li>
+<li>双卡&#x2F;Qwen3.6-27B 硬件 ~¥30,000，摊销 ¥1,330&#x2F;月</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>月调用量</th>
+<th>V4 Flash API</th>
+<th>自部署 35B-A3B</th>
+<th>划算吗？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>100 万 tokens</td>
+<td><strong>¥150&#x2F;月</strong></td>
+<td>¥675&#x2F;月（倒挂）</td>
+<td>不划算</td>
+</tr>
+<tr>
+<td>500 万</td>
+<td><strong>¥750&#x2F;月</strong></td>
+<td>¥675&#x2F;月（持平）</td>
+<td>可考虑</td>
+</tr>
+<tr>
+<td><strong>1,000 万</strong></td>
+<td><strong>¥1,500&#x2F;月</strong></td>
+<td>¥675&#x2F;月（省 55%）</td>
+<td><strong>开始划算</strong></td>
+</tr>
+<tr>
+<td>5,000 万</td>
+<td><strong>¥7,500&#x2F;月</strong></td>
+<td>¥675&#x2F;月（省 91%）</td>
+<td>很划算</td>
+</tr>
+<tr>
+<td>1 亿</td>
+<td><strong>¥15,000&#x2F;月</strong></td>
+<td>¥675&#x2F;月（省 96%）</td>
+<td>必须自部署</td>
+</tr>
+</tbody></table>
+<p><strong>快速判断</strong>：</p>
+<ul>
+<li><strong>月调用 &lt; 500 万 tokens</strong>：继续用 API，做好缓存命中就够了</li>
+<li><strong>月调用 500-2000 万</strong>：可以算账，半年到两年回本</li>
+<li><strong>月调用 &gt; 2000 万</strong>：强烈推荐自部署</li>
+<li><strong>月调用 &gt; 1 亿</strong>：你不该考虑 API 了</li>
+</ul>
+<blockquote>
+<p>注意：以上未包含自部署的运维成本（模型更新、服务器维护、故障处理）。如果不是 DevOps 熟手，隐性成本可能让实际 ROI 周期翻倍。</p>
+</blockquote>
+<hr>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="场景-模型推荐矩阵"><a href="#场景-模型推荐矩阵" class="headerlink" title="场景-模型推荐矩阵"></a>场景-模型推荐矩阵</h3><table>
+<thead>
+<tr>
+<th>使用场景</th>
+<th>首选方案</th>
+<th>月成本（1000 万 tokens）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>日常交互式编码</td>
+<td>V4 Flash</td>
+<td>¥1,200-1,500</td>
+</tr>
+<tr>
+<td>简单修复&#x2F;代码补全</td>
+<td>GLM-4.7-Flash（免费）</td>
+<td><strong>¥0</strong></td>
+</tr>
+<tr>
+<td>批量离线处理</td>
+<td>MiMo V2.5-Std 或 V4 Flash</td>
+<td>¥1,000-1,500</td>
+</tr>
+<tr>
+<td>长程 Agent 任务</td>
+<td>V4 Flash &#x2F; V4 Pro</td>
+<td>¥2,000-4,000</td>
+</tr>
+<tr>
+<td>自部署编码服务器</td>
+<td>Qwen3.6-35B-A3B</td>
+<td>¥675&#x2F;月（摊销后）</td>
+</tr>
+</tbody></table>
+<h3 id="关联文档"><a href="#关联文档" class="headerlink" title="关联文档"></a>关联文档</h3><ul>
+<li><a href="GSD%E9%87%8D%E5%BA%A6%E5%BC%80%E5%8F%91%E6%A8%A1%E5%9E%8B%E6%A8%AA%E8%AF%84%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A.md">GSD 重度开发模型横评调研报告</a> — 本报告的”前传”，横评了多个编码模型的 GSD 适配性</li>
+<li><a href="/deepseek-v4-flash-gsd-core-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/">V4 Flash 结合 GSD-Core 工作流调研报告</a> — V4 Flash 在 GSD 三档配置下的实际表现</li>
+<li><a href="/DeepSeek%20V4%20Flash%20vs%20MiniMax%20M3%20%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90/">DeepSeek V4 Flash vs MiniMax M3 对比分析</a> — 两个模型在编码和 Agent 场景下的详细对比</li>
+</ul>
+<h3 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h3><ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/aidoudoulong/article/details/159507991">2026 大模型价格与代码能力实测指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/dong123dddd/article/details/160454279">2026 国内七大 AI 大模型定价全对比</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/waluna/p/20188115">MiMo V2.5 全系大幅调价，最高降幅 99%</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sing1ee/p/19885253">Qwen3.6-35B-A3B 全面评测</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/itech/p/19918243">2026 开源五国杀：Qwen3.6、Gemma4、Llama4、GLM-5.1、DeepSeek V4</a></li>
+<li><a target="_blank" rel="noopener" href="https://news.qq.com/rain/a/20260523A096IU00">DeepSeek V4-Pro 永久降价至 1&#x2F;4</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/2201_75517551/article/details/162073007">GLM-5.2 上线，专注 Coding 与长程任务</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/cyf5918/article/details/160377618">DeepSeek V3.2 各渠道价格对比</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/2501_94459390/article/details/160564832">Kimi K2.6 开源，登顶 SWE-Bench Pro</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/cmzznet/article/details/160629524">GLM-5.1 在 Agent 场景性价比拆解</a></li>
+</ol>
+<blockquote>
+<p><strong>数据时效</strong>：以上数据采集于 2026 年 7 月。大模型 API 定价变化极快，使用前请到各模型官网确认最新定价。</p>
+</blockquote>
+<h3 id="变更说明"><a href="#变更说明" class="headerlink" title="变更说明"></a>变更说明</h3><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>变更内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v0.3.1</td>
+<td>2026-07-21</td>
+<td>移除 §3（不换模型怎么省钱）。清理导航表和决策表的交叉引用。重编号 §4 → §3。</td>
+</tr>
+<tr>
+<td>v0.3.0</td>
+<td>2026-07-21</td>
+<td>多维度比较升级：引入 AA Intelligence Index &#x2F; AA-Briefcase Elo &#x2F; GPQA Diamond &#x2F; Terminal-Bench 2.0 等基准。新增评测维度说明（§1）。每个模型增加多维数据（GLM-4.7 增加 AA Index &amp; GPQA、MiMo 增加 AA-Briefcase、Qwen3.5-Plus 增加 GPQA）。全景对比表增加 GPQA 和 Terminal-Bench 列。</td>
+</tr>
+<tr>
+<td>v0.2.0</td>
+<td>2026-07-21</td>
+<td>全文重组：9 章压缩为 4 章 + 附录，快查区前置，§3 和 §4 合并，告别重复表述，减少表格数量。数据不变。</td>
+</tr>
+<tr>
+<td>v0.1.0</td>
+<td>2026-07-21</td>
+<td>完成全部 9 章节：核心结论、V4 Flash 基线、候选模型全景对比、低价&#x2F;免费 API 模型分析、开源自部署方案、混合使用策略、最终选型决策树、关联文档。</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/">https://ziogn.github.io/%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8EAgent%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87DeepSeek%20V4%20Flash/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ai/">ai</a><a class="post-meta__tags" href="/tags/research/">research</a><a class="post-meta__tags" href="/tags/llm/">llm</a><a class="post-meta__tags" href="/tags/model-comparison/">model-comparison</a><a class="post-meta__tags" href="/tags/deepseek/">deepseek</a><a class="post-meta__tags" href="/tags/minimax/">minimax</a><a class="post-meta__tags" href="/tags/coding/">coding</a><a class="post-meta__tags" href="/tags/agent/">agent</a><a class="post-meta__tags" href="/tags/qwen/">qwen</a><a class="post-meta__tags" href="/tags/glm/">glm</a><a class="post-meta__tags" href="/tags/cost-optimization/">cost-optimization</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/AI%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E7%9F%A5%E8%AF%86%E8%AF%A6%E8%A7%A3/" title="AI 大模型架构知识详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">AI 大模型架构知识详解</div></div><div class="info-2"><div class="info-item-1">AI 大模型架构知识详解本文档面向有机器学习基础的中高级开发者，系统梳理大模型内部架构的核心组件与选型决策。全文档共 7 章，从 Transformer 基础出发，逐层覆盖 MoE 架构、注意力变体、位置编码、归一化与激活函数、推理优化技术，最终汇聚到主流模型架构的横向对比。  第 1 章：Transformer 架构基础章节目标：为读者建立对 Transformer 原始架构和三大变体的完整理解，奠定后续所有章节的知识基础。  1.1 从 Seq2Seq 到 Transformer 的设计动机在 Transformer 出现之前，序列到序列（Seq2Seq，即 Sequence-to-Sequence）任务由 RNN（循环神经网络）[^rnn] 及其变体（LSTM、GRU）主导。Seq2Seq 最早由 Sutskever et al. 提出[^seq2seq]，其核心思想是使用一个 Encoder（编码器） 将变长输入序列编码为固定长度的上下文向量，再由一个 Decoder（解码器） 将该向量解码为变长输出序列——这奠定了后来所有 Encoder-Decoder 架构的基础。一...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="java知识规划——springCloud微服务"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">java知识规划——springCloud微服务</div></div><div class="info-2"><div class="info-item-1">java知识规划——springCloud微服务 本文档覆盖 Spring Cloud 微服务知识体系，按”Nacos → Gateway → Sentinel → Dubbo → Seata → RocketMQ → 链路追踪 → OpenFeign → Bootstrap 上下文”层层递进。每节末尾标注与 Spring、Java 核心 及 MySQL 方向的知识关联。   3.1 Nacos：注册中心 + 配置中心注册中心原理： 12345服务启动 → 向 Nacos Server 注册  → Nacos 维护服务注册表  → 消费者从 Nacos 拉取服务列表（定时 10s 拉取 + UDP 长轮询推送变更）  → 服务实例每 5s 发送心跳维持健康状态  → Nacos 15s 未收到心跳标记为不健康，30s 彻底移除  CAP 权衡：    模式 一致性 可用性 使用场景    AP（默认） 最终一致 优先 注册中心   CP 强一致 次优先 配置中心   配置中心结构：Namespace（环境隔离）→ Group（逻辑分组）→ DataId（具体配置） 配置动态刷新：...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/DeepSeek%20V4%20Flash%20vs%20MiniMax%20M3%20%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90/" title="DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-17</div><div class="info-item-2">DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作1. 引言：为什么做这个对比2026 年上半年，AI 编码模型领域迎来了两股重要力量：2026 年 4 月发布的 DeepSeek V4 Flash，以及 2026 年 6 月发布的 MiniMax M3。二者均采用 MoE（混合专家）架构，均支持 1M token 上下文窗口，均定位为面向开发者的通用推理与编码模型。 然而，两者的定价天差地别——DeepSeek V4 Flash 的输入&#x2F;输出定价仅为 MiniMax M3 的约七分之一。对于一个重度使用 AI 编码助手的开发者来说，这意味着一笔可观的成本差异。 本文试图回答一个实际问题：如果你目前在使用 MiniMax M3 进行日常开发工作，能否切换到 DeepSeek V4 Flash 来降低成本，同时不影响开发效率和代码质量？ 1.1 什么是”重度开发工作”本文讨论的”重度开发工作”特指以下场景：    场景 说明    复杂多步骤工程任务 修复 GitHub Issue、实现新功能、重构代码库，需要跨文件上下文追踪   长周期...</div></div></div></a><a class="pagination-related" href="/DeepSeek%20V4%20%E5%A5%97%E9%A4%90%E4%BB%B7%E6%A0%BC%E8%B0%83%E7%A0%94/" title="DeepSeek V4 套餐价格调研：OpenCode Go 额度耗尽后的最优替代方案"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-08</div><div class="info-item-2">DeepSeek V4 套餐价格调研：OpenCode Go 额度耗尽后的最优替代方案</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 套餐价格调研：OpenCode Go 额度耗尽后的最优替代方案1. 写在前面：OpenCode Go 额度用完了，怎么办？你是一个 DeepSeek V4 重度用户，日常开发大量依赖 OpenCode Go 套餐调用 DeepSeek 模型。现在套餐额度用尽，面临选择：继续充值 OpenCode Go？转 DeepSeek 官方 API 按量付费？找第三方平台买更便宜的套餐？ 你使用 DeepSeek 的习惯是 Flash:Pro &#x3D; 3:1——大部分日常编码任务（代码补全、简单重构、写脚本、查文档）用 Flash 就够了，少部分复杂任务（架构设计、复杂 Bug 分析、多文件大型重构）才上 Pro。 本文将从多个角度为你拆解各方案的实际成本，帮你找到最痛快的使用方案。 2. DeepSeek V4 官方 API 定价分析2.1 当前永久定价（2026年7月）DeepSeek V4 Pro 已于 2026年5月31日正式结束限时折扣，进入永久降价阶段——价格永久固定为原价的 1&#x2F;4。以下为当前定价：    项目 V4 Flash V4 P...</div></div></div></a><a class="pagination-related" href="/AI%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E7%9F%A5%E8%AF%86%E8%AF%A6%E8%A7%A3/" title="AI 大模型架构知识详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-21</div><div class="info-item-2">AI 大模型架构知识详解</div></div><div class="info-2"><div class="info-item-1">AI 大模型架构知识详解本文档面向有机器学习基础的中高级开发者，系统梳理大模型内部架构的核心组件与选型决策。全文档共 7 章，从 Transformer 基础出发，逐层覆盖 MoE 架构、注意力变体、位置编码、归一化与激活函数、推理优化技术，最终汇聚到主流模型架构的横向对比。  第 1 章：Transformer 架构基础章节目标：为读者建立对 Transformer 原始架构和三大变体的完整理解，奠定后续所有章节的知识基础。  1.1 从 Seq2Seq 到 Transformer 的设计动机在 Transformer 出现之前，序列到序列（Seq2Seq，即 Sequence-to-Sequence）任务由 RNN（循环神经网络）[^rnn] 及其变体（LSTM、GRU）主导。Seq2Seq 最早由 Sutskever et al. 提出[^seq2seq]，其核心思想是使用一个 Encoder（编码器） 将变长输入序列编码为固定长度的上下文向量，再由一个 Decoder（解码器） 将该向量解码为变长输出序列——这奠定了后来所有 Encoder-Decoder 架构的基础。一...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94ai%E5%BC%80%E5%8F%91/" title="java知识规划——ai开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——ai开发</div></div><div class="info-2"><div class="info-item-1">java知识规划——ai开发 本文档覆盖面试权重 10% 的 AI 开发知识，以 LangChain4j 框架为主线，从 AiServices 核心架构到模型集成、RAG、Tool Calling、会话记忆、流式响应逐层展开。每个知识点与 Java 核心 及 Spring 生态 的知识关联标注在末尾。   5.1 核心架构与 AiServices涵盖 AiServices 动态代理原理、ChatLanguageModel 统一抽象、核心组件体系以及 LangChain4j 与 Spring AI 的选型对比。  AiServices 动态代理原理AiServices 是 LangChain4j 的核心入口，底层基于 JDK 动态代理实现： 12345678// 定义 AI Service 接口interface Assistant &#123;    String chat(String userMessage);&#125;// AiServices.create() 创建代理实例Assistant assistant = AiServices.create(Assistant...</div></div></div></a><a class="pagination-related" href="/AI%E7%BC%96%E7%A0%81%E5%8A%A9%E6%89%8B%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/" title="AI 编码助手核心概念"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">AI 编码助手核心概念</div></div><div class="info-2"><div class="info-item-1">AI 编码助手核心概念AI 编码助手（如 Claude Code、Cursor、Windsurf、GitHub Copilot 等）已成为现代开发者不可或缺的工具。本文将系统介绍这类工具的核心概念，帮助您理解并掌握 AI 辅助开发的工作原理。  目录第一部分：基础概念 1. 记忆与上下文系统 2. 规则系统 3. 技能系统 4. MCP协议详解 5. Agent智能体系统 6. 多代理团队协作  第二部分：进阶应用 7. 自定义工作流 8. 性能优化 9. 安全实践  第三部分：工程实践 10. CI&#x2F;CD集成  第四部分：入门与总结 11. 概念之间的关系 12. 快速开始 13. 总结  第五部分：配置实战 14. Claude Code 配置实战 15. MCP server 搭建实战 16. Agent 编写实战   第一部分：基础概念本部分介绍 AI 编码助手的核心概念，帮助您理解工具的工作原理。 1. 记忆与上下文系统1.1 什么是上下文？上下文（Context） 是 AI 理解当前任务所需的信息总和。没有上下文，AI 就如同失忆般不知道：  您正在开发什么...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="java知识规划——springCloud微服务"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-17</div><div class="info-item-2">java知识规划——springCloud微服务</div></div><div class="info-2"><div class="info-item-1">java知识规划——springCloud微服务 本文档覆盖 Spring Cloud 微服务知识体系，按”Nacos → Gateway → Sentinel → Dubbo → Seata → RocketMQ → 链路追踪 → OpenFeign → Bootstrap 上下文”层层递进。每节末尾标注与 Spring、Java 核心 及 MySQL 方向的知识关联。   3.1 Nacos：注册中心 + 配置中心注册中心原理： 12345服务启动 → 向 Nacos Server 注册  → Nacos 维护服务注册表  → 消费者从 Nacos 拉取服务列表（定时 10s 拉取 + UDP 长轮询推送变更）  → 服务实例每 5s 发送心跳维持健康状态  → Nacos 15s 未收到心跳标记为不健康，30s 彻底移除  CAP 权衡：    模式 一致性 可用性 使用场景    AP（默认） 最终一致 优先 注册中心   CP 强一致 次优先 配置中心   配置中心结构：Namespace（环境隔离）→ Group（逻辑分组）→ DataId（具体配置） 配置动态刷新：...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%8E%E6%88%90%E6%9C%AC%E9%AB%98%E6%80%A7%E8%83%BD%E7%BC%96%E7%A0%81%E4%B8%8E-Agent-%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94%E2%80%94%E2%80%94%E5%AF%B9%E6%A0%87-DeepSeek-V4-Flash"><span class="toc-number">1.</span> <span class="toc-text">低成本高性能编码与 Agent 模型调研——对标 DeepSeek V4 Flash</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E6%9F%A5%E5%8C%BA%EF%BC%9A%E5%BF%AB%E9%80%9F%E6%89%BE%E5%88%B0%E4%BD%A0%E7%9A%84%E7%AD%94%E6%A1%88"><span class="toc-number">1.1.</span> <span class="toc-text">快查区：快速找到你的答案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%AE%9A%E8%AE%BA"><span class="toc-number">1.1.1.</span> <span class="toc-text">一句话定论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E6%8A%A5%E5%91%8A%E6%80%8E%E4%B9%88%E8%AF%BB"><span class="toc-number">1.1.2.</span> <span class="toc-text">本报告怎么读</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-V4-Flash%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AE%83%E6%98%AF%E6%A0%87%E5%B0%BA"><span class="toc-number">1.2.</span> <span class="toc-text">1. V4 Flash：为什么它是标尺</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9A%E4%BB%B7%E4%B8%8E%E8%83%BD%E5%8A%9B"><span class="toc-number">1.2.1.</span> <span class="toc-text">定价与能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%84%E6%B5%8B%E7%BB%B4%E5%BA%A6%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.2.</span> <span class="toc-text">评测维度说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%AF%94%E5%AE%83%E4%BE%BF%E5%AE%9C%E7%9A%84%E6%A8%A1%E5%9E%8B%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-number">1.3.</span> <span class="toc-text">2. 比它便宜的模型有哪些</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%8D%E8%B4%B9%E5%8F%AF%E7%94%A8%EF%BC%9AGLM-4-7-Flash"><span class="toc-number">1.3.1.</span> <span class="toc-text">免费可用：GLM-4.7-Flash</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8C%E4%BB%B7%E4%BD%8D%E5%8F%AF%E8%AF%95%EF%BC%9AMiMo-V2-5-Standard"><span class="toc-number">1.3.2.</span> <span class="toc-text">同价位可试：MiMo V2.5-Standard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E4%BE%BF%E5%AE%9C%E4%BD%86%E6%9C%89%E9%A3%8E%E9%99%A9%EF%BC%9ADeepSeek-V3-2%EF%BC%88%E4%B8%AD%E8%BD%AC%E5%B9%B3%E5%8F%B0%EF%BC%89"><span class="toc-number">1.3.3.</span> <span class="toc-text">更便宜但有风险：DeepSeek V3.2（中转平台）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E4%BB%85%E4%BE%9B%E5%8F%82%E8%80%83"><span class="toc-number">1.3.4.</span> <span class="toc-text">其他仅供参考</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94%E6%80%BB%E8%A1%A8"><span class="toc-number">1.3.5.</span> <span class="toc-text">全景对比总表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%87%AA%E5%B7%B1%E9%83%A8%E7%BD%B2%E5%88%92%E7%AE%97%E5%90%97"><span class="toc-number">1.4.</span> <span class="toc-text">3. 自己部署划算吗</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88%EF%BC%9AQwen3-6-35B-A3B"><span class="toc-number">1.4.1.</span> <span class="toc-text">推荐方案：Qwen3.6-35B-A3B</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%BD%E5%8A%9B%E6%9B%B4%E6%8E%A5%E8%BF%91%EF%BC%9AQwen3-6-27B"><span class="toc-number">1.4.2.</span> <span class="toc-text">能力更接近：Qwen3.6-27B</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%BB%E9%87%8F%E5%A4%87%E9%80%89"><span class="toc-number">1.4.3.</span> <span class="toc-text">轻量备选</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E9%83%A8%E7%BD%B2%E7%BB%8F%E6%B5%8E%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.4.4.</span> <span class="toc-text">自部署经济性分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">1.5.</span> <span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-%E6%A8%A1%E5%9E%8B%E6%8E%A8%E8%8D%90%E7%9F%A9%E9%98%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">场景-模型推荐矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E6%96%87%E6%A1%A3"><span class="toc-number">1.5.2.</span> <span class="toc-text">关联文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90"><span class="toc-number">1.5.3.</span> <span class="toc-text">参考来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E6%9B%B4%E8%AF%B4%E6%98%8E"><span class="toc-number">1.5.4.</span> <span class="toc-text">变更说明</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

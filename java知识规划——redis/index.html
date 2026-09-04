@@ -1,0 +1,1489 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>java知识规划——redis | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="Redis 核心机制面试知识规划，覆盖数据结构与底层编码、持久化、主从哨兵集群、过期淘汰策略、分布式锁、缓存设计一致性、事务 Lua、高级特性、Redisson、实战场景十大模块。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java知识规划——redis">
+<meta property="og:url" content="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="Redis 核心机制面试知识规划，覆盖数据结构与底层编码、持久化、主从哨兵集群、过期淘汰策略、分布式锁、缓存设计一致性、事务 Lua、高级特性、Redisson、实战场景十大模块。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-23T04:10:00.000Z">
+<meta property="article:modified_time" content="2026-09-04T11:54:40.803Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="guide">
+<meta property="article:tag" content="interview">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="java面试">
+<meta property="article:tag" content="redis">
+<meta property="article:tag" content="research">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java知识规划——redis",
+  "url": "https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-23T04:10:00.000Z",
+  "dateModified": "2026-09-04T11:54:40.803Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'java知识规划——redis',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">java知识规划——redis</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">java知识规划——redis</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-23T04:10:00.000Z" title="发表于 2026-07-23 12:10:00">2026-07-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-04T11:54:40.803Z" title="更新于 2026-09-04 19:54:40">2026-09-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>25分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="java知识规划——redis"><a href="#java知识规划——redis" class="headerlink" title="java知识规划——redis"></a>java知识规划——redis</h1><blockquote>
+<p>本文档覆盖 Redis 面试知识体系，按”数据结构 → 持久化 → 集群 → 过期淘汰 → 分布式锁 → 缓存设计 → 事务 Lua → 高级特性 → Redisson → 实战场景”层层递进。每节末尾标注与 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/">Java 核心</a>、<a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/">Spring Cloud 微服务</a> 及 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/">MySQL</a> 方向的知识关联。</p>
+</blockquote>
+<hr>
+<h2 id="6-1-核心数据结构与底层编码"><a href="#6-1-核心数据结构与底层编码" class="headerlink" title="6.1 核心数据结构与底层编码"></a>6.1 核心数据结构与底层编码</h2><p><strong>一句话原理</strong>：Redis 有 9 种核心数据结构，每种底层由 2-3 种编码实现，根据数据特征自动切换。理解 RedisObject 和编码转换条件是区分”会用”和”懂原理”的关键。</p>
+<hr>
+<h4 id="RedisObject-头部"><a href="#RedisObject-头部" class="headerlink" title="RedisObject 头部"></a>RedisObject 头部</h4><p>每个 key 的 value 在 Redis 中存储为 <code>redisObject</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────┐</span><br><span class="line">│ redisObject 头部（16 bytes, 64-bit）       │</span><br><span class="line">│ type:4bit（String/List/Set/ZSet/Hash）    │</span><br><span class="line">│ encoding:4bit（int/embstr/raw/ht/...）     │</span><br><span class="line">│ lru:24bit（LRU 时间戳 或 LFU 计数器）       │</span><br><span class="line">│ refcount:4bytes（引用计数，共享整数对象）     │</span><br><span class="line">│ ptr:8bytes（指向实际数据结构的指针）          │</span><br><span class="line">└──────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="数据结构速查表"><a href="#数据结构速查表" class="headerlink" title="数据结构速查表"></a>数据结构速查表</h4><table>
+<thead>
+<tr>
+<th>外层类型</th>
+<th>底层编码</th>
+<th>转换条件 &#x2F; 说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>String</strong></td>
+<td><code>int</code> &#x2F; <code>embstr</code> &#x2F; <code>raw</code></td>
+<td>int: 整数 ≤ 20 位；embstr: 字符串 ≤ 44 字节；raw: 其他</td>
+</tr>
+<tr>
+<td><strong>List</strong></td>
+<td><code>quicklist</code>（Redis 3.2+）</td>
+<td>每个节点是 ziplist，默认 8KB 一个节点</td>
+</tr>
+<tr>
+<td><strong>Hash</strong></td>
+<td><code>listpack</code>（Redis 7.0+ 替代 ziplist）</td>
+<td>元素 &lt; 512 且所有值 &lt; 64 字节用 listpack，否则用 hashtable</td>
+</tr>
+<tr>
+<td><strong>Set</strong></td>
+<td><code>intset</code> &#x2F; <code>hashtable</code></td>
+<td>全整数且 &lt; 512 个用 intset，否则用 hashtable</td>
+</tr>
+<tr>
+<td><strong>ZSet</strong></td>
+<td><code>listpack</code> &#x2F; <code>skiplist + hashtable</code></td>
+<td>元素 &lt; 128 且所有值 &lt; 64 字节用 listpack，否则用 skiplist</td>
+</tr>
+<tr>
+<td><strong>Bitmap</strong></td>
+<td>基于 String 位操作</td>
+<td>非独立类型</td>
+</tr>
+<tr>
+<td><strong>HyperLogLog</strong></td>
+<td>基于 String，稀疏&#x2F;稠密编码</td>
+<td>标准误差 0.81%</td>
+</tr>
+<tr>
+<td><strong>GEO</strong></td>
+<td>基于 ZSet（geohash 编码）</td>
+<td>非独立类型</td>
+</tr>
+<tr>
+<td><strong>Stream</strong></td>
+<td>Rax（基数树）+ listpack</td>
+<td>独立数据结构</td>
+</tr>
+</tbody></table>
+<h4 id="SDS（Simple-Dynamic-String）"><a href="#SDS（Simple-Dynamic-String）" class="headerlink" title="SDS（Simple Dynamic String）"></a>SDS（Simple Dynamic String）</h4><p>String 底层使用 SDS，比 C 字符串（以 <code>\0</code> 结尾的 char[]）的优势：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>C 字符串</th>
+<th>SDS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>长度获取</td>
+<td>O(n) 遍历</td>
+<td>O(1) 读取 len 字段</td>
+</tr>
+<tr>
+<td>二进制安全</td>
+<td>否（<code>\0</code> 截断）</td>
+<td>是（由 len 确定数据边界）</td>
+</tr>
+<tr>
+<td>空间预分配</td>
+<td>无</td>
+<td>预分配 + 惰性释放</td>
+</tr>
+<tr>
+<td>扩容</td>
+<td>每次 realloc</td>
+<td>预分配额外空间减少 realloc 次数</td>
+</tr>
+</tbody></table>
+<h4 id="跳表-vs-B-Tree（面试高频）"><a href="#跳表-vs-B-Tree（面试高频）" class="headerlink" title="跳表 vs B+Tree（面试高频）"></a>跳表 vs B+Tree（面试高频）</h4><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>跳表（SkipList）</th>
+<th>B+Tree</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据结构</td>
+<td>多层随机索引链表</td>
+<td>多路平衡查找树</td>
+</tr>
+<tr>
+<td>查询复杂度</td>
+<td>O(log n) 期望</td>
+<td>O(log n) 稳定</td>
+</tr>
+<tr>
+<td>范围查询</td>
+<td>指针横向遍历</td>
+<td>叶子节点链表遍历</td>
+</tr>
+<tr>
+<td>写入</td>
+<td>随机层数，写放大少</td>
+<td>页分裂&#x2F;合并，写放大</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>内存数据库（Redis）</td>
+<td>磁盘数据库（MySQL InnoDB）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>为什么 ZSet 用跳表不用 B+Tree</strong>：Redis 是内存数据库，跳表的内存分配粒度更细（节点按需分配），实现简单。B+Tree 的页分裂成本和批读取优势在纯内存场景下不成立。</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>RedisObject 头部(type/encoding/lru/refcount/ptr) → SDS vs C 字符串(长度获取 O(1)/二进制安全/预分配) → QuickList 结构(LinkedList+ZipList节点) → ListPack 替代 ZipList(解决连锁更新) → IntSet 升级(int16→int32→int64) → 跳表 vs B+Tree 选型原因(内存场景) → 编码转换条件(元素个数+长度)</code></p>
+<hr>
+<h2 id="6-2-Redis-持久化"><a href="#6-2-Redis-持久化" class="headerlink" title="6.2 Redis 持久化"></a>6.2 Redis 持久化</h2><p><strong>一句话原理</strong>：RDB（全量快照，fork 子进程 + Copy-on-Write 写入临时文件）和 AOF（写命令追加日志，三种刷盘策略）。Redis 4.0+ 支持混合持久化（AOF 文件头 RDB 快照 + 增量 AOF 命令）。</p>
+<hr>
+<h4 id="RDB-vs-AOF-vs-混合持久化"><a href="#RDB-vs-AOF-vs-混合持久化" class="headerlink" title="RDB vs AOF vs 混合持久化"></a>RDB vs AOF vs 混合持久化</h4><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RDB</th>
+<th>AOF</th>
+<th>混合（Redis 4.0+）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据内容</td>
+<td>二进制快照</td>
+<td>写命令文本</td>
+<td>RDB 快照 + 增量 AOF</td>
+</tr>
+<tr>
+<td>恢复速度</td>
+<td>快（直接加载到内存）</td>
+<td>慢（逐条重放）</td>
+<td>快（加载 RDB + 重放少量 AOF）</td>
+</tr>
+<tr>
+<td>数据安全性</td>
+<td>最后一次快照之后的数据丢失</td>
+<td>最多丢 1 秒（everysec）</td>
+<td>同 AOF</td>
+</tr>
+<tr>
+<td>文件大小</td>
+<td>小（二进制压缩）</td>
+<td>大（命令文本积累）</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>对主进程影响</td>
+<td>fork 阻塞 + COW 内存开销</td>
+<td>写日志 IO 开销（可配置）</td>
+<td>同 RDB + AOF</td>
+</tr>
+</tbody></table>
+<p><strong>RDB 触发方式</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SAVE         → 阻塞式，主进程生成 RDB，期间不处理任何请求（生产禁用）</span><br><span class="line">BGSAVE       → fork 子进程在后台生成 RDB，主进程继续处理请求</span><br><span class="line">自动 save   → redis.conf: save 900 1 / save 300 10 / save 60 10000</span><br></pre></td></tr></table></figure>
+
+<p><strong>fork COW（Copy-on-Write）</strong>：<code>fork()</code> 时子进程共享父进程内存页表。主进程修改数据时，被修改的内存页复制一份给主进程，子进程始终持有 fork 时刻的旧数据快照。子进程将快照写入临时 RDB 文件，写入成功后 <code>rename</code> 替换旧 RDB。</p>
+<p><strong>AOF 三种刷盘策略</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="center">appendfsync</th>
+<th>行为</th>
+<th align="center">安全性</th>
+<th align="center">性能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>always</code></td>
+<td>每条命令执行后 fsync 写入磁盘</td>
+<td align="center">最安全（丢 0 条）</td>
+<td align="center">最慢</td>
+</tr>
+<tr>
+<td align="center"><code>everysec</code>（默认）</td>
+<td>每秒一次 fsync</td>
+<td align="center">最多丢 1 秒数据</td>
+<td align="center">较优</td>
+</tr>
+<tr>
+<td align="center"><code>no</code></td>
+<td>由 OS 决定刷盘时机</td>
+<td align="center">丢数据量不确定</td>
+<td align="center">最快</td>
+</tr>
+</tbody></table>
+<p><strong>AOF 重写（BGREWRITEAOF）</strong>：fork 子进程将内存中的数据转化为最小命令集写入新 AOF 文件，解决命令积累导致的文件膨胀。重写期间新命令写入重写缓冲区（AOF rewrite buffer），重写完成后合并追加。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>Redis 不保证事务 ACID 中的持久性（AOF everysec 最多丢 1 秒数据）</li>
+<li><code>BGSAVE</code> 和 <code>BGREWRITEAOF</code> 不能同时执行，子进程冲突时后者被拒绝</li>
+<li>fork 时间与内存大小相关（约：每 GB 需要 10-20ms），超大实例（&gt;10GB）fork 可能阻塞数秒</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：fork COW → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#410-innodb-%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84buffer-pool--redo-log--undo-log--binlog">MySQL Buffer Pool</a> 类似的内存快照思想 &#x2F; AOF → MySQL Redo Log WAL 机制</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>RDB 触发机制(SAVE/BGSAVE/自动save) → fork COW 原理(子进程共享页表) → AOF 刷盘策略(always/everysec/no) → AOF 重写 fork 子进程+重写缓冲区 → 混合持久化(RDB头+AOF增量) → 生产选型建议</code></p>
+<hr>
+<h2 id="6-3-Redis-主从-哨兵-集群"><a href="#6-3-Redis-主从-哨兵-集群" class="headerlink" title="6.3 Redis 主从 &#x2F; 哨兵 &#x2F; 集群"></a>6.3 Redis 主从 &#x2F; 哨兵 &#x2F; 集群</h2><p><strong>一句话原理</strong>：主从复制（数据冗余 + 读写分离），Sentinel（自动故障转移），Cluster（数据分片 + 高可用）。三种模式逐步升级，面试中常问核心同步流程、故障转移机制和 Cluster 分片原理。</p>
+<hr>
+<h4 id="主从同步"><a href="#主从同步" class="headerlink" title="主从同步"></a>主从同步</h4><p><strong>全量同步</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">从节点发送 PSYNC ? -1（首次连接）</span><br><span class="line">  → 主节点返回 +FULLRESYNC &#123;replid&#125; &#123;offset&#125;</span><br><span class="line">  → 主节点 BGSAVE 生成 RDB，同时将新命令写入 replication buffer</span><br><span class="line">  → 主节点发送 RDB 到从节点</span><br><span class="line">  → 从节点清空旧数据，加载 RDB</span><br><span class="line">  → 主节点发送 replication buffer 中的增量命令</span><br><span class="line">  → 同步完成</span><br></pre></td></tr></table></figure>
+
+<p><strong>增量同步</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">从节点断线重连 → 发送 PSYNC &#123;replid&#125; &#123;offset&#125;</span><br><span class="line">  → 主节点检查 offset 是否在 replication backlog 中</span><br><span class="line">    → 在 backlog 内 → +CONTINUE → 发送 backlog 中缺失的命令</span><br><span class="line">    → 不在 backlog 内 → +FULLRESYNC → 触发全量同步</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键参数</strong>：</p>
+<ul>
+<li><code>repl-backlog-size</code>：默认 1MB，环形缓冲区，生产建议 128MB+（取决于断线重连间隔）</li>
+<li><code>repl-id</code>：主节点唯一标识，主从切换后 replid 变化触发新全量同步</li>
+</ul>
+<hr>
+<h4 id="Sentinel（哨兵）"><a href="#Sentinel（哨兵）" class="headerlink" title="Sentinel（哨兵）"></a>Sentinel（哨兵）</h4><p><strong>三个角色</strong>：监控（PING 心跳）、通知（故障告警）、自动故障转移</p>
+<p><strong>故障判定流程</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PING 超时 → 主观下线（SDOWN，单个哨兵判定）</span><br><span class="line">  → 多哨兵交换信息 → 半数以上哨兵 agree</span><br><span class="line">    → 客观下线（ODOWN）</span><br><span class="line">      → Raft 选举 leader 哨兵（协调故障转移）</span><br><span class="line">        → 选新主节点（优先级 &gt; replication offset &gt; runid）</span><br><span class="line">        → 通知其他从节点复制新主</span><br><span class="line">        → 原主恢复后降为从节点</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="Cluster-集群"><a href="#Cluster-集群" class="headerlink" title="Cluster 集群"></a>Cluster 集群</h4><p><strong>数据分片</strong>：16384 个哈希槽，<code>CRC16(key) &amp; 16383</code> 决定 key 归属的槽，每个节点负责一段 slot 区间。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Cluster 节点数 ≤ 1000（心跳包大小限制：16k slots 用 2k bitmap）</span><br><span class="line">每个节点与所有其他节点保持 TCP 连接 + Gossip 协议交换信息</span><br></pre></td></tr></table></figure>
+
+<p><strong>重定向机制</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="center">状态码</th>
+<th>触发场景</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">MOVED</td>
+<td>槽已永久迁移到另一节点</td>
+<td>客户端更新路由缓存，重定向到新节点</td>
+</tr>
+<tr>
+<td align="center">ASK</td>
+<td>slot 正在迁移中（临时）</td>
+<td>客户端发送 ASKING 命令后查询目标节点，不更新路由缓存</td>
+</tr>
+</tbody></table>
+<p><strong>Cluster 多 key 操作</strong>：<code>{hashtag}</code> 强制 key 到同一槽。<code>MSET {user:1}:name name1 {user:1}:age 18</code></p>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>主从复制无法自动故障转移（需要 Sentinel 或 Cluster 架构）</li>
+<li>全量同步主节点需 <code>BGSAVE</code>，fork 可能影响大实例性能</li>
+<li>Cluster 模式下不支持多 key 跨槽操作（除非用 <code>{hashtag}</code> 强制同槽）</li>
+<li>16384 槽位设计原因：每节点心跳包携带 2k bits 槽位 bitmap，不超过 1 个 MTU（1500 bytes）</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Sentinel Raft → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统 Raft 协议理论底层</a> &#x2F; Cluster Gossip → Gossip 去中心化协议 &#x2F; 主从同步 backlog → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">Kafka ISR 副本同步</a> 对比</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>全量同步(PSYNC→BGSAVE→RDB→replication buffer) → 增量同步(backlog → offset) → repl-backlog-size 设置 → Sentinel SDOWN/ODOWN → Raft 选举 leader 哨兵 → 新主选举策略(优先级&gt;offset&gt;runid) → Cluster 16384 槽 CRC16 → MOVED(永久) vs ASK(迁移中) → {hashtag} 强制同槽 → 为什么 16384 不是 65536(心跳包大小限制)</code></p>
+<hr>
+<h2 id="6-4-过期策略与内存淘汰"><a href="#6-4-过期策略与内存淘汰" class="headerlink" title="6.4 过期策略与内存淘汰"></a>6.4 过期策略与内存淘汰</h2><p><strong>一句话原理</strong>：Redis 用两种策略删除过期 key（定期删除 + 惰性删除）。当内存超过 <code>maxmemory</code> 时，按配置的淘汰策略（8 种）回收内存。</p>
+<hr>
+<h4 id="过期键删除策略"><a href="#过期键删除策略" class="headerlink" title="过期键删除策略"></a>过期键删除策略</h4><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>机制</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定期删除</strong></td>
+<td>每 100ms 随机抽 20 个过期 key，若过期比例 &gt; 25% 则继续循环</td>
+<td>主动回收</td>
+<td>无法保证所有过期 key 及时删除</td>
+</tr>
+<tr>
+<td><strong>惰性删除</strong></td>
+<td>访问 key 时检查是否过期，过期则删</td>
+<td>CPU 友好</td>
+<td>过期 key 长时间不被访问则占用内存</td>
+</tr>
+</tbody></table>
+<p>两种策略配合使用，缺一不可。</p>
+<hr>
+<h4 id="8-种淘汰策略（maxmemory-policy）"><a href="#8-种淘汰策略（maxmemory-policy）" class="headerlink" title="8 种淘汰策略（maxmemory-policy）"></a>8 种淘汰策略（<code>maxmemory-policy</code>）</h4><table>
+<thead>
+<tr>
+<th>策略</th>
+<th align="center">范围</th>
+<th>淘汰算法</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>noeviction</code>（默认）</td>
+<td align="center">—</td>
+<td>不删除，写入返回 OOM 错误</td>
+<td>数据不可丢失（如分布式锁）</td>
+</tr>
+<tr>
+<td><code>allkeys-lru</code></td>
+<td align="center">所有 key</td>
+<td>近似 LRU</td>
+<td>通用缓存</td>
+</tr>
+<tr>
+<td><code>allkeys-lfu</code></td>
+<td align="center">所有 key</td>
+<td>LFU</td>
+<td>热点模式访问</td>
+</tr>
+<tr>
+<td><code>allkeys-random</code></td>
+<td align="center">所有 key</td>
+<td>随机</td>
+<td>等概率访问场景</td>
+</tr>
+<tr>
+<td><code>volatile-lru</code></td>
+<td align="center">有 TTL 的 key</td>
+<td>近似 LRU</td>
+<td>TTL 已设且可淘汰</td>
+</tr>
+<tr>
+<td><code>volatile-lfu</code></td>
+<td align="center">有 TTL 的 key</td>
+<td>LFU</td>
+<td>TTL 已设 + 热点</td>
+</tr>
+<tr>
+<td><code>volatile-random</code></td>
+<td align="center">有 TTL 的 key</td>
+<td>随机</td>
+<td>TTL 已设 + 等概率</td>
+</tr>
+<tr>
+<td><code>volatile-ttl</code></td>
+<td align="center">有 TTL 的 key</td>
+<td>TTL 最小优先</td>
+<td>优先淘汰快过期的 key</td>
+</tr>
+</tbody></table>
+<p><strong>近似 LRU</strong>：Redis 的 LRU 不是严格 LRU（防止链表操作的开销）。每次随机采样 <code>maxmemory-samples</code>（默认 5）个 key，淘汰其中最久未访问的。采样数越大淘汰结果越接近严格 LRU，但 CPU 开销也越大。</p>
+<p><strong>LFU 计数器</strong>：LFU 使用 <code>logistic counter</code>，高 8 位存储衰减周期（分钟级），低 8 位存储访问计数，随着时间推移自动衰减。优势：长期高频率 key 不会被一次突发冷 key 挤出。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：<code>noeviction</code> 是默认策略，首次配置缓存场景必须改成 <code>allkeys-lru</code>，否则 Redis 会被写满报错。LFU 不适用于间歇性突发热点场景。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：近似 LRU → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#410-innodb-%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84buffer-pool--redo-log--undo-log--binlog">MySQL Buffer Pool</a> 变种 LRU &#x2F; 淘汰策略 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#14-%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6">核心 ConcurrentHashMap</a> 扩容思想对比</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>定期删除(每100ms抽20个+25%阈值) + 惰性删除(访问时检查) → 8 种淘汰策略 → allkeys-lru 通用缓存 → noeviction 默认陷阱 → 近似 LRU 随机采样(N=5) → LFU 计数器(8位衰减+8位计数) → maxmemory-policy 配置选择</code></p>
+<hr>
+<h2 id="6-5-Redis-分布式锁"><a href="#6-5-Redis-分布式锁" class="headerlink" title="6.5 Redis 分布式锁"></a>6.5 Redis 分布式锁</h2><p><strong>一句话原理</strong>：Redis 通过 <code>SET NX EX</code> 原子命令实现分布式锁。Redisson 提供功能更完善的可重入锁（RLock）和看门狗机制。RedLock 多节点锁方案在学术界和生产界存在争议。</p>
+<hr>
+<h4 id="SET-NX-EX-原子命令"><a href="#SET-NX-EX-原子命令" class="headerlink" title="SET NX EX 原子命令"></a>SET NX EX 原子命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SET lock:order:1001 <span class="string">&quot;thread-1&quot;</span> NX EX 30</span><br><span class="line"><span class="comment"># NX：key 不存在时才设置（互斥）</span></span><br><span class="line"><span class="comment"># EX 30：自动过期 30 秒（防止死锁）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解锁 — Lua 保证原子性</span></span><br><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&quot;get&quot;</span>, KEYS[1]) == ARGV[1] <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">return</span> redis.call(<span class="string">&quot;del&quot;</span>, KEYS[1])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">return</span> 0</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心要点</strong>：</p>
+<ul>
+<li><code>NX + EX</code> 必须是一步原子命令（<code>SETNX</code> 和 <code>EXPIRE</code> 两条命令不原子）</li>
+<li>解锁必须比较 value（线程标识）再删除，否则可能释放别人的锁</li>
+<li>过期时间需要大于业务最大执行时间</li>
+</ul>
+<hr>
+<h4 id="Redisson-RLock-与看门狗"><a href="#Redisson-RLock-与看门狗" class="headerlink" title="Redisson RLock 与看门狗"></a>Redisson RLock 与看门狗</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Redisson RLock</th>
+<th>简单 SET NX</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可重入</td>
+<td>是（Hash 结构，field&#x3D;线程 ID，value&#x3D;重入计数）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>自动续期</td>
+<td>是（看门狗每 10 秒续期 30 秒）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>等待锁</td>
+<td>支持 tryLock 超时等待</td>
+<td>不等待，立即返回</td>
+</tr>
+<tr>
+<td>底层存储</td>
+<td>Hash（大 key&#x3D;锁名, field&#x3D;线程 ID, value&#x3D;重入次数）</td>
+<td>普通 String</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Redisson 使用</span></span><br><span class="line"><span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;lock:order:&quot;</span> + orderId);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (lock.tryLock(<span class="number">3</span>, <span class="number">30</span>, TimeUnit.SECONDS)) &#123;  <span class="comment">// 等待 3s，持有 30s</span></span><br><span class="line">        <span class="comment">// 业务逻辑</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    lock.unlock();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>看门狗原理</strong>：<code>lock()</code> 默认 30 秒过期。Redisson 启动一个后台 Netty 时间轮任务，每 10 秒检查锁是否被持有，是则续期到 30 秒。客户端宕机后看门狗不再续期，锁自动释放。</p>
+<hr>
+<h4 id="RedLock-算法与争议"><a href="#RedLock-算法与争议" class="headerlink" title="RedLock 算法与争议"></a>RedLock 算法与争议</h4><p><strong>RedLock 流程</strong>：同时在 N&#x2F;2+1（通常 3&#x2F;5）个独立的 Redis 节点上加锁，过半成功才算加锁成功。</p>
+<p><strong>争议点</strong>（Martin Kleppmann 批评）：</p>
+<ul>
+<li>时钟漂移：不同节点时间不同步导致锁提前过期</li>
+<li>GC 停顿：持有锁的线程 FGC 期间锁已过期，其他线程获取了锁</li>
+<li>RedLock 本身是 AP 系统，却想提供 CP 的强一致性</li>
+</ul>
+<p><strong>业界评价</strong>：多数 Java 项目不单独使用 RedLock，单主 Redis + 主从切换锁丢失是可接受的业务风险（CP 场景使用 ZK&#x2F;etcd）。</p>
+<h4 id="Redis-锁-vs-ZooKeeper-锁-vs-etcd"><a href="#Redis-锁-vs-ZooKeeper-锁-vs-etcd" class="headerlink" title="Redis 锁 vs ZooKeeper 锁 vs etcd"></a>Redis 锁 vs ZooKeeper 锁 vs etcd</h4><table>
+<thead>
+<tr>
+<th>方案</th>
+<th align="center">一致性</th>
+<th align="center">性能</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Redis <code>SET NX</code> + Redisson</td>
+<td align="center">AP（最终一致）</td>
+<td align="center">最高</td>
+<td>可容忍短时间的锁丢失（如防重提交）</td>
+</tr>
+<tr>
+<td>ZooKeeper 临时顺序节点</td>
+<td align="center">CP（强一致）</td>
+<td align="center">中</td>
+<td>锁丢失不可接受（如主备选举）</td>
+</tr>
+<tr>
+<td>etcd Raft + Lease</td>
+<td align="center">CP（强一致）</td>
+<td align="center">中</td>
+<td>云原生场景、K8s 协调</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>解锁时不校验线程 ID → 可能释放别人的锁</li>
+<li>过期时间设置过短 → 业务未完成锁已释放 → 其他线程同时进入</li>
+<li>主从切换 → 主 Redis 宕机锁未同步到从 → 新主上锁丢失</li>
+<li>RedLock 时钟依赖 → 生产环境需保证 NTP 时间同步</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：watchdog 续期 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 AQS park&#x2F;unpark</a> 类似的”超时-重试”设计 &#x2F; RedLock 争议 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统 CAP 三角</a> 本质是 AP vs CP 取舍</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>SET NX EX 原子命令 → 解锁 Lua 脚本(不释放别人锁) → Redisson RLock(Hash 可重入) → 看门狗(每10秒续期30秒) → Netty时间轮 → RedLock N/2+1 过半加锁 → RedLock 争议(时钟漂移/GC停顿) → Redis vs ZK vs etcd(AP vs CP 取舍)</code></p>
+<hr>
+<h2 id="6-6-缓存设计与一致性"><a href="#6-6-缓存设计与一致性" class="headerlink" title="6.6 缓存设计与一致性"></a>6.6 缓存设计与一致性</h2><p><strong>一句话原理</strong>：缓存穿透（查不存在的数据）、缓存击穿（热点 key 过期）、缓存雪崩（大量 key 同时过期）是三种典型问题。缓存一致性的核心矛盾是 DB 和缓存的更新顺序。</p>
+<hr>
+<h4 id="缓存三问题对比"><a href="#缓存三问题对比" class="headerlink" title="缓存三问题对比"></a>缓存三问题对比</h4><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>定义</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>缓存穿透</strong></td>
+<td>查询不存在的数据，每次绕过缓存直接查 DB</td>
+<td>布隆过滤器（Bloom Filter）、缓存空值 + 短 TTL</td>
+</tr>
+<tr>
+<td><strong>缓存击穿</strong></td>
+<td>单个热点 key 过期瞬间，大量并发请求打到 DB</td>
+<td>互斥锁（SET NX）、逻辑过期（value 内嵌过期时间）</td>
+</tr>
+<tr>
+<td><strong>缓存雪崩</strong></td>
+<td>大量 key 同时过期（或 Redis 宕机）导致流量打到 DB</td>
+<td>随机过期时间、多级缓存、限流降级、集群高可用</td>
+</tr>
+</tbody></table>
+<p><strong>布隆过滤器</strong>：基于 bitmap + 多个 hash 函数的概率型数据结构：</p>
+<ul>
+<li>判断”不存在” → 一定不存在（无漏报）</li>
+<li>判断”存在” → 可能存在误判（有误报率）</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Redisson 布隆过滤器</span></span><br><span class="line">RBloomFilter&lt;String&gt; filter = redissonClient.getBloomFilter(<span class="string">&quot;blacklist&quot;</span>);</span><br><span class="line">filter.tryInit(1000000L, 0.01);  // 预计存 100 万，误报率 1%</span><br><span class="line">filter.add(<span class="string">&quot;user:1001&quot;</span>);</span><br><span class="line">filter.contains(<span class="string">&quot;user:1001&quot;</span>);  // <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="缓存更新策略"><a href="#缓存更新策略" class="headerlink" title="缓存更新策略"></a>缓存更新策略</h4><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>操作顺序</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cache Aside</strong>（旁路缓存）</td>
+<td>先更新 DB → 再删除缓存</td>
+<td>实现简单，最常用</td>
+<td>删除缓存后第一次查询缓存 miss</td>
+</tr>
+<tr>
+<td><strong>Read Through</strong></td>
+<td>缓存代理读写，由缓存负责加载数据</td>
+<td>应用层无感知</td>
+<td>需要缓存层支持（如 Redis 模块）</td>
+</tr>
+<tr>
+<td><strong>Write Behind</strong></td>
+<td>先更新缓存 → 异步写入 DB</td>
+<td>高性能</td>
+<td>可能丢数据</td>
+</tr>
+</tbody></table>
+<p><strong>Cache Aside 为什么是先更新 DB 再删缓存（而非先删缓存再更新 DB）</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">❌ 先删缓存 → 更新 DB（线程安全问题）：</span><br><span class="line">  线程 A 删缓存         → 线程 B 查缓存(miss) → 线程 B 读旧数据写缓存 → 线程 A 更新 DB</span><br><span class="line">  → 缓存中一直是旧数据</span><br><span class="line"></span><br><span class="line">✅ 先更新 DB → 再删缓存（推荐）：</span><br><span class="line">  线程 A 更新 DB → 线程 A 删缓存</span><br><span class="line">  → 后续查询命中新数据</span><br><span class="line">  → 极小窗口：更新 DB 成功但删缓存失败（通过延迟双删 + 补偿机制解决）</span><br></pre></td></tr></table></figure>
+
+<p><strong>延迟双删</strong>：先删缓存 → 更新 DB → sleep(几百 ms) → 再删缓存。解决主从同步延迟导致的缓存淘汰后读到从库旧数据的问题。</p>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>Cache Aside 的”先更新 DB 再删缓存”在删缓存失败时仍有不一致风险（解决方案：binlog 订阅 + 消息队列补偿）</li>
+<li>缓存穿透的布隆过滤器无法删除已存在元素的记录（可考虑计数布隆过滤器或布谷鸟过滤器）</li>
+<li>击穿的互斥锁方案中，获得锁的线程查询 DB 后必须双检（DCL 思想），防止并发查两次 DB</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：布隆过滤器 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#14-%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6">核心 BitMap</a> 位运算 &#x2F; DCL 双检 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#16-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">核心 DCL 单例</a> &#x2F; 缓存一致性 → MySQL 更新与缓存删除的事务原子性</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>缓存穿透(不存在的数据) → 布隆过滤器(多个hash+bitmap) → 缓存击穿(热点key过期) → 互斥锁双检 → 缓存雪崩(大量key同时过期) → 随机过期时间 → Cache Aside(先更新DB再删缓存) → 为什么不是先删缓存再更新DB(并发写旧数据) → 延迟双删 → 3种缓存更新策略对比</code></p>
+<hr>
+<h2 id="6-7-Redis-事务与-Lua"><a href="#6-7-Redis-事务与-Lua" class="headerlink" title="6.7 Redis 事务与 Lua"></a>6.7 Redis 事务与 Lua</h2><p><strong>一句话原理</strong>：Redis 事务（MULTI&#x2F;EXEC）批量入队、一次性执行，但不支持回滚。Lua 脚本提供真正的原子性执行。Redis 7 Functions 进一步将 Lua 脚本持久化到 RDB&#x2F;AOF。</p>
+<hr>
+<h4 id="事务（MULTI-EXEC-DISCARD-WATCH）"><a href="#事务（MULTI-EXEC-DISCARD-WATCH）" class="headerlink" title="事务（MULTI&#x2F;EXEC&#x2F;DISCARD&#x2F;WATCH）"></a>事务（MULTI&#x2F;EXEC&#x2F;DISCARD&#x2F;WATCH）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MULTI               <span class="comment"># 开启事务，后续命令入队</span></span><br><span class="line">SET key1 value1</span><br><span class="line">SET key2 value2</span><br><span class="line">EXEC                <span class="comment"># 一次性执行队列中的所有命令</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>核心特性</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Redis 事务</th>
+<th>关系型数据库事务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>执行方式</td>
+<td>命令入队后一次性执行</td>
+<td>逐条执行</td>
+</tr>
+<tr>
+<td>原子性</td>
+<td>不保证（运行时错误不影响其他）</td>
+<td>保证（全部成功或回滚）</td>
+</tr>
+<tr>
+<td>回滚</td>
+<td>不支持（语法错误不执行，运行时错误不停止）</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>隔离性</td>
+<td>单线程，天然隔离</td>
+<td>MVCC 保证</td>
+</tr>
+<tr>
+<td>持久性</td>
+<td>不保证（由 AOF 配置决定）</td>
+<td>Redo Log 保证</td>
+</tr>
+</tbody></table>
+<p><strong>WATCH 乐观锁</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">WATCH stock:1001       <span class="comment"># 监视 key</span></span><br><span class="line">val = GET stock:1001   <span class="comment"># 读取当前值</span></span><br><span class="line">MULTI</span><br><span class="line">SET stock:1001 <span class="variable">$newval</span></span><br><span class="line">EXEC                   <span class="comment"># 如果 stock:1001 在 WATCH 后被修改 → 事务失败</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：Redis 事务的执行时错误不会回滚（如 <code>LPUSH key</code> 对 String 类型操作，该命令失败但其他命令正常执行）。</p>
+</blockquote>
+<hr>
+<h4 id="Lua-脚本"><a href="#Lua-脚本" class="headerlink" title="Lua 脚本"></a>Lua 脚本</h4><p><strong>为什么 Lua 能保证原子性</strong>：Redis 单线程模型，Lua 脚本执行期间不会被其他命令打断。脚本中的所有命令要么全部执行，要么全部不执行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">EVAL <span class="string">&quot;redis.call(&#x27;SET&#x27;, KEYS[1], ARGV[1]); redis.call(&#x27;INCR&#x27;, KEYS[2]); return redis.call(&#x27;GET&#x27;, KEYS[1])&quot;</span> 2 key1 key2 value1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 缓存脚本（避免每次传递脚本体）</span></span><br><span class="line">SCRIPT LOAD <span class="string">&quot;return redis.call(&#x27;SET&#x27;, KEYS[1], ARGV[1])&quot;</span></span><br><span class="line"><span class="comment"># → &quot;6b1bf486c...&quot;（SHA1 哈希）</span></span><br><span class="line">EVALSHA <span class="string">&quot;6b1bf486c...&quot;</span> 1 mykey myvalue</span><br></pre></td></tr></table></figure>
+
+<p><strong>Redis 7 Functions</strong>：将 Lua 脚本以函数形式注册到 Redis 中，与数据一起持久化到 RDB&#x2F;AOF，在复制和集群模式下自动同步，解决 EVAL 脚本在重启后需重新加载的问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FUNCTION LOAD <span class="string">&quot;#!lua name=mylib\n redis.register_function(&#x27;myfunc&#x27;, function(keys, args) return redis.call(&#x27;SET&#x27;, keys[1], args[1]) end)&quot;</span></span><br><span class="line">FCALL myfunc 1 mykey myvalue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：Lua 脚本应轻量快速，不要执行耗时操作或无限循环，否则会阻塞整个 Redis 无法处理任何其他命令。脚本内应避免使用随机函数导致主从数据不一致。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Lua 原子性 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 AQS park&#x2F;unpark</a> 的原子语义 &#x2F; Functions 持久化 → RDB&#x2F;AOF 持久化、复制机制</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>MULTI/EXEC 入队一次性执行 → 不支持回滚(运行时错误不停止) → WATCH 乐观锁(CAS 检查) → Lua 脚本原子性(单线程+不打断) → EVALSHA 缓存脚本 → Redis 7 Functions(持久化+复制) → 耗时脚本阻塞风险</code></p>
+<hr>
+<h2 id="6-8-高级特性"><a href="#6-8-高级特性" class="headerlink" title="6.8 高级特性"></a>6.8 高级特性</h2><p><strong>一句话原理</strong>：Pipeline（批量命令减 RTT）、Pub&#x2F;Sub（广播消息不持久化）、Stream（可靠消息队列，消费者组 + ACK）、Redis 7 核心新特性。</p>
+<hr>
+<h4 id="Pipeline-vs-事务对比"><a href="#Pipeline-vs-事务对比" class="headerlink" title="Pipeline vs 事务对比"></a>Pipeline vs 事务对比</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th align="center">Pipeline</th>
+<th align="center">事务（MULTI&#x2F;EXEC）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原子性</td>
+<td align="center">否（中间结果可读）</td>
+<td align="center">是（但不保证回滚）</td>
+</tr>
+<tr>
+<td>减少 RTT</td>
+<td align="center">是（批量发送）</td>
+<td align="center">是（入队+EXEC 两次 RTT）</td>
+</tr>
+<tr>
+<td>其他连接可读中间结果</td>
+<td align="center">否（本地缓存）</td>
+<td align="center">是（命令在服务器排队）</td>
+</tr>
+</tbody></table>
+<h4 id="Stream-消息队列"><a href="#Stream-消息队列" class="headerlink" title="Stream 消息队列"></a>Stream 消息队列</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th align="center">List（BLPOP）</th>
+<th align="center">Pub&#x2F;Sub</th>
+<th align="center">Stream</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>持久化</td>
+<td align="center">是（数据在内存）</td>
+<td align="center">否（离线丢失）</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td>ACK 机制</td>
+<td align="center">无</td>
+<td align="center">无</td>
+<td align="center">有（XACK）</td>
+</tr>
+<tr>
+<td>消费者组</td>
+<td align="center">无</td>
+<td align="center">无</td>
+<td align="center">支持（XGROUP）</td>
+</tr>
+<tr>
+<td>消息回溯</td>
+<td align="center">无</td>
+<td align="center">无</td>
+<td align="center">支持</td>
+</tr>
+</tbody></table>
+<p><strong>Stream 核心概念</strong>：</p>
+<ul>
+<li><strong>消费者组</strong>（XGROUP）：组内消费者负载均衡消费，一条消息只能被组内一个消费者消费</li>
+<li><strong>last_delivered_id</strong>：记录组内已交付的最后消息 ID</li>
+<li><strong>PEL（Pending Entries List）</strong>：已交付但未 ACK 的消息列表，消费端宕机后可以从 PEL 恢复</li>
+<li><strong>XACK</strong>：消费完成后手动确认，从 PEL 移除</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">XADD mystream * field1 value1 field2 value2        <span class="comment"># 添加消息，* 表示自动生成消息 ID (timestamp-seq)</span></span><br><span class="line">XGROUP CREATE mystream mygroup $                    <span class="comment"># 创建消费者组，$ 表示从最新消息开始</span></span><br><span class="line">XREADGROUP GROUP mygroup consumer1 COUNT 10 BLOCK 5000 STREAMS mystream &gt;  <span class="comment"># &gt; 表示只消费未交付消息</span></span><br><span class="line">XACK mystream mygroup 1700000000000-0              <span class="comment"># 确认消息已处理</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Redis-7-核心新特性"><a href="#Redis-7-核心新特性" class="headerlink" title="Redis 7 核心新特性"></a>Redis 7 核心新特性</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Multi-Part AOF</td>
+<td>AOF 文件拆分为多个 Base + Incremental 文件，减少重写开销</td>
+</tr>
+<tr>
+<td>ListPack 全面替代 ZipList</td>
+<td>解决连锁更新问题，降低编码复杂度</td>
+</tr>
+<tr>
+<td>Redis Functions</td>
+<td>Lua 脚本持久化，替代 EVAL</td>
+</tr>
+<tr>
+<td>Sharded Pub&#x2F;Sub</td>
+<td>跨槽位 Pub&#x2F;Sub 消息广播</td>
+</tr>
+<tr>
+<td>ACL V2</td>
+<td>更细粒度的权限控制</td>
+</tr>
+<tr>
+<td>新命令</td>
+<td>ZMPOP &#x2F; LMPOP &#x2F; ZINTERCARD &#x2F; HRANDFIELD 等</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关联知识点</strong>：Stream 消费者组 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#36-rocketmq-%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6">RocketMQ 消费组&#x2F;重试</a> 对比 &#x2F; Pub&#x2F;Sub → 观察者模式</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Pipeline 批量减 RTT(非原子) → Pub/Sub 广播(不持久化) → Stream 消息队列(XADD/XREAD)→ 消费者组(last_delivered_id+PEL+XACK)→ Redis 7 Multi-Part AOF → Sharded Pub/Sub → Functions → listpack 全面替代</code></p>
+<hr>
+<h2 id="6-9-Redisson-深度（与-be-star-项目关联）"><a href="#6-9-Redisson-深度（与-be-star-项目关联）" class="headerlink" title="6.9 Redisson 深度（与 be-star 项目关联）"></a>6.9 Redisson 深度（与 be-star 项目关联）</h2><p><strong>一句话原理</strong>：Redisson 在 Redis 之上实现了 Java 生态的分布式数据结构和服务框架，核心包括分布式锁、分布式集合、分布式限流器、Spring Cache 整合等。</p>
+<hr>
+<h4 id="Redisson-分布式锁家族"><a href="#Redisson-分布式锁家族" class="headerlink" title="Redisson 分布式锁家族"></a>Redisson 分布式锁家族</h4><table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>方法名</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可重入锁</td>
+<td><code>RLock</code></td>
+<td>同一线程可重入，看门狗自动续期</td>
+</tr>
+<tr>
+<td>读写锁</td>
+<td><code>RReadWriteLock</code></td>
+<td>读读不互斥、读写互斥、写写互斥</td>
+</tr>
+<tr>
+<td>公平锁</td>
+<td><code>RFairLock</code></td>
+<td>FIFO 顺序排队</td>
+</tr>
+<tr>
+<td>联锁</td>
+<td><code>RMultiLock</code></td>
+<td>多个锁同时加锁</td>
+</tr>
+<tr>
+<td>红锁</td>
+<td><code>RRedLock</code></td>
+<td>RedLock 实现（已标记废弃）</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RLock 核心用法（可重入、看门狗自动续期）</span></span><br><span class="line"><span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;lock:order:&quot;</span> + orderId);</span><br><span class="line"></span><br><span class="line"><span class="comment">// tryLock 两个超时：等待时间（waitTime）和持有时间（leaseTime）</span></span><br><span class="line"><span class="comment">// leaseTime 不传则看门狗自动续期（默认 30s）</span></span><br><span class="line"><span class="keyword">if</span> (lock.tryLock(<span class="number">5</span>, TimeUnit.SECONDS)) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 业务逻辑</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>看门狗失效场景</strong>：未显式设置 <code>leaseTime</code> 时，默认调用 <code>lock()</code> 或 <code>tryLock()</code> 启动看门狗，每 10 秒续期到 30 秒。设置 <code>leaseTime</code> 后不启动看门狗。</p>
+<hr>
+<h4 id="分布式限流器"><a href="#分布式限流器" class="headerlink" title="分布式限流器"></a>分布式限流器</h4><p><code>RRateLimiter</code> 基于<strong>令牌桶算法</strong>实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">RRateLimiter</span> <span class="variable">limiter</span> <span class="operator">=</span> redissonClient.getRateLimiter(<span class="string">&quot;rate:api:query&quot;</span>);</span><br><span class="line"><span class="comment">// 速率：每 1 秒放 5 个令牌</span></span><br><span class="line">limiter.trySetRate(RateType.OVERALL, <span class="number">5</span>, <span class="number">1</span>, RateIntervalUnit.SECONDS);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 尝试获取 1 个令牌，阻塞等待</span></span><br><span class="line">limiter.acquire(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 尝试获取 1 个令牌，不等待</span></span><br><span class="line"><span class="keyword">if</span> (limiter.tryAcquire(<span class="number">1</span>)) &#123;</span><br><span class="line">    <span class="comment">// 执行业务</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="分布式信号量与倒计时"><a href="#分布式信号量与倒计时" class="headerlink" title="分布式信号量与倒计时"></a>分布式信号量与倒计时</h4><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>类比 JUC</th>
+<th>方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>RSemaphore</code></td>
+<td>Semaphore</td>
+<td>acquire&#x2F;release</td>
+</tr>
+<tr>
+<td><code>RCountDownLatch</code></td>
+<td>CountDownLatch</td>
+<td>await&#x2F;countDown</td>
+</tr>
+<tr>
+<td><code>RBlockingQueue</code></td>
+<td>BlockingQueue</td>
+<td>put&#x2F;take</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="Redisson-分布式集合"><a href="#Redisson-分布式集合" class="headerlink" title="Redisson 分布式集合"></a>Redisson 分布式集合</h4><table>
+<thead>
+<tr>
+<th>集合</th>
+<th>接口</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>RMap</code></td>
+<td>java.util.Map</td>
+<td>分布式 Map，可配置本地缓存（RMapCache）</td>
+</tr>
+<tr>
+<td><code>RSet</code></td>
+<td>java.util.Set</td>
+<td>分布式 Set</td>
+</tr>
+<tr>
+<td><code>RList</code></td>
+<td>java.util.List</td>
+<td>分布式 List</td>
+</tr>
+<tr>
+<td><code>RQueue</code></td>
+<td>java.util.Queue</td>
+<td>分布式队列（支持延迟队列 RDelayedQueue）</td>
+</tr>
+</tbody></table>
+<h4 id="Redisson-Spring-Cache-整合"><a href="#Redisson-Spring-Cache-整合" class="headerlink" title="Redisson Spring Cache 整合"></a>Redisson Spring Cache 整合</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedissonCacheConfig</span> &#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">CacheManager</span> <span class="title function_">cacheManager</span><span class="params">(RedissonClient redissonClient)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RedissonSpringCacheManager</span>(redissonClient, <span class="string">&quot;classpath:cache-config.yml&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用时与 @Cacheable 完全一致</span></span><br><span class="line"><span class="meta">@Cacheable(value = &quot;users&quot;, key = &quot;#userId&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">User</span> <span class="title function_">getUser</span><span class="params">(Long userId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> userMapper.selectById(userId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>Redisson 的 RRateLimiter 基于 Redis 单节点，分布式场景下需考虑网络延迟对令牌桶的影响</li>
+<li>RLock 看门狗只对未设置 leaseTime 的 <code>lock()/tryLock()</code> 生效，显式设置 leaseTime 不启动看门狗</li>
+<li>RMapCache 本地缓存需要配置同步策略（RMapCache 使用 Redis 过期消息通知）</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：RLock → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 AQS</a> 的可重入设计 &#x2F; RRateLimiter → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#33-sentinel-%E9%99%90%E6%B5%81%E4%B8%8E%E7%86%94%E6%96%AD">Sentinel 限流</a> &#x2F; Spring Cache 整合 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/#23-spring-boot-%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6">Spring Boot Cache AutoConfig</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Redisson 锁家族(RLock/RReadWriteLock/RFairLock/RMultiLock) → RLock 可重入(Hash+线程ID计数) → 看门狗(10s续期30s, Netty时间轮) → RRateLimiter 令牌桶 → RSemaphore/RCountDownLatch → 分布式集合(RMap/RSet/RList) → Spring Cache 整合(@Cacheable 底层 Redisson) → be-star 项目实践</code></p>
+<hr>
+<h2 id="6-10-Redis-实战场景"><a href="#6-10-Redis-实战场景" class="headerlink" title="6.10 Redis 实战场景"></a>6.10 Redis 实战场景</h2><p><strong>一句话原理</strong>：Redis 的数据结构直接对应常见业务问题——ZSet（排行榜）、Bitmap（签到统计）、HyperLogLog（UV 去重）、GEO（附近的人）、滑动窗口（限流）。</p>
+<hr>
+<h4 id="常见场景速查"><a href="#常见场景速查" class="headerlink" title="常见场景速查"></a>常见场景速查</h4><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>数据结构</th>
+<th>核心命令</th>
+<th>关键注意</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>排行榜</td>
+<td>ZSet</td>
+<td>ZADD &#x2F; ZREVRANGE &#x2F; ZINCRBY</td>
+<td>ZREVRANGE WITHSCORES Top N</td>
+</tr>
+<tr>
+<td>计数器</td>
+<td>String</td>
+<td>INCR &#x2F; DECR</td>
+<td>原子操作，防超卖</td>
+</tr>
+<tr>
+<td>Session 共享</td>
+<td>String &#x2F; Hash</td>
+<td>SETEX &#x2F; HSET</td>
+<td>设置合理过期时间</td>
+</tr>
+<tr>
+<td>分布式锁</td>
+<td>String &#x2F; Hash（Redisson）</td>
+<td>SET NX &#x2F; RLock</td>
+<td>解锁 Lua 校验线程 ID</td>
+</tr>
+<tr>
+<td>限流（滑动窗口）</td>
+<td>ZSet</td>
+<td>ZREMRANGEBYSCORE &#x2F; ZCARD</td>
+<td>时间戳作为 score</td>
+</tr>
+<tr>
+<td>UV 统计</td>
+<td>HyperLogLog</td>
+<td>PFADD &#x2F; PFCOUNT</td>
+<td>误差 0.81%</td>
+</tr>
+<tr>
+<td>签到</td>
+<td>Bitmap</td>
+<td>SETBIT &#x2F; BITFIELD &#x2F; BITCOUNT</td>
+<td>BITFIELD 支持子命令批量操作</td>
+</tr>
+<tr>
+<td>附近的人</td>
+<td>GEO</td>
+<td>GEOADD &#x2F; GEORADIUS</td>
+<td>底层 ZSet + geohash</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td>Stream</td>
+<td>XADD &#x2F; XREADGROUP &#x2F; XACK</td>
+<td>消费者组 + PEL 保证不丢</td>
+</tr>
+<tr>
+<td>布隆过滤器</td>
+<td>Redisson BF</td>
+<td>RBloomFilter（tryInit&#x2F;trySet&#x2F;contains）</td>
+<td>不可删除</td>
+</tr>
+</tbody></table>
+<h4 id="滑动窗口限流（ZSet-实现）"><a href="#滑动窗口限流（ZSet-实现）" class="headerlink" title="滑动窗口限流（ZSet 实现）"></a>滑动窗口限流（ZSet 实现）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">allowAction</span><span class="params">(String userId, String action, <span class="type">int</span> maxCount, <span class="type">int</span> windowSeconds)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> <span class="string">&quot;rate:&quot;</span> + action + <span class="string">&quot;:&quot;</span> + userId;</span><br><span class="line">    <span class="type">long</span> <span class="variable">now</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    <span class="type">long</span> <span class="variable">windowStart</span> <span class="operator">=</span> now - windowSeconds * <span class="number">1000L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 原子执行 Lua 脚本</span></span><br><span class="line">    <span class="comment">// 1. 删除窗口外的记录</span></span><br><span class="line">    <span class="comment">// 2. 统计窗口内记录数</span></span><br><span class="line">    <span class="comment">// 3. 未超限则添加当前记录</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">lua</span> <span class="operator">=</span> <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        redis.call(&#x27;ZREMRANGEBYSCORE&#x27;, KEYS[1], 0, ARGV[1])</span></span><br><span class="line"><span class="string">        local count = redis.call(&#x27;ZCARD&#x27;, KEYS[1])</span></span><br><span class="line"><span class="string">        if count &lt; tonumber(ARGV[2]) then</span></span><br><span class="line"><span class="string">            redis.call(&#x27;ZADD&#x27;, KEYS[1], ARGV[3], ARGV[4])</span></span><br><span class="line"><span class="string">            redis.call(&#x27;EXPIRE&#x27;, KEYS[1], ARGV[5])</span></span><br><span class="line"><span class="string">            return 1</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">        return 0</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> redisTemplate.execute(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">DefaultRedisScript</span>&lt;&gt;(lua, Long.class),</span><br><span class="line">        List.of(key),</span><br><span class="line">        String.valueOf(windowStart), String.valueOf(maxCount),</span><br><span class="line">        String.valueOf(now), String.valueOf(now), String.valueOf(windowSeconds)</span><br><span class="line">    ) == <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：ZSet 限流在百万级用户场景下内存占用大（每个请求存一条 ZSet 记录），建议配合 Redis 过期时间自动清理。大规模 UV 统计用 HyperLogLog，精确去重用 Bitmap。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：GEO → ZSet 底层 &#x2F; Stream → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#36-rocketmq-%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6">RocketMQ</a> 消息队列对比 &#x2F; 布隆过滤器 → Guava BloomFilter</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>ZSet 排行榜(ZREVRANGE) → String 计数器(INCR 原子) → HyperLogLog UV(PFADD/PFCOUNT 0.81%) → Bitmap 签到(BITFIELD 连续签到) → GEO 附近的人(GEOADD/GEORADIUS) → ZSet 滑动窗口限流(Lua 原子) → 实战选型(按数据结构定场景)</code></p>
+<hr>
+<p><strong>整体追问链（方向六）</strong>：<code>RedisObject 头部(type/encoding/lru/refcount/ptr) → SDS vs C 字符串 → 跳表 vs B+Tree(内存场景) → ListPack 替代 ZipList → RDB fork COW → AOF everysec 刷盘 → 混合持久化 → 全量同步 RDB+replication buffer → 增量同步 backlog → Sentinel SDOWN/ODOWN → Cluster 16384 槽 CRC16 → MOVED vs ASK → 定期删除+惰性删除 → 8 种淘汰策略 → 近似 LRU 随机采样 → LFU 衰减 → SET NX EX 原子命令 → Redisson RLock 可重入 → 看门狗 10s/30s → RedLock 争议(AP vs CP) → 缓存穿透(布隆过滤器) → 击穿(互斥锁双检) → 雪崩(随机过期时间) → Cache Aside(先DB后Cache) → MULTI/EXEC 事务无回滚 → WATCH 乐观锁 → Lua 脚本原子性 → Redis 7 Functions → Pipeline 减 RTT → Stream 消费者组 PEL+XACK → Redisson 锁家族 → RRateLimiter 令牌桶 → Spring Cache 整合 → ZSet 排行榜/ZSet 限流/Stream 队列 → 关联 Java 核心及 Spring Cloud 微服务方向</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/">https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/research/">research</a><a class="post-meta__tags" href="/tags/interview/">interview</a><a class="post-meta__tags" href="/tags/guide/">guide</a><a class="post-meta__tags" href="/tags/java/">java</a><a class="post-meta__tags" href="/tags/java%E9%9D%A2%E8%AF%95/">java面试</a><a class="post-meta__tags" href="/tags/redis/">redis</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="java知识规划——分布式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">java知识规划——分布式系统</div></div><div class="info-2"><div class="info-item-1">java知识规划——分布式系统 本文档是 Java 知识规划体系的理论补全，按”理论基石 → 一致性协议 → ID → 事务 → 锁 → 存储 → RPC → 可观测 → 配置 → 设计思维”递进。与 Spring Cloud 微服务方向的关系：微服务是实践，分布式理论是底层原理。建议先读微服务方向再读本文档。   7.1 CAP 定理与 BASE 理论一句话原理：分布式系统在 Consistency（一致性）、Availability（可用性）、Partition Tolerance（分区容错性）三者中最多同时满足两个。网络分区是基础设施的必然现象（P 必须选），实际是在 C 和 A 之间取舍。  CAP 不三角123456C（一致性）：所有节点在同一时刻看到同一份数据A（可用性）：每次请求都能收到非错响应（不保证数据最新）P（分区容错性）：网络分区时系统仍能正常工作P 是必选——网络分区一定会发生，不可选择忽略。实际决策：CP（优先一致，允许不可用）vs AP（优先可用，接受最终一致）  两级节点场景证明：网络分区发生时，节点 N1 和 N2 无法通信。如果允许 N1 接受写...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="go语言知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">go语言知识规划——核心</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——核心 本文档覆盖面试权重 25% 的 Go 核心知识，按”语法基础 → 接口设计 → 错误处理 → 并发模型 → 同步原语 → 上下文传播 → 泛型 → 标准库”的逻辑递进。与 Redis 缓存、分布式系统、Java 并发模型等方向的知识关联见 总览文档 的跨域链路。  1.1 Go 语法概览Go 语言语法简洁但设计独到，包管理、变量声明、数据类型和控制流均有不同于 C&#x2F;Java 的语法特性。  包管理机制Go 从 1.11 起引入 Go Modules，1.16 起默认启用，替代了早期的 GOPATH 模式：  go.mod 定义模块路径和依赖，go.sum 记录依赖的校验和 导入路径使用完整模块路径：import &quot;github.com/gin-gonic/gin&quot; 未使用的导入会在编译时报错（不允许死代码） 包级可见性：大写字母开头 &#x3D; 导出（public），小写字母开头 &#x3D; 包内私有（private）  123456789// go.mod 示例module example.com/myappgo 1....</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="java知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——核心</div></div><div class="info-2"><div class="info-item-1">java知识规划——核心 本文档覆盖面试权重 30% 的 Java 核心知识，按”语言特性 → 运行时原理 → 并发 → 数据结构 → IO → 设计”的逻辑递进。与 Spring 生态体系、MyBatis、MySQL、AI 开发等方向的知识关联见总览文档的跨域链路。  1.1 Java 版本特性演进（8→11→17→21）涵盖 Java 8&#x2F;11&#x2F;17&#x2F;21 四个 LTS 版本的核心特性，重点理解 Lambda 编译原理、Stream 惰性求值、虚拟线程并发模型、Record 与模式匹配的语言级增强。  Lambda 与 invokedynamicJava 8 Lambda 的编译方式与匿名内部类有本质区别：  匿名内部类：javac 编译为独立的 OuterClass$1.class 文件，每次调用经历类加载、验证、准备完整流程 Lambda 表达式：javac 生成一条 invokedynamic 指令，首次调用时通过 BootstrapMethods 属性中的 LambdaMetafactory.metafactory() 动态生成本地内部类...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/" title="java知识规划——mybatis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mybatis</div></div><div class="info-2"><div class="info-item-1">java知识规划——mybatis 本文档覆盖面试权重 15% 的 MyBatis 知识体系。从 SQL 参数绑定到高级映射逐层递进。每节末尾标注与 Java 核心、Spring 生态 及 MySQL 方向的知识关联。   3.1 #{} vs ${} 及 SQL 注入防范一句话原理：#{} 走预编译（PreparedStatement + ? 占位符），参数由 TypeHandler 安全设置，防 SQL 注入；${} 直接字符串替换拼接，仅用于表名&#x2F;列名等动态标识符。  预编译机制#{} 在 MyBatis 解析阶段被替换为 ?，由 JDBC 的 PreparedStatement.setXxx(index, value) 安全设置： 1234&lt;!-- XML 映射 --&gt;&lt;select id=&quot;findByUsername&quot; resultType=&quot;User&quot;&gt;    SELECT * FROM user WHERE username = #&#123;username&#125;&lt;/selec...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/" title="java知识规划——mysql"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mysql</div></div><div class="info-2"><div class="info-item-1">java知识规划——mysql 本文档覆盖面试权重 15% 的 MySQL 知识体系。按”索引 → 优化 → 执行计划 → 事务 → MVCC → 锁 → SQL 优化 → 分库分表 → 主从复制 → InnoDB 内存结构”递进。每节末尾标注与 Spring 生态 及 MyBatis 方向的知识关联。   4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀一句话原理：B+Tree 非叶子节点只存索引键（不存数据），叶子节点存完整行数据（聚簇）或主键值（二级）且叶子节点间有双向链表；聚簇索引物理存储顺序&#x3D;索引顺序，一张表一个；二级索引叶子存主键值需回表。  B+Tree 三层结构12345根节点（存放索引键的指针范围）  ↓内部节点（存放下一层节点的指针范围）  ↓叶子节点（存放完整数据或主键值，双向链表连接）  B+Tree vs B-Tree 核心区别：    维度 B+Tree B-Tree    数据存储 只有叶子节点存数据 所有节点都存数据   叶子节点连接 有双向链表，支持范围扫描 无链表，范围查询需中序遍历   I&...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/" title="java知识规划——spring"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——spring</div></div><div class="info-2"><div class="info-item-1">java知识规划——spring 本文档覆盖面试权重 25% 的 Spring 知识体系，按”容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全”层层递进。每节末尾标注与 Java 核心、AI 开发 及 Spring Cloud 微服务 方向的知识关联。   2.1 Spring IoC 容器覆盖 Bean 生命周期全流程、三级缓存循环依赖、BeanFactory 与 ApplicationContext 的区别。  Bean 生命周期全流程Spring IoC 容器中一个 Bean 从创建到销毁经历以下步骤（最核心的 10 步）： 123456789101112131415161718192021222324252627282930① 实例化（Instantiation）   通过反射（Constructor.newInstance）创建原始对象   ↓② 属性赋值（Population）   @Autowired / @Resource / @Value 完成依赖注入   ↓③ Aware 接口回调   BeanNameAware.setBeanN...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%80%BB%E8%A7%88/" title="java知识规划——总览"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——总览</div></div><div class="info-2"><div class="info-item-1">java知识规划——总览 本文档是 Java 面试知识体系的总览导航图，按八大方向组织。每个方向有独立的规划文档，通过本文档可快速跳转。   知识体系总览123456┌──────────────────────────────────────────────────────────────────────────────────────────────┐│                                    Java 面试知识体系                                          │├──────────────┬─────────────┬──────────────┬──────────┬──────────┬────────────┬────────┬────────┤│  Java 核心   │  Spring      │ Spring Cloud │ MyBatis  │  MySQL    │  AI 开发    │ Redis  │分布式  ││  (25%)       │  (20%)       │  (5...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94ai%E5%BC%80%E5%8F%91/" title="java知识规划——ai开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——ai开发</div></div><div class="info-2"><div class="info-item-1">java知识规划——ai开发 本文档覆盖面试权重 10% 的 AI 开发知识，以 LangChain4j 框架为主线，从 AiServices 核心架构到模型集成、RAG、Tool Calling、会话记忆、流式响应逐层展开。每个知识点与 Java 核心 及 Spring 生态 的知识关联标注在末尾。   5.1 核心架构与 AiServices涵盖 AiServices 动态代理原理、ChatLanguageModel 统一抽象、核心组件体系以及 LangChain4j 与 Spring AI 的选型对比。  AiServices 动态代理原理AiServices 是 LangChain4j 的核心入口，底层基于 JDK 动态代理实现： 12345678// 定义 AI Service 接口interface Assistant &#123;    String chat(String userMessage);&#125;// AiServices.create() 创建代理实例Assistant assistant = AiServices.create(Assistant...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis"><span class="toc-number">1.</span> <span class="toc-text">java知识规划——redis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#6-1-%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%BA%95%E5%B1%82%E7%BC%96%E7%A0%81"><span class="toc-number">1.1.</span> <span class="toc-text">6.1 核心数据结构与底层编码</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RedisObject-%E5%A4%B4%E9%83%A8"><span class="toc-number">1.1.1.</span> <span class="toc-text">RedisObject 头部</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.1.2.</span> <span class="toc-text">数据结构速查表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SDS%EF%BC%88Simple-Dynamic-String%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">SDS（Simple Dynamic String）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%B3%E8%A1%A8-vs-B-Tree%EF%BC%88%E9%9D%A2%E8%AF%95%E9%AB%98%E9%A2%91%EF%BC%89"><span class="toc-number">1.1.4.</span> <span class="toc-text">跳表 vs B+Tree（面试高频）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-number">1.2.</span> <span class="toc-text">6.2 Redis 持久化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RDB-vs-AOF-vs-%E6%B7%B7%E5%90%88%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-number">1.2.1.</span> <span class="toc-text">RDB vs AOF vs 混合持久化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-3-Redis-%E4%B8%BB%E4%BB%8E-%E5%93%A8%E5%85%B5-%E9%9B%86%E7%BE%A4"><span class="toc-number">1.3.</span> <span class="toc-text">6.3 Redis 主从 &#x2F; 哨兵 &#x2F; 集群</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5"><span class="toc-number">1.3.1.</span> <span class="toc-text">主从同步</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Sentinel%EF%BC%88%E5%93%A8%E5%85%B5%EF%BC%89"><span class="toc-number">1.3.2.</span> <span class="toc-text">Sentinel（哨兵）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Cluster-%E9%9B%86%E7%BE%A4"><span class="toc-number">1.3.3.</span> <span class="toc-text">Cluster 集群</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-4-%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0"><span class="toc-number">1.4.</span> <span class="toc-text">6.4 过期策略与内存淘汰</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%87%E6%9C%9F%E9%94%AE%E5%88%A0%E9%99%A4%E7%AD%96%E7%95%A5"><span class="toc-number">1.4.1.</span> <span class="toc-text">过期键删除策略</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-%E7%A7%8D%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5%EF%BC%88maxmemory-policy%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">8 种淘汰策略（maxmemory-policy）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-5-Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-number">1.5.</span> <span class="toc-text">6.5 Redis 分布式锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SET-NX-EX-%E5%8E%9F%E5%AD%90%E5%91%BD%E4%BB%A4"><span class="toc-number">1.5.1.</span> <span class="toc-text">SET NX EX 原子命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redisson-RLock-%E4%B8%8E%E7%9C%8B%E9%97%A8%E7%8B%97"><span class="toc-number">1.5.2.</span> <span class="toc-text">Redisson RLock 与看门狗</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RedLock-%E7%AE%97%E6%B3%95%E4%B8%8E%E4%BA%89%E8%AE%AE"><span class="toc-number">1.5.3.</span> <span class="toc-text">RedLock 算法与争议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redis-%E9%94%81-vs-ZooKeeper-%E9%94%81-vs-etcd"><span class="toc-number">1.5.4.</span> <span class="toc-text">Redis 锁 vs ZooKeeper 锁 vs etcd</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-6-%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E4%B8%8E%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">1.6.</span> <span class="toc-text">6.6 缓存设计与一致性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%AD%98%E4%B8%89%E9%97%AE%E9%A2%98%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.1.</span> <span class="toc-text">缓存三问题对比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%AD%98%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5"><span class="toc-number">1.6.2.</span> <span class="toc-text">缓存更新策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-7-Redis-%E4%BA%8B%E5%8A%A1%E4%B8%8E-Lua"><span class="toc-number">1.7.</span> <span class="toc-text">6.7 Redis 事务与 Lua</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%EF%BC%88MULTI-EXEC-DISCARD-WATCH%EF%BC%89"><span class="toc-number">1.7.1.</span> <span class="toc-text">事务（MULTI&#x2F;EXEC&#x2F;DISCARD&#x2F;WATCH）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Lua-%E8%84%9A%E6%9C%AC"><span class="toc-number">1.7.2.</span> <span class="toc-text">Lua 脚本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-8-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7"><span class="toc-number">1.8.</span> <span class="toc-text">6.8 高级特性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Pipeline-vs-%E4%BA%8B%E5%8A%A1%E5%AF%B9%E6%AF%94"><span class="toc-number">1.8.1.</span> <span class="toc-text">Pipeline vs 事务对比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Stream-%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97"><span class="toc-number">1.8.2.</span> <span class="toc-text">Stream 消息队列</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redis-7-%E6%A0%B8%E5%BF%83%E6%96%B0%E7%89%B9%E6%80%A7"><span class="toc-number">1.8.3.</span> <span class="toc-text">Redis 7 核心新特性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-9-Redisson-%E6%B7%B1%E5%BA%A6%EF%BC%88%E4%B8%8E-be-star-%E9%A1%B9%E7%9B%AE%E5%85%B3%E8%81%94%EF%BC%89"><span class="toc-number">1.9.</span> <span class="toc-text">6.9 Redisson 深度（与 be-star 项目关联）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%B6%E6%97%8F"><span class="toc-number">1.9.1.</span> <span class="toc-text">Redisson 分布式锁家族</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%99%90%E6%B5%81%E5%99%A8"><span class="toc-number">1.9.2.</span> <span class="toc-text">分布式限流器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BF%A1%E5%8F%B7%E9%87%8F%E4%B8%8E%E5%80%92%E8%AE%A1%E6%97%B6"><span class="toc-number">1.9.3.</span> <span class="toc-text">分布式信号量与倒计时</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%86%E5%90%88"><span class="toc-number">1.9.4.</span> <span class="toc-text">Redisson 分布式集合</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redisson-Spring-Cache-%E6%95%B4%E5%90%88"><span class="toc-number">1.9.5.</span> <span class="toc-text">Redisson Spring Cache 整合</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-10-Redis-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF"><span class="toc-number">1.10.</span> <span class="toc-text">6.10 Redis 实战场景</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9C%BA%E6%99%AF%E9%80%9F%E6%9F%A5"><span class="toc-number">1.10.1.</span> <span class="toc-text">常见场景速查</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E9%99%90%E6%B5%81%EF%BC%88ZSet-%E5%AE%9E%E7%8E%B0%EF%BC%89"><span class="toc-number">1.10.2.</span> <span class="toc-text">滑动窗口限流（ZSet 实现）</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

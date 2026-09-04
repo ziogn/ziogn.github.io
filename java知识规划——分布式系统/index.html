@@ -1,0 +1,1384 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>java知识规划——分布式系统 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="分布式系统理论面试知识规划，覆盖 CAP&#x2F;BASE、一致性协议（2PC&#x2F;Paxos&#x2F;Raft&#x2F;Gossip）、分布式 ID（雪花&#x2F;Leaf）、分布式事务（TCC&#x2F;Seata AT）、分布式锁、分布式存储、RPC&#x2F;gRPC、链路追踪、配置中心、系统设计思维十大模块。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java知识规划——分布式系统">
+<meta property="og:url" content="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="分布式系统理论面试知识规划，覆盖 CAP&#x2F;BASE、一致性协议（2PC&#x2F;Paxos&#x2F;Raft&#x2F;Gossip）、分布式 ID（雪花&#x2F;Leaf）、分布式事务（TCC&#x2F;Seata AT）、分布式锁、分布式存储、RPC&#x2F;gRPC、链路追踪、配置中心、系统设计思维十大模块。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-23T04:20:00.000Z">
+<meta property="article:modified_time" content="2026-09-04T11:54:40.803Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="distributed">
+<meta property="article:tag" content="guide">
+<meta property="article:tag" content="interview">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="java面试">
+<meta property="article:tag" content="research">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java知识规划——分布式系统",
+  "url": "https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-23T04:20:00.000Z",
+  "dateModified": "2026-09-04T11:54:40.803Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'java知识规划——分布式系统',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">java知识规划——分布式系统</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">java知识规划——分布式系统</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-23T04:20:00.000Z" title="发表于 2026-07-23 12:20:00">2026-07-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-04T11:54:40.803Z" title="更新于 2026-09-04 19:54:40">2026-09-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="java知识规划——分布式系统"><a href="#java知识规划——分布式系统" class="headerlink" title="java知识规划——分布式系统"></a>java知识规划——分布式系统</h1><blockquote>
+<p>本文档是 Java 知识规划体系的理论补全，按”理论基石 → 一致性协议 → ID → 事务 → 锁 → 存储 → RPC → 可观测 → 配置 → 设计思维”递进。与 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/">Spring Cloud 微服务</a>方向的关系：微服务是实践，分布式理论是底层原理。建议先读微服务方向再读本文档。</p>
+</blockquote>
+<hr>
+<h2 id="7-1-CAP-定理与-BASE-理论"><a href="#7-1-CAP-定理与-BASE-理论" class="headerlink" title="7.1 CAP 定理与 BASE 理论"></a>7.1 CAP 定理与 BASE 理论</h2><p><strong>一句话原理</strong>：分布式系统在 Consistency（一致性）、Availability（可用性）、Partition Tolerance（分区容错性）三者中最多同时满足两个。网络分区是基础设施的必然现象（P 必须选），实际是在 C 和 A 之间取舍。</p>
+<hr>
+<h4 id="CAP-不三角"><a href="#CAP-不三角" class="headerlink" title="CAP 不三角"></a>CAP 不三角</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">C（一致性）：所有节点在同一时刻看到同一份数据</span><br><span class="line">A（可用性）：每次请求都能收到非错响应（不保证数据最新）</span><br><span class="line">P（分区容错性）：网络分区时系统仍能正常工作</span><br><span class="line"></span><br><span class="line">P 是必选——网络分区一定会发生，不可选择忽略。</span><br><span class="line">实际决策：CP（优先一致，允许不可用）vs AP（优先可用，接受最终一致）</span><br></pre></td></tr></table></figure>
+
+<p><strong>两级节点场景证明</strong>：网络分区发生时，节点 N1 和 N2 无法通信。如果允许 N1 接受写入，则分区恢复后 C 丢失；如果 N1 拒绝写入，则 A 丢失。C 和 A 只能选一个。</p>
+<hr>
+<h4 id="PACELC-扩展"><a href="#PACELC-扩展" class="headerlink" title="PACELC 扩展"></a>PACELC 扩展</h4><p><code>PACELC</code> 在 CAP 基础上增加无分区时的决策维度：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">P(artition) → 分区时在 A(可用性) 和 C(一致性) 之间取舍</span><br><span class="line">E(lse) → 无分区时在 L(延迟) 和 C(一致性) 之间取舍</span><br></pre></td></tr></table></figure>
+
+<p><strong>意义</strong>：系统设计不仅要考虑分区时的行为，还要考虑正常运行时的性能取舍。</p>
+<hr>
+<h4 id="BASE-理论"><a href="#BASE-理论" class="headerlink" title="BASE 理论"></a>BASE 理论</h4><table>
+<thead>
+<tr>
+<th>要素</th>
+<th>英文</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BA</td>
+<td>Basically Available</td>
+<td>基本可用——允许部分功能降级</td>
+</tr>
+<tr>
+<td>S</td>
+<td>Soft State</td>
+<td>软状态——中间状态不要求强一致</td>
+</tr>
+<tr>
+<td>E</td>
+<td>Eventually Consistent</td>
+<td>最终一致——经过一段时间后数据趋于一致</td>
+</tr>
+</tbody></table>
+<p>BASE 是 AP 系统的设计原则，本质是<strong>对 ACID 的妥协</strong>。</p>
+<hr>
+<h4 id="AP-vs-CP-选型实践"><a href="#AP-vs-CP-选型实践" class="headerlink" title="AP vs CP 选型实践"></a>AP vs CP 选型实践</h4><table>
+<thead>
+<tr>
+<th>场景</th>
+<th align="center">选型</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>注册中心</td>
+<td align="center">AP（优先可用）</td>
+<td>Nacos（Distro 协议）、Eureka</td>
+</tr>
+<tr>
+<td>配置中心</td>
+<td align="center">CP（优先一致）</td>
+<td>Nacos Config（Raft）、Consul、ZooKeeper</td>
+</tr>
+<tr>
+<td>分布式锁</td>
+<td align="center">CP &#x2F; AP</td>
+<td>CP: ZK&#x2F;etcd、AP: Redis（可容忍丢锁）</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td align="center">AP（最终一致）</td>
+<td>Kafka、RocketMQ</td>
+</tr>
+<tr>
+<td>银行转账</td>
+<td align="center">CP</td>
+<td>Seata AT（全局锁强一致）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：CAP 不是”三选二”，是”P 必须选”，C 和 A 只能选一个。在实际系统中，C 和 A 是连续光谱而非二元对立。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：AP&#x2F;CP 选型 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#31-nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83--%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83">Nacos 注册中心 CAP 权衡</a> &#x2F; BASE 最终一致 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#49-%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6binlog">MySQL 主从同步</a> 最终一致</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>CAP 定义(C/A/P) → 不三角证明(两节点分区) → P 是必选项 → PACELC 扩展(无分区时 L/C) → BASE 三要素(基本可用/软状态/最终一致) → AP vs CP 选型(注册中心 AP vs 配置中心 CP) → Nacos Distro vs Raft</code></p>
+<hr>
+<h2 id="7-2-一致性协议（2PC-Paxos-Raft-Gossip）"><a href="#7-2-一致性协议（2PC-Paxos-Raft-Gossip）" class="headerlink" title="7.2 一致性协议（2PC &#x2F; Paxos &#x2F; Raft &#x2F; Gossip）"></a>7.2 一致性协议（2PC &#x2F; Paxos &#x2F; Raft &#x2F; Gossip）</h2><p><strong>一句话原理</strong>：一致性协议分为两大类别——<strong>原子提交协议</strong>（2PC&#x2F;3PC，保证多节点同时提交或回滚）和<strong>副本一致性协议</strong>（Paxos&#x2F;Raft，保证多副本数据一致）。Gossip 是去中心化的最终一致性协议。</p>
+<hr>
+<h4 id="2PC（二阶段提交）"><a href="#2PC（二阶段提交）" class="headerlink" title="2PC（二阶段提交）"></a>2PC（二阶段提交）</h4><table>
+<thead>
+<tr>
+<th align="center">阶段</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Prepare</strong></td>
+<td>协调者向所有参与者发送 prepare 请求</td>
+<td>参与者执行事务但暂不提交，投票 Yes&#x2F;No</td>
+</tr>
+<tr>
+<td align="center"><strong>Commit&#x2F;Abort</strong></td>
+<td>协调者收集投票，全 Yes 则发送 commit，任一 No 则发送 abort</td>
+<td>参与者按指令提交或回滚</td>
+</tr>
+</tbody></table>
+<p><strong>三大问题</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同步阻塞</td>
+<td>Prepare 后参与者持有资源锁，等待协调者指令。长事务期间资源无法释放</td>
+</tr>
+<tr>
+<td>协调者单点</td>
+<td>协调者宕机后参与者无法决策，一直阻塞</td>
+</tr>
+<tr>
+<td>脑裂（数据不一致）</td>
+<td>Commit 阶段协调者宕机，部分参与者收到 Commit 并提交，部分未收到，数据不一致</td>
+</tr>
+</tbody></table>
+<p><strong>3PC 改进</strong>：增加 CanCommit（询问能否提交）和 PreCommit（预提交）阶段，引入超时中断机制。PreCommit 后如果协调者超时，参与者自动提交。但网络分区时仍可能数据不一致。</p>
+<hr>
+<h4 id="Paxos（Basic-Paxos）"><a href="#Paxos（Basic-Paxos）" class="headerlink" title="Paxos（Basic Paxos）"></a>Paxos（Basic Paxos）</h4><p>Paxos 是 Leslie Lamport 提出的副本一致性协议，核心是**多数派（Quorum）**决策机制：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Basic Paxos 两阶段：</span><br><span class="line">  Phase 1 — Prepare：</span><br><span class="line">    Proposer 选择提案编号 N，向 Acceptors 发送 Prepare(N)</span><br><span class="line">    Acceptor 承诺：不再接受编号 &lt; N 的提案。若已接受过某提案，则返回该提案</span><br><span class="line">    → 获得多数 Acceptor 的 Promise 即为 Phase 1 成功</span><br><span class="line"></span><br><span class="line">  Phase 2 — Accept：</span><br><span class="line">    Proposer 发送 Accept(N, value) 给所有 Acceptor</span><br><span class="line">    value 取值规则：Phase 1 中有已接受的提案，用编号最大的那个 value；否则 Proposer 自由选择</span><br><span class="line">    → 多数 Acceptor 接受即提案通过</span><br></pre></td></tr></table></figure>
+
+<p><strong>Multi-Paxos</strong>：通过选举唯一的 Leader（Proposer）简化流程。Leader 任期内的所有提案跳过 Prepare 阶段，直接进入 Accept，大幅提升性能。</p>
+<hr>
+<h4 id="Raft"><a href="#Raft" class="headerlink" title="Raft"></a>Raft</h4><p>Raft 将共识问题分解为三个可独立理解的子问题：</p>
+<table>
+<thead>
+<tr>
+<th>子问题</th>
+<th>机制</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Leader 选举</strong></td>
+<td>Term + Election Timeout + 投票</td>
+<td>Follower → Candidate → Leader，获得多数票</td>
+</tr>
+<tr>
+<td><strong>日志复制</strong></td>
+<td>Leader 接收请求 → AppendEntries → 多数确认 → Commit</td>
+<td>日志仅从 Leader 流向 Follower</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>只有最新 Term 的 Log 可当选 Leader</td>
+<td>防止已提交的日志被覆盖</td>
+</tr>
+</tbody></table>
+<p><strong>Leader 选举流程</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Follower 在 Election Timeout（150-300ms 随机）内未收到 Leader 心跳</span><br><span class="line">  → 转化为 Candidate，Term +1，给自己投票并请求其他节点投票</span><br><span class="line">  → 获得多数（N/2+1）票 → 成为 Leader，开始发送心跳</span><br><span class="line">  → 多个 Candidate 同时竞选 → 选票分裂 → 等待下一个 Election Timeout 重试</span><br></pre></td></tr></table></figure>
+
+<p><strong>日志复制流程</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Client 请求 → Leader 追加日志到本地</span><br><span class="line">  → Leader 发送 AppendEntries RPC 给所有 Follower</span><br><span class="line">  → 多数 Follower 写入成功 → Leader 提交日志，应用状态机</span><br><span class="line">  → Leader 通知 Follower 该日志已提交</span><br><span class="line">  → 全部节点应用状态机</span><br></pre></td></tr></table></figure>
+
+<p><strong>Raft vs Paxos 对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th align="center">Raft</th>
+<th align="center">Paxos</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可理解性</td>
+<td align="center">高（分解为三个子问题）</td>
+<td align="center">低（理论证明复杂）</td>
+</tr>
+<tr>
+<td>领导性</td>
+<td align="center">强（唯一 Leader）</td>
+<td align="center">弱（可多个 Proposer 竞争）</td>
+</tr>
+<tr>
+<td>选主</td>
+<td align="center">Term + Timeout</td>
+<td align="center">额外 Paxos 实例</td>
+</tr>
+<tr>
+<td>变更</td>
+<td align="center">支持成员变更（Joint Consensus 两阶段）</td>
+<td align="center">需手动处理</td>
+</tr>
+<tr>
+<td>应用</td>
+<td align="center">etcd &#x2F; Consul &#x2F; Nacos CP 模式</td>
+<td align="center">Chubby（Google）&#x2F; ZK（Zab，类 Raft）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="Gossip-协议"><a href="#Gossip-协议" class="headerlink" title="Gossip 协议"></a>Gossip 协议</h4><p>去中心化、节点间随机通信的最终一致性协议：</p>
+<table>
+<thead>
+<tr>
+<th align="center">方式</th>
+<th>说明</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>反熵（Anti-entropy）</strong></td>
+<td>节点间全量数据交换，Push&#x2F;Pull&#x2F;Push-Pull 三种模式</td>
+<td>Redis Cluster 节点同步</td>
+</tr>
+<tr>
+<td align="center"><strong>谣言传播（Rumor mongering）</strong></td>
+<td>仅传播新数据，三状态：Suspective&#x2F;Infective&#x2F;Removed</td>
+<td>Cassandra &#x2F; Consul</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>2PC 和 Paxos&#x2F;Raft 解决的问题不同——2PC 解决的是”多个不同资源同时提交”，Paxos 解决的是”多个副本数据一致”</li>
+<li>Raft 的 Election Timeout 需要随机化防止选票分裂，生产环境 150-300ms</li>
+<li>Gossip 的反熵在大规模集群中网络开销大，谣言传播不能保证 100% 节点收到</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Raft → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#32-gateway-%E8%B7%AF%E7%94%B1%E7%BD%91%E5%85%B3">Sentinel 故障转移 Raft</a> 选举 &#x2F; Gossip → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/#63-redis-%E4%B8%BB%E4%BB%8E--%E5%93%A8%E5%85%B5--%E9%9B%86%E7%BE%A4">Redis Cluster 通信</a> &#x2F; 2PC → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#35-seata-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1">Seata AT 全局锁</a> &#x2F; Paxos → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/#65-redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81">ZooKeeper ZAB 协议</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>2PC(Prepare/Commit) → 三大问题(阻塞/单点/脑裂) → 3PC 超时改进(仍可能不一致) → Paxos Prepare→Promise→Accept→Accepted → Multi-Paxos Leader 优化 → Raft Leader 选举(Term+Election Timeout) → 日志复制(AppendEntries/Commit/Apply) → 安全性(最新 Term 才能当选) → Raft vs Paxos(可理解性) → Gossip 反熵(全量) vs 谣言传播(增量) → 原子提交 vs 副本一致性(本质区别)</code></p>
+<hr>
+<h2 id="7-3-分布式-ID-生成"><a href="#7-3-分布式-ID-生成" class="headerlink" title="7.3 分布式 ID 生成"></a>7.3 分布式 ID 生成</h2><p><strong>一句话原理</strong>：Snowflake 雪花算法是业界主流方案（64 位 long，趋势递增、高性能）。美团 Leaf（号段模式&#x2F;雪花模式+ZK）和百度 UidGenerator 是针对时钟回拨和 ID 缓存问题的优化方案。</p>
+<hr>
+<h4 id="雪花算法（Snowflake）"><a href="#雪花算法（Snowflake）" class="headerlink" title="雪花算法（Snowflake）"></a>雪花算法（Snowflake）</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">64 位 long 组成：</span><br><span class="line">┌─┬──────────┬──────────┬──────────┐</span><br><span class="line">│0│ 41bit    │ 10bit    │ 12bit    │</span><br><span class="line">│ │ 毫秒时间戳│ 机器ID   │ 序列号   │</span><br><span class="line">│ │ (69年)   │ (1024台) │ (4096/ms)│</span><br><span class="line">└─┴──────────┴──────────┴──────────┘</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>1bit 符号位</strong>：固定 0</li>
+<li><strong>41bit 时间戳</strong>：毫秒级，自定义纪元（通常从 2016-11-01 起算），可用约 69 年</li>
+<li><strong>10bit 机器 ID</strong>：集群 1024 个节点</li>
+<li><strong>12bit 序列号</strong>：每毫秒 4096 个 ID，QPS 约 409 万&#x2F;秒</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 雪花算法 ID 生成核心</span></span><br><span class="line"><span class="type">long</span> <span class="variable">timestamp</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line"><span class="keyword">if</span> (timestamp == lastTimestamp) &#123;</span><br><span class="line">    sequence = (sequence + <span class="number">1</span>) &amp; <span class="number">4095</span>;  <span class="comment">// 同一毫秒内递增</span></span><br><span class="line">    <span class="keyword">if</span> (sequence == <span class="number">0</span>) &#123;               <span class="comment">// 本毫秒已满，等待下一毫秒</span></span><br><span class="line">        timestamp = waitNextMillis(lastTimestamp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    sequence = <span class="number">0</span>;                      <span class="comment">// 新毫秒，序列号重置</span></span><br><span class="line">&#125;</span><br><span class="line">id = (timestamp - EPOCH) &lt;&lt; <span class="number">22</span>         <span class="comment">// 时间戳左移 22 位</span></span><br><span class="line">   | (workerId &lt;&lt; <span class="number">12</span>)                  <span class="comment">// 机器 ID 左移 12 位</span></span><br><span class="line">   | sequence;                         <span class="comment">// 序列号</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>时钟回拨问题</strong>：</p>
+<ul>
+<li>回拨较小（&lt; 几十 ms）→ 等待追上原时间</li>
+<li>回拨较大 → 抛异常无法生成 ID（业界通过 ZK 记录上次时间戳来解决）</li>
+<li>保留上一毫秒的最大序列号，回拨到上一毫秒时继续用该序列号</li>
+</ul>
+<hr>
+<h4 id="方案对比"><a href="#方案对比" class="headerlink" title="方案对比"></a>方案对比</h4><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>原理</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UUID</strong></td>
+<td>128 位全局唯一</td>
+<td>不依赖中心化服务</td>
+<td>无序（B+Tree 页分裂）、存储大、不可读</td>
+</tr>
+<tr>
+<td><strong>Snowflake</strong></td>
+<td>64 位时间+机器+序列</td>
+<td>趋势递增、高性能</td>
+<td>依赖机器时钟</td>
+</tr>
+<tr>
+<td><strong>Leaf segment</strong></td>
+<td>DB 号段预取（步长 step）</td>
+<td>双 buffer 异步加载，无时钟问题</td>
+<td>依赖 DB</td>
+</tr>
+<tr>
+<td><strong>Leaf snowflake</strong></td>
+<td>雪花算法 + ZK</td>
+<td>解决时钟回拨</td>
+<td>依赖 ZK</td>
+</tr>
+<tr>
+<td><strong>UidGenerator</strong></td>
+<td>雪花算法 + RingBuffer</td>
+<td>CAS 无锁，自定义 bits</td>
+<td>百度内部，文档少</td>
+</tr>
+<tr>
+<td><strong>Redis INCR</strong></td>
+<td>自增原子命令</td>
+<td>简单、递增</td>
+<td>依赖 Redis 可用性</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：UUID 作为 MySQL 主键会导致频繁页分裂（UUID 无序）。Leaf 号段模式在 DB 宕机时无法分配新号段。雪花算法的时间戳回拨在容器环境（Docker&#x2F;K8s）更频繁。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Snowflake → B+Tree 顺序写入 &#x2F; Leaf → 号段预取思想与 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/#311-mybatis-executor-%E4%B8%89%E7%A7%8D%E5%AE%9E%E7%8E%B0">MyBatis BatchExecutor</a> 批量思想一致</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Snowflake 64 位组成(1+41+10+12) → QPS 409万 → 时钟回拨问题(小等/大抛) → UUID 缺点(无序页分裂) → Leaf segment(号段双buffer) → Leaf snowflake(ZK 持久化) → Redis INCR → 雪花算法 69年有效期</code></p>
+<hr>
+<h2 id="7-4-分布式事务"><a href="#7-4-分布式事务" class="headerlink" title="7.4 分布式事务"></a>7.4 分布式事务</h2><p><strong>一句话原理</strong>：分布式事务从强一致到最终一致有四种层次：XA（2PC 强一致，性能最低）→ Seata AT（自动补偿，无侵入）→ TCC（手动补偿，高侵入）→ 本地消息表 &#x2F; 事务消息（最终一致，高吞吐）。</p>
+<hr>
+<h4 id="四种模式对比"><a href="#四种模式对比" class="headerlink" title="四种模式对比"></a>四种模式对比</h4><table>
+<thead>
+<tr>
+<th align="center">模式</th>
+<th align="center">一致性</th>
+<th align="center">性能</th>
+<th align="center">侵入性</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>XA</strong></td>
+<td align="center">强一致</td>
+<td align="center">最低</td>
+<td align="center">低（DB 层面支持）</td>
+<td>银行核心、资金转账</td>
+</tr>
+<tr>
+<td align="center"><strong>Seata AT</strong></td>
+<td align="center">最终一致</td>
+<td align="center">中</td>
+<td align="center">低（@GlobalTransactional）</td>
+<td>大部分微服务场景</td>
+</tr>
+<tr>
+<td align="center"><strong>TCC</strong></td>
+<td align="center">最终一致</td>
+<td align="center">高</td>
+<td align="center">高（业务实现三阶段）</td>
+<td>高并发核心链路</td>
+</tr>
+<tr>
+<td align="center"><strong>本地消息表&#x2F;事务消息</strong></td>
+<td align="center">最终一致</td>
+<td align="center">高</td>
+<td align="center">中</td>
+<td>高吞吐异步场景</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="TCC-详解（Try-Confirm-Cancel）"><a href="#TCC-详解（Try-Confirm-Cancel）" class="headerlink" title="TCC 详解（Try&#x2F;Confirm&#x2F;Cancel）"></a>TCC 详解（Try&#x2F;Confirm&#x2F;Cancel）</h4><table>
+<thead>
+<tr>
+<th align="center">阶段</th>
+<th align="center">行为</th>
+<th align="center">需解决的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Try</strong></td>
+<td align="center">资源预留（如冻结库存）</td>
+<td align="center"><strong>空回滚</strong>：Try 未执行但 Cancel 被调用</td>
+</tr>
+<tr>
+<td align="center"><strong>Confirm</strong></td>
+<td align="center">确认提交</td>
+<td align="center"><strong>幂等</strong>：Confirm 可能被多次调用</td>
+</tr>
+<tr>
+<td align="center"><strong>Cancel</strong></td>
+<td align="center">补偿回滚</td>
+<td align="center"><strong>悬挂</strong>：Cancel 比 Try 先到达</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>三个问题通过事务记录表的状态机判断解决：记录表中有 Try 记录才执行 Cancel；没有 Try 记录说明是空回滚，直接返回成功。</p>
+</blockquote>
+<h4 id="Seata-AT-模式要点"><a href="#Seata-AT-模式要点" class="headerlink" title="Seata AT 模式要点"></a>Seata AT 模式要点</h4><p>Seata AT 是业界最广泛使用的 Java 分布式事务方案，已在 <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#35-seata-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1">微服务文档</a> 详述。本文仅提炼其理论本质：</p>
+<ul>
+<li>AT &#x3D; Auto Transaction，通过 DataSourceProxy 无侵入拦截 SQL</li>
+<li>本质是 <strong>TCC 的框架化实现</strong>——Try（执行 SQL + 写 undo_log）&#x3D; Confirm（清除 undo_log）&#x2F; Cancel（反向 SQL）</li>
+<li>全局锁 &#x3D; 分布式写隔离（基于表主键），获取失败抛异常回滚</li>
+</ul>
+<h4 id="RocketMQ-事务消息"><a href="#RocketMQ-事务消息" class="headerlink" title="RocketMQ 事务消息"></a>RocketMQ 事务消息</h4><table>
+<thead>
+<tr>
+<th align="center">步骤</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">① 发送半消息</td>
+<td>Producer 发送 Half Message（对 Consumer 不可见）</td>
+</tr>
+<tr>
+<td align="center">② 执行本地事务</td>
+<td>Producer 执行业务逻辑</td>
+</tr>
+<tr>
+<td align="center">③ 提交&#x2F;回滚</td>
+<td>本地事务成功 → COMMIT；失败 → ROLLBACK</td>
+</tr>
+<tr>
+<td align="center">④ 服务端回查</td>
+<td>无结果时 Broker 回查（6s 间隔，最多 15 次）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：回查接口必须幂等；事务消息不支持延迟&#x2F;批量&#x2F;定时。Seata AT 在全局锁竞争激烈时吞吐量急剧下降（全部转串行）。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Seata AT → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#35-seata-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1">微服务文档 Seata 全局锁</a> &#x2F; 事务消息 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#36-rocketmq-%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6">RocketMQ 事务消息回查</a> &#x2F; XA → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/#410-innodb-%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84buffer-pool--redo-log--undo-log--binlog">MySQL 两阶段提交</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>四种模式对比(XA/AT/TCC/消息表) → TCC Try/Confirm/Cancel → 空回滚/幂等/悬挂三坑 → Seata AT(自动TCC实现) → 全局锁写隔离 → RocketMQ事务消息(半消息→回查6s/15次) → 回查幂等</code></p>
+<hr>
+<h2 id="7-5-分布式锁"><a href="#7-5-分布式锁" class="headerlink" title="7.5 分布式锁"></a>7.5 分布式锁</h2><p><strong>一句话原理</strong>：分布式锁三要素——互斥性、安全性（防误释放）、死锁预防（自动过期）。Redis（AP 高可用，可容忍丢锁）、ZooKeeper（CP 强一致，可靠性高）、etcd（Raft + Lease，云原生）三种方案各有适用场景。</p>
+<hr>
+<h4 id="分布式锁方案对比"><a href="#分布式锁方案对比" class="headerlink" title="分布式锁方案对比"></a>分布式锁方案对比</h4><table>
+<thead>
+<tr>
+<th align="center">方案</th>
+<th align="center">一致性</th>
+<th align="center">性能</th>
+<th align="center">死锁预防</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Redis SET NX + Lua</strong></td>
+<td align="center">AP</td>
+<td align="center">最高</td>
+<td align="center">TTL 自动过期</td>
+<td>防重提交、缓存更新</td>
+</tr>
+<tr>
+<td align="center"><strong>Redisson RLock</strong></td>
+<td align="center">AP</td>
+<td align="center">最高</td>
+<td align="center">Watchdog 续期（10s&#x2F;30s）</td>
+<td>Spring Boot 项目（be-star）</td>
+</tr>
+<tr>
+<td align="center"><strong>ZooKeeper 临时顺序节点</strong></td>
+<td align="center">CP</td>
+<td align="center">中</td>
+<td align="center">会话断开自动删除</td>
+<td>主备选举、配置管理</td>
+</tr>
+<tr>
+<td align="center"><strong>etcd Raft + Lease</strong></td>
+<td align="center">CP</td>
+<td align="center">中</td>
+<td align="center">Lease 租约续期</td>
+<td>K8s 协调、云原生</td>
+</tr>
+</tbody></table>
+<p><strong>Redis 主从切换丢锁问题</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Master 上锁成功 → Master 宕机 → Slave 晋升 Master</span><br><span class="line">  → 新 Master 没有锁信息 → 其他线程可加锁成功</span><br><span class="line">  → 本质：AP 系统的最终一致性</span><br></pre></td></tr></table></figure>
+
+<p><strong>ZooKeeper 锁原理</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">尝试加锁线程 → 在锁节点下创建临时顺序节点（EPHEMERAL_SEQUENTIAL）</span><br><span class="line">  → 获取所有子节点列表（按序号排序）</span><br><span class="line">  → 自己是最小编号 → 加锁成功</span><br><span class="line">  → 自己不是最小编号 → Watch 前一个节点</span><br><span class="line">  → 前一个节点删除 → 重新检查自己是否最小编号</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>Redis 锁主从切换丢锁问题只在”若此瞬间主宕机”的场景发生，实际业务概率极低。需要 CP 强一致的去使用 ZK&#x2F;etcd</li>
+<li>ZK 锁的”惊群效应”在大量线程等待同一锁时存在（虽然 ZK 1M&#x2F;s 的处理能力已大幅缓解）</li>
+<li>etcd 的 Lease 时间过短会导致锁频繁续期、过长会导致锁释放不及时</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Redis 分布式锁 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/#65-redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81">Redis 分布式锁深度</a> &#x2F; ZK 临时节点 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 会话超时</a> 类比</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>分布式锁三要素(互斥/安全/防死锁) → Redis SET NX+Lua(AP) → 主从切换丢锁 → Redisson Watchdog → ZooKeeper 临时顺序节点(CP 强一致) → Watch 前一个节点 → etcd Raft+Lease → Redis vs ZK vs etcd 选型</code></p>
+<hr>
+<h2 id="7-6-分布式存储（进阶）"><a href="#7-6-分布式存储（进阶）" class="headerlink" title="7.6 分布式存储（进阶）"></a>7.6 分布式存储（进阶）</h2><p><strong>一句话原理</strong>：数据分片策略决定分布式存储的扩展性和查询效率。一致性哈希通过虚拟节点解决扩缩容的 rehash 问题。</p>
+<hr>
+<h4 id="数据分片策略对比"><a href="#数据分片策略对比" class="headerlink" title="数据分片策略对比"></a>数据分片策略对比</h4><table>
+<thead>
+<tr>
+<th align="center">策略</th>
+<th>原理</th>
+<th align="center">优点</th>
+<th align="center">缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Range 分片</strong></td>
+<td>按 ID&#x2F;时间连续区间划分</td>
+<td align="center">实现简单，范围查询高效</td>
+<td align="center">尾部热点（写集中在最新分区）</td>
+</tr>
+<tr>
+<td align="center"><strong>Hash 分片（取模）</strong></td>
+<td>hash(key) % N 等分数据</td>
+<td align="center">数据均匀</td>
+<td align="center">增删节点全量 rehash</td>
+</tr>
+<tr>
+<td align="center"><strong>一致性哈希</strong></td>
+<td>哈希环 + 虚拟节点</td>
+<td align="center">增减节点仅影响相邻节点</td>
+<td align="center">实现相对复杂</td>
+</tr>
+</tbody></table>
+<p><strong>一致性哈希</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">所有节点和 key 分布在同一个哈希环上（0 ~ 2^32-1）</span><br><span class="line">key 的哈希值 → 在环上顺时针寻找第一个节点 → 数据路由到该节点</span><br><span class="line">节点增减 → 只影响该节点在环上的相邻节点（迁移最少的数据）</span><br><span class="line">虚拟节点 → 每个物理节点映射多个虚拟节点 → 解决节点偏斜</span><br></pre></td></tr></table></figure>
+
+<p><strong>应用场景</strong>：</p>
+<ul>
+<li>Redis Cluster：CRC16 取模（16384 槽位哈希分片）</li>
+<li>Cassandra：一致性哈希 + 虚拟节点</li>
+<li>Ceph CRUSH：伪随机数据分布（无中心元数据）</li>
+</ul>
+<blockquote>
+<p><strong>关联知识点</strong>：Hash 分片 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/#63-redis-%E4%B8%BB%E4%BB%8E--%E5%93%A8%E5%85%B5--%E9%9B%86%E7%BE%A4">Redis Cluster 16384 槽</a> &#x2F; 一致性哈希 → 分布式缓存扩容</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>Range 分片(尾热点) → Hash 分片(全量rehash) → 一致性哈希(哈希环+顺时针查找) → 虚拟节点(解决偏斜) → Redis Cluster CRC16 → Cassandra 虚拟节点</code></p>
+<hr>
+<h2 id="7-7-RPC-与通信"><a href="#7-7-RPC-与通信" class="headerlink" title="7.7 RPC 与通信"></a>7.7 RPC 与通信</h2><p><strong>一句话原理</strong>：RPC 的核心是”像调用本地方法一样调用远程服务”。序列化方式和传输协议是影响性能的关键因素。Dubbo（TCP + Hessian2，内部服务高频）和 gRPC（HTTP&#x2F;2 + Protobuf，跨语言云原生）是主流方案。</p>
+<hr>
+<h4 id="序列化方案对比"><a href="#序列化方案对比" class="headerlink" title="序列化方案对比"></a>序列化方案对比</h4><table>
+<thead>
+<tr>
+<th align="center">方案</th>
+<th align="center">体积</th>
+<th align="center">速度</th>
+<th align="center">跨语言</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>JSON</strong></td>
+<td align="center">大</td>
+<td align="center">慢</td>
+<td align="center">是</td>
+<td>可读性强，解析开销大</td>
+</tr>
+<tr>
+<td align="center"><strong>Protobuf</strong></td>
+<td align="center">最小</td>
+<td align="center">最快</td>
+<td align="center">是</td>
+<td>TLSV 格式，需 .proto IDL</td>
+</tr>
+<tr>
+<td align="center"><strong>Hessian2</strong></td>
+<td align="center">小</td>
+<td align="center">快</td>
+<td align="center">部分</td>
+<td>Dubbo 默认，Java 友好</td>
+</tr>
+<tr>
+<td align="center"><strong>Kryo</strong></td>
+<td align="center">小</td>
+<td align="center">极快</td>
+<td align="center">否</td>
+<td>Java 专用，速度最快</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="Dubbo-vs-gRPC-对比"><a href="#Dubbo-vs-gRPC-对比" class="headerlink" title="Dubbo vs gRPC 对比"></a>Dubbo vs gRPC 对比</h4><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">Dubbo</th>
+<th align="center">gRPC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">传输协议</td>
+<td align="center">TCP 长连接（单一连接）</td>
+<td align="center">HTTP&#x2F;2（多路复用 + 流式传输）</td>
+</tr>
+<tr>
+<td align="center">序列化</td>
+<td align="center">Hessian2 &#x2F; JSON</td>
+<td align="center">Protobuf</td>
+</tr>
+<tr>
+<td align="center">服务治理</td>
+<td align="center">完善（负载均衡&#x2F;熔断&#x2F;降级&#x2F;路由）</td>
+<td align="center">需第三方实现</td>
+</tr>
+<tr>
+<td align="center">跨语言</td>
+<td align="center">需多语言 SDK</td>
+<td align="center">原生跨语言</td>
+</tr>
+<tr>
+<td align="center">适用场景</td>
+<td align="center">Java 内部服务高频调用</td>
+<td align="center">跨语言云原生、流式通信</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="BIO-→-NIO-→-Netty-演进"><a href="#BIO-→-NIO-→-Netty-演进" class="headerlink" title="BIO → NIO → Netty 演进"></a>BIO → NIO → Netty 演进</h4><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th>线程模型</th>
+<th align="center">连接数上限</th>
+<th>典型代表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>BIO</strong>（Blocking I&#x2F;O）</td>
+<td>一个连接一个线程</td>
+<td align="center">C10K</td>
+<td>Tomcat（早期）</td>
+</tr>
+<tr>
+<td align="center"><strong>NIO</strong>（Non-blocking I&#x2F;O）</td>
+<td>Selector 多路复用</td>
+<td align="center">数万</td>
+<td>Tomcat NIO</td>
+</tr>
+<tr>
+<td align="center"><strong>Netty</strong>（NIO 封装）</td>
+<td>Reactor 主从多线程 + 零拷贝</td>
+<td align="center">百万</td>
+<td>Dubbo、gRPC</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>常见陷阱</strong>：Hessian2 不适合传大包（&gt;100KB 用 HTTP）。JSON 序列化的字符串字段会膨胀 3-5 倍（<code>&quot;key&quot;</code> vs 二进制 tag）。</p>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：Netty → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#15-nio-%E4%B8%8E-netty">核心 NIO&#x2F;Netty 深度</a> &#x2F; Dubbo 协议 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#34-dubbo-rpc-%E6%A1%86%E6%9E%B6">微服务 Dubbo 深度</a> &#x2F; gRPC → HTTP&#x2F;2 多路复用</p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>RPC 四组件(Client+Stub+Server+Stub) → 序列化(JSON/Protobuf/Hessian2/Kryo) → BIO 一个连接一个线程 → NIO Selector → Netty Reactor 主从多线程 → Dubbo TCP+Netty+Hessian2 → gRPC HTTP/2+Protobuf → Dubbo vs gRPC 选型</code></p>
+<hr>
+<h2 id="7-8-分布式链路追踪"><a href="#7-8-分布式链路追踪" class="headerlink" title="7.8 分布式链路追踪"></a>7.8 分布式链路追踪</h2><p><strong>一句话原理</strong>：TraceId + SpanId + ParentSpanId 构建调用树，透传所有服务节点。OpenTelemetry（OTLP 协议）是业界统一标准。采样策略决定追踪数据的覆盖率和存储成本。</p>
+<hr>
+<h4 id="TraceID-SpanID-结构"><a href="#TraceID-SpanID-结构" class="headerlink" title="TraceID &#x2F; SpanID 结构"></a>TraceID &#x2F; SpanID 结构</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">外部请求 → Gateway</span><br><span class="line">  └─ TraceId = &quot;abc123&quot; SpanId = &quot;A&quot;</span><br><span class="line">    ├─ 调用 Service A → SpanId = &quot;A1&quot;, ParentSpanId = &quot;A&quot;</span><br><span class="line">    │  └─ 调用 Service B → SpanId = &quot;A1-1&quot;, ParentSpanId = &quot;A1&quot;</span><br><span class="line">    └─ 调用 Service C → SpanId = &quot;A2&quot;, ParentSpanId = &quot;A&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>透传机制</strong>：HTTP（<code>X-B3-TraceId</code>&#x2F;<code>X-B3-SpanId</code> Header）、Dubbo（RpcContext）、MQ（Message Header）</p>
+<hr>
+<h4 id="OpenTelemetry-四大组件"><a href="#OpenTelemetry-四大组件" class="headerlink" title="OpenTelemetry 四大组件"></a>OpenTelemetry 四大组件</h4><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>API</strong></td>
+<td>定义 Traces&#x2F;Metrics&#x2F;Logs 接口</td>
+</tr>
+<tr>
+<td><strong>SDK</strong></td>
+<td>实现 API，包括采样、处理、导出</td>
+</tr>
+<tr>
+<td><strong>Collector</strong></td>
+<td>接收、处理、导出遥测数据（推送&#x2F;拉取）</td>
+</tr>
+<tr>
+<td><strong>Backends</strong></td>
+<td>存储和查询（Jaeger &#x2F; Zipkin &#x2F; Prometheus &#x2F; Grafana）</td>
+</tr>
+</tbody></table>
+<p>OTLP 协议：gRPC 4317 端口 &#x2F; HTTP 4318 端口，统一 Traces&#x2F;Metrics&#x2F;Logs 传输。</p>
+<h4 id="采样策略"><a href="#采样策略" class="headerlink" title="采样策略"></a>采样策略</h4><table>
+<thead>
+<tr>
+<th align="center">策略</th>
+<th align="center">原理</th>
+<th align="center">优点</th>
+<th align="center">缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>头部采样</strong></td>
+<td align="center">请求进入时决定</td>
+<td align="center">实现简单</td>
+<td align="center">可能错过尾部异常</td>
+</tr>
+<tr>
+<td align="center"><strong>尾部采样</strong></td>
+<td align="center">请求结束后根据结果</td>
+<td align="center">可捕获异常链路</td>
+<td align="center">需缓存所有请求数据</td>
+</tr>
+<tr>
+<td align="center"><strong>概率采样</strong></td>
+<td align="center">固定百分比（0.1 &#x3D; 10%）</td>
+<td align="center">生产环境推荐</td>
+<td align="center">小流量数据不足</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关联知识点</strong>：TraceId 透传 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 ThreadLocal</a> &#x2F; 采样策略 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#37-%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AAmicrometer-tracing--skywalking">SkyWalking 采样</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>TraceId/SpanId/ParentSpanId 调用树 → HTTP Header 透传(X-B3-TraceId) → OpenTelemetry 四组件(API/SDK/Collector/Backends) → OTLP 统一协议 → 头部采样 vs 尾部采样 → 概率采样 10%</code></p>
+<hr>
+<h2 id="7-9-分布式配置中心"><a href="#7-9-分布式配置中心" class="headerlink" title="7.9 分布式配置中心"></a>7.9 分布式配置中心</h2><p><strong>一句话原理</strong>：配置中心的核心是”推” vs “拉”的模式选择。Nacos 长轮询（拉模式优化）和 Nacos 2.0 gRPC（推模式）是主流的两种实现方式。Bootstrap 上下文是 Spring Cloud 在启动时优先拉取远程配置的机制。</p>
+<hr>
+<h4 id="推模式-vs-拉模式"><a href="#推模式-vs-拉模式" class="headerlink" title="推模式 vs 拉模式"></a>推模式 vs 拉模式</h4><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">推模式</th>
+<th align="center">拉模式</th>
+<th align="center">长轮询（优化拉模式）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">实时性</td>
+<td align="center">高（服务端主动推送）</td>
+<td align="center">低（轮询间隔）</td>
+<td align="center">中（秒级）</td>
+</tr>
+<tr>
+<td align="center">复杂度</td>
+<td align="center">高（长连接管理）</td>
+<td align="center">低</td>
+<td align="center">中</td>
+</tr>
+<tr>
+<td align="center">压力</td>
+<td align="center">轻（服务端主动发起）</td>
+<td align="center">重（大量空转轮询）</td>
+<td align="center">中（挂起不超时不释放）</td>
+</tr>
+<tr>
+<td align="center">代表</td>
+<td align="center">Nacos 2.0 gRPC</td>
+<td align="center">原始轮询</td>
+<td align="center">Nacos 1.x</td>
+</tr>
+</tbody></table>
+<p><strong>Nacos 长轮询流程</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">客户端请求携带所有配置项 MD5</span><br><span class="line">  → 服务端逐批比对（每批 3000 个配置项）</span><br><span class="line">  → 有变更 → 立即返回变更 Key</span><br><span class="line">  → 无变更 → 挂起请求 30 秒（非 WebSocket，HTTP 长轮询）</span><br><span class="line">  → 30 秒内发生变更 → 返回</span><br><span class="line">  → 30 秒无变更 → 返回空，客户端重新发起请求</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关联知识点</strong>：Bootstrap 上下文 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#39-bootstrap-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E9%85%8D%E7%BD%AE%E5%8A%A0%E8%BD%BD">Spring Cloud 配置加载</a> &#x2F; Nacos 2.0 gRPC → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#15-nio-%E4%B8%8E-netty">核心 Netty</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>推模式(长连接/实时/假死风险) → 拉模式(轮询/实现简单/空转) → 长轮询(挂起30s的优化) → Nacos 长轮询流程(MD5分批比对/3000一批) → Nacos 2.0 gRPC(毫秒级) → Bootstrap 上下文(启动时拉取远程配置)</code></p>
+<hr>
+<h2 id="7-10-分布式系统设计思维"><a href="#7-10-分布式系统设计思维" class="headerlink" title="7.10 分布式系统设计思维"></a>7.10 分布式系统设计思维</h2><p><strong>一句话原理</strong>：分布式的核心假设是”任何环节都可能失败”。Design for Failure、优雅降级、超时重试退避、幂等设计是构建可靠分布式系统的四大基石。</p>
+<hr>
+<h4 id="八大谬误（Fallacies-of-Distributed-Computing）"><a href="#八大谬误（Fallacies-of-Distributed-Computing）" class="headerlink" title="八大谬误（Fallacies of Distributed Computing）"></a>八大谬误（Fallacies of Distributed Computing）</h4><ol>
+<li><strong>网络可靠</strong> — 网络会断、丢包、延迟抖——写代码时假设网络永远可靠会出大问题</li>
+<li><strong>零延迟</strong> — 同城机房也有 0.5-2ms 延迟——跨区域延迟可能在 50-200ms</li>
+<li><strong>无限带宽</strong> — 带宽有限，大 payload 会导致网络 IO 成为瓶颈</li>
+<li><strong>网络安全</strong> — 网络天然不安全——TLS、鉴权、授权是必选</li>
+<li><strong>拓扑不变</strong> — 服务 IP 会变、节点会扩缩容——服务发现是必须的</li>
+<li><strong>单管理员</strong> — 存在多个团队&#x2F;系统——标准化协议和契约很重要</li>
+<li><strong>零成本</strong> — 跨网络通信有时间成本和硬件成本</li>
+<li><strong>环境同质</strong> — 不同环境（OS&#x2F;网络&#x2F;硬件）行为可能不同</li>
+</ol>
+<hr>
+<h4 id="防护四层模型"><a href="#防护四层模型" class="headerlink" title="防护四层模型"></a>防护四层模型</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">L4 — 降级：核心功能兜底、非核心关闭、降级开关（配置中心）</span><br><span class="line">L3 — 熔断限流：熔断(Closed/Open/Half-Open)、限流(滑动窗口/令牌桶)、隔板(线程池隔离)</span><br><span class="line">L2 — 超时重试：连接超时 vs 读取超时分设、指数退避+Jitter、重试幂等</span><br><span class="line">L1 — 幂等设计：唯一键去重、状态机、Token、去重表</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="幂等设计要点"><a href="#幂等设计要点" class="headerlink" title="幂等设计要点"></a>幂等设计要点</h4><table>
+<thead>
+<tr>
+<th align="center">方案</th>
+<th align="center">原理</th>
+<th align="center">场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>唯一键去重</strong></td>
+<td align="center">每次请求携带唯一键，消费前先查是否已处理（Redis setnx&#x2F;DB 唯一索引）</td>
+<td align="center">MQ 消费、支付回调</td>
+</tr>
+<tr>
+<td align="center"><strong>状态机</strong></td>
+<td align="center">业务状态单向流转，状态不符合则拒绝</td>
+<td align="center">订单状态变更</td>
+</tr>
+<tr>
+<td align="center"><strong>Token 机制</strong></td>
+<td align="center">表单提交前先申请 Token，提交时验证并删除</td>
+<td align="center">防重复提交</td>
+</tr>
+<tr>
+<td align="center"><strong>乐观锁</strong></td>
+<td align="center"><code>UPDATE SET version=version+1 WHERE id=? AND version=oldVersion</code></td>
+<td align="center">更新操作</td>
+</tr>
+<tr>
+<td align="center"><strong>去重表</strong></td>
+<td align="center">利用数据库唯一索引，插入冲突则已处理</td>
+<td align="center">幂等性要求最高</td>
+</tr>
+</tbody></table>
+<h4 id="雪崩防护链"><a href="#雪崩防护链" class="headerlink" title="雪崩防护链"></a>雪崩防护链</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">请求 → 线程池隔离（限流并发数） → 信号量隔离（限流并发） → 熔断器（快速失败）</span><br><span class="line">  → 限流（控制流量入口） → 降级（返回默认值/缓存旧值） → 启动保护</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>常见陷阱</strong>：</p>
+<ul>
+<li>超时单一设置容易导致雪崩——连接超时（connectTimeout）和读取超时（readTimeout）必须分开</li>
+<li>重试不配退避 + Jitter 会导致惊群效应——大量重试请求瞬间打垮系统</li>
+<li>幂等设计不是万能——唯一键方案依赖中心化存储，状态机方案需确保状态枚举完整</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>关联知识点</strong>：熔断 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#33-sentinel-%E9%99%90%E6%B5%81%E4%B8%8E%E7%86%94%E6%96%AD">Sentinel 熔断状态机</a> &#x2F; 线程池隔离 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/#13-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B">核心 线程池</a> &#x2F; 降级开关 → <a href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94springCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1/#39-bootstrap-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E9%85%8D%E7%BD%AE%E5%8A%A0%E8%BD%BD">配置中心</a></p>
+</blockquote>
+<hr>
+<p><strong>追问链</strong>：<code>八大谬误(网络可靠/零延迟/带宽/安全/拓扑/管理/成本/同质) → Design for Failure → 四层防护(降级→熔断限流→超时重试→幂等) → 幂等设计方案(唯一键/状态机/Token/乐观锁/去重表) → 超时退避(指数退避+Jitter 防惊群) → 雪崩防护链(线程池→信号量→熔断→限流→降级)</code></p>
+<hr>
+<p><strong>整体追问链（方向七）</strong>：<code>CAP(C/A/P) 不三角 → PACELC 扩展 → BASE(可用/软状态/最终一致) → AP vs CP 选型 → 2PC(Prepare/Commit)三大问题 → Paxos Prepare→Promise→Accept→Accepted → Multi-Paxos Leader → Raft 三大子问题(选举/复制/安全) → Raft vs Paxos → Gossip 反熵 vs 谣言传播 → Snowflake 64bit(1+41+10+12) → 时钟回拨 → Leaf 号段双buffer → 分布式事务四种模式(XA/AT/TCC/消息表) → TCC三坑(空回滚/幂等/悬挂) → Seata AT 全局锁 → 分布式锁三要素 → Redis AP vs ZK CP → 一致性哈希 + 虚拟节点 → RPC 序列化(JSON/Protobuf/Hessian2/Kryo) → Netty Reactor → Dubbo vs gRPC → TraceId/SpanId 调用树 → OpenTelemetry 采样策略 → 推模式/拉模式/长轮询 → 八大谬误 → 幂等设计 → 雪崩四层防护 → 与微服务/Paxos/Seata/Redis 的跨层关联</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">https://ziogn.github.io/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/research/">research</a><a class="post-meta__tags" href="/tags/interview/">interview</a><a class="post-meta__tags" href="/tags/guide/">guide</a><a class="post-meta__tags" href="/tags/java/">java</a><a class="post-meta__tags" href="/tags/java%E9%9D%A2%E8%AF%95/">java面试</a><a class="post-meta__tags" href="/tags/distributed/">distributed</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94web%E6%A1%86%E6%9E%B6/" title="go语言知识规划——web框架"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">go语言知识规划——web框架</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——web框架 本文档覆盖面试权重 15% 的 Go Web 框架知识，按”Gin 框架详解 → RESTful 设计实践 → 框架选型对比 → 追问链”的逻辑递进。与 Go 语言基础、数据库、缓存等方向的知识关联见知识体系总览文档（待补充）。  2.1 Gin 框架Gin 是 Go 生态中最主流的 HTTP 框架（GitHub 78k+ stars），以出色的路由性能、极致的 API 设计和丰富的中间件生态著称。面试考察点集中在路由实现原理、中间件链、参数绑定与验证三大模块。  高性能路由：基数树（Radix Tree）Gin 的路由引擎基于 httprouter 的基数树实现。基数树（Radix Tree &#x2F; Patricia Trie）是压缩前缀树——将共享前缀合并为单一路径节点，减少树的高度，实现 O(path-length) 的路由查找。 路由注册示例： 123456789101112131415161718192021package mainimport (    &quot;net/http&quot;    &quot;github.co...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/" title="java知识规划——redis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">java知识规划——redis</div></div><div class="info-2"><div class="info-item-1">java知识规划——redis 本文档覆盖 Redis 面试知识体系，按”数据结构 → 持久化 → 集群 → 过期淘汰 → 分布式锁 → 缓存设计 → 事务 Lua → 高级特性 → Redisson → 实战场景”层层递进。每节末尾标注与 Java 核心、Spring Cloud 微服务 及 MySQL 方向的知识关联。   6.1 核心数据结构与底层编码一句话原理：Redis 有 9 种核心数据结构，每种底层由 2-3 种编码实现，根据数据特征自动切换。理解 RedisObject 和编码转换条件是区分”会用”和”懂原理”的关键。  RedisObject 头部每个 key 的 value 在 Redis 中存储为 redisObject： 12345678┌──────────────────────────────────────────┐│ redisObject 头部（16 bytes, 64-bit）       ││ type:4bit（String/List/Set/ZSet/Hash）    ││ encoding:4bit（int/embstr/raw/ht...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mybatis/" title="java知识规划——mybatis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mybatis</div></div><div class="info-2"><div class="info-item-1">java知识规划——mybatis 本文档覆盖面试权重 15% 的 MyBatis 知识体系。从 SQL 参数绑定到高级映射逐层递进。每节末尾标注与 Java 核心、Spring 生态 及 MySQL 方向的知识关联。   3.1 #{} vs ${} 及 SQL 注入防范一句话原理：#{} 走预编译（PreparedStatement + ? 占位符），参数由 TypeHandler 安全设置，防 SQL 注入；${} 直接字符串替换拼接，仅用于表名&#x2F;列名等动态标识符。  预编译机制#{} 在 MyBatis 解析阶段被替换为 ?，由 JDBC 的 PreparedStatement.setXxx(index, value) 安全设置： 1234&lt;!-- XML 映射 --&gt;&lt;select id=&quot;findByUsername&quot; resultType=&quot;User&quot;&gt;    SELECT * FROM user WHERE username = #&#123;username&#125;&lt;/selec...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94redis/" title="java知识规划——redis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">java知识规划——redis</div></div><div class="info-2"><div class="info-item-1">java知识规划——redis 本文档覆盖 Redis 面试知识体系，按”数据结构 → 持久化 → 集群 → 过期淘汰 → 分布式锁 → 缓存设计 → 事务 Lua → 高级特性 → Redisson → 实战场景”层层递进。每节末尾标注与 Java 核心、Spring Cloud 微服务 及 MySQL 方向的知识关联。   6.1 核心数据结构与底层编码一句话原理：Redis 有 9 种核心数据结构，每种底层由 2-3 种编码实现，根据数据特征自动切换。理解 RedisObject 和编码转换条件是区分”会用”和”懂原理”的关键。  RedisObject 头部每个 key 的 value 在 Redis 中存储为 redisObject： 12345678┌──────────────────────────────────────────┐│ redisObject 头部（16 bytes, 64-bit）       ││ type:4bit（String/List/Set/ZSet/Hash）    ││ encoding:4bit（int/embstr/raw/ht...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="java知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——核心</div></div><div class="info-2"><div class="info-item-1">java知识规划——核心 本文档覆盖面试权重 30% 的 Java 核心知识，按”语言特性 → 运行时原理 → 并发 → 数据结构 → IO → 设计”的逻辑递进。与 Spring 生态体系、MyBatis、MySQL、AI 开发等方向的知识关联见总览文档的跨域链路。  1.1 Java 版本特性演进（8→11→17→21）涵盖 Java 8&#x2F;11&#x2F;17&#x2F;21 四个 LTS 版本的核心特性，重点理解 Lambda 编译原理、Stream 惰性求值、虚拟线程并发模型、Record 与模式匹配的语言级增强。  Lambda 与 invokedynamicJava 8 Lambda 的编译方式与匿名内部类有本质区别：  匿名内部类：javac 编译为独立的 OuterClass$1.class 文件，每次调用经历类加载、验证、准备完整流程 Lambda 表达式：javac 生成一条 invokedynamic 指令，首次调用时通过 BootstrapMethods 属性中的 LambdaMetafactory.metafactory() 动态生成本地内部类...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94mysql/" title="java知识规划——mysql"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——mysql</div></div><div class="info-2"><div class="info-item-1">java知识规划——mysql 本文档覆盖面试权重 15% 的 MySQL 知识体系。按”索引 → 优化 → 执行计划 → 事务 → MVCC → 锁 → SQL 优化 → 分库分表 → 主从复制 → InnoDB 内存结构”递进。每节末尾标注与 Spring 生态 及 MyBatis 方向的知识关联。   4.1 B+Tree 数据结构 &#x2F; 聚簇 vs 二级索引 &#x2F; 最左前缀一句话原理：B+Tree 非叶子节点只存索引键（不存数据），叶子节点存完整行数据（聚簇）或主键值（二级）且叶子节点间有双向链表；聚簇索引物理存储顺序&#x3D;索引顺序，一张表一个；二级索引叶子存主键值需回表。  B+Tree 三层结构12345根节点（存放索引键的指针范围）  ↓内部节点（存放下一层节点的指针范围）  ↓叶子节点（存放完整数据或主键值，双向链表连接）  B+Tree vs B-Tree 核心区别：    维度 B+Tree B-Tree    数据存储 只有叶子节点存数据 所有节点都存数据   叶子节点连接 有双向链表，支持范围扫描 无链表，范围查询需中序遍历   I&...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94spring/" title="java知识规划——spring"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——spring</div></div><div class="info-2"><div class="info-item-1">java知识规划——spring 本文档覆盖面试权重 25% 的 Spring 知识体系，按”容器基础 → AOP → 自动配置 → MVC → 事务 → JPA → 安全”层层递进。每节末尾标注与 Java 核心、AI 开发 及 Spring Cloud 微服务 方向的知识关联。   2.1 Spring IoC 容器覆盖 Bean 生命周期全流程、三级缓存循环依赖、BeanFactory 与 ApplicationContext 的区别。  Bean 生命周期全流程Spring IoC 容器中一个 Bean 从创建到销毁经历以下步骤（最核心的 10 步）： 123456789101112131415161718192021222324252627282930① 实例化（Instantiation）   通过反射（Constructor.newInstance）创建原始对象   ↓② 属性赋值（Population）   @Autowired / @Resource / @Value 完成依赖注入   ↓③ Aware 接口回调   BeanNameAware.setBeanN...</div></div></div></a><a class="pagination-related" href="/java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94ai%E5%BC%80%E5%8F%91/" title="java知识规划——ai开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-11</div><div class="info-item-2">java知识规划——ai开发</div></div><div class="info-2"><div class="info-item-1">java知识规划——ai开发 本文档覆盖面试权重 10% 的 AI 开发知识，以 LangChain4j 框架为主线，从 AiServices 核心架构到模型集成、RAG、Tool Calling、会话记忆、流式响应逐层展开。每个知识点与 Java 核心 及 Spring 生态 的知识关联标注在末尾。   5.1 核心架构与 AiServices涵盖 AiServices 动态代理原理、ChatLanguageModel 统一抽象、核心组件体系以及 LangChain4j 与 Spring AI 的选型对比。  AiServices 动态代理原理AiServices 是 LangChain4j 的核心入口，底层基于 JDK 动态代理实现： 12345678// 定义 AI Service 接口interface Assistant &#123;    String chat(String userMessage);&#125;// AiServices.create() 创建代理实例Assistant assistant = AiServices.create(Assistant...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#java%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.</span> <span class="toc-text">java知识规划——分布式系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1-CAP-%E5%AE%9A%E7%90%86%E4%B8%8E-BASE-%E7%90%86%E8%AE%BA"><span class="toc-number">1.1.</span> <span class="toc-text">7.1 CAP 定理与 BASE 理论</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CAP-%E4%B8%8D%E4%B8%89%E8%A7%92"><span class="toc-number">1.1.1.</span> <span class="toc-text">CAP 不三角</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PACELC-%E6%89%A9%E5%B1%95"><span class="toc-number">1.1.2.</span> <span class="toc-text">PACELC 扩展</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#BASE-%E7%90%86%E8%AE%BA"><span class="toc-number">1.1.3.</span> <span class="toc-text">BASE 理论</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AP-vs-CP-%E9%80%89%E5%9E%8B%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.1.4.</span> <span class="toc-text">AP vs CP 选型实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2-%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE%EF%BC%882PC-Paxos-Raft-Gossip%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">7.2 一致性协议（2PC &#x2F; Paxos &#x2F; Raft &#x2F; Gossip）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2PC%EF%BC%88%E4%BA%8C%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4%EF%BC%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">2PC（二阶段提交）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Paxos%EF%BC%88Basic-Paxos%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">Paxos（Basic Paxos）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Raft"><span class="toc-number">1.2.3.</span> <span class="toc-text">Raft</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Gossip-%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.4.</span> <span class="toc-text">Gossip 协议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3-%E5%88%86%E5%B8%83%E5%BC%8F-ID-%E7%94%9F%E6%88%90"><span class="toc-number">1.3.</span> <span class="toc-text">7.3 分布式 ID 生成</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%EF%BC%88Snowflake%EF%BC%89"><span class="toc-number">1.3.1.</span> <span class="toc-text">雪花算法（Snowflake）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.3.2.</span> <span class="toc-text">方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-4-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="toc-number">1.4.</span> <span class="toc-text">7.4 分布式事务</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9B%9B%E7%A7%8D%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">1.4.1.</span> <span class="toc-text">四种模式对比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TCC-%E8%AF%A6%E8%A7%A3%EF%BC%88Try-Confirm-Cancel%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">TCC 详解（Try&#x2F;Confirm&#x2F;Cancel）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Seata-AT-%E6%A8%A1%E5%BC%8F%E8%A6%81%E7%82%B9"><span class="toc-number">1.4.3.</span> <span class="toc-text">Seata AT 模式要点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RocketMQ-%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF"><span class="toc-number">1.4.4.</span> <span class="toc-text">RocketMQ 事务消息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-5-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-number">1.5.</span> <span class="toc-text">7.5 分布式锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.5.1.</span> <span class="toc-text">分布式锁方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-6-%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8%EF%BC%88%E8%BF%9B%E9%98%B6%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">7.6 分布式存储（进阶）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87%E7%AD%96%E7%95%A5%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.1.</span> <span class="toc-text">数据分片策略对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-7-RPC-%E4%B8%8E%E9%80%9A%E4%BF%A1"><span class="toc-number">1.7.</span> <span class="toc-text">7.7 RPC 与通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.7.1.</span> <span class="toc-text">序列化方案对比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Dubbo-vs-gRPC-%E5%AF%B9%E6%AF%94"><span class="toc-number">1.7.2.</span> <span class="toc-text">Dubbo vs gRPC 对比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#BIO-%E2%86%92-NIO-%E2%86%92-Netty-%E6%BC%94%E8%BF%9B"><span class="toc-number">1.7.3.</span> <span class="toc-text">BIO → NIO → Netty 演进</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-8-%E5%88%86%E5%B8%83%E5%BC%8F%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA"><span class="toc-number">1.8.</span> <span class="toc-text">7.8 分布式链路追踪</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#TraceID-SpanID-%E7%BB%93%E6%9E%84"><span class="toc-number">1.8.1.</span> <span class="toc-text">TraceID &#x2F; SpanID 结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#OpenTelemetry-%E5%9B%9B%E5%A4%A7%E7%BB%84%E4%BB%B6"><span class="toc-number">1.8.2.</span> <span class="toc-text">OpenTelemetry 四大组件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5"><span class="toc-number">1.8.3.</span> <span class="toc-text">采样策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-9-%E5%88%86%E5%B8%83%E5%BC%8F%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="toc-number">1.9.</span> <span class="toc-text">7.9 分布式配置中心</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A8%E6%A8%A1%E5%BC%8F-vs-%E6%8B%89%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.9.1.</span> <span class="toc-text">推模式 vs 拉模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-10-%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%80%9D%E7%BB%B4"><span class="toc-number">1.10.</span> <span class="toc-text">7.10 分布式系统设计思维</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%AB%E5%A4%A7%E8%B0%AC%E8%AF%AF%EF%BC%88Fallacies-of-Distributed-Computing%EF%BC%89"><span class="toc-number">1.10.1.</span> <span class="toc-text">八大谬误（Fallacies of Distributed Computing）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%98%B2%E6%8A%A4%E5%9B%9B%E5%B1%82%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.10.2.</span> <span class="toc-text">防护四层模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B9%82%E7%AD%89%E8%AE%BE%E8%AE%A1%E8%A6%81%E7%82%B9"><span class="toc-number">1.10.3.</span> <span class="toc-text">幂等设计要点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9B%AA%E5%B4%A9%E9%98%B2%E6%8A%A4%E9%93%BE"><span class="toc-number">1.10.4.</span> <span class="toc-text">雪崩防护链</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,1210 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Sidecar 机制详解 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="全面解析 Sidecar 设计模式，涵盖设计模式原理、Kubernetes 原生支持（KEP-753 v1.33 Stable）、Service Mesh 中的 Istio Sidecar 注入与流量劫持、5 种常见实现模式，以及 Go 实现认证代理 Sidecar 的完整实战">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sidecar 机制详解">
+<meta property="og:url" content="https://ziogn.github.io/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="全面解析 Sidecar 设计模式，涵盖设计模式原理、Kubernetes 原生支持（KEP-753 v1.33 Stable）、Service Mesh 中的 Istio Sidecar 注入与流量劫持、5 种常见实现模式，以及 Go 实现认证代理 Sidecar 的完整实战">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-07-23T12:45:00.000Z">
+<meta property="article:modified_time" content="2026-07-23T13:00:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="devops">
+<meta property="article:tag" content="go">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="service-mesh">
+<meta property="article:tag" content="sidecar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Sidecar 机制详解",
+  "url": "https://ziogn.github.io/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-07-23T12:45:00.000Z",
+  "dateModified": "2026-07-23T13:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Sidecar 机制详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">Sidecar 机制详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Sidecar 机制详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-23T13:00:00.000Z" title="更新于 2026-07-23 21:00:00">2026-07-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>29分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Sidecar-机制详解"><a href="#Sidecar-机制详解" class="headerlink" title="Sidecar 机制详解"></a>Sidecar 机制详解</h1><h2 id="1-Sidecar-设计模式"><a href="#1-Sidecar-设计模式" class="headerlink" title="1. Sidecar 设计模式"></a>1. Sidecar 设计模式</h2><h3 id="1-1-什么是-Sidecar-模式"><a href="#1-1-什么是-Sidecar-模式" class="headerlink" title="1.1 什么是 Sidecar 模式"></a>1.1 什么是 Sidecar 模式</h3><p>Sidecar 是一种分布式架构设计模式（也称 Sidekick 模式），核心思想是将辅助功能从主应用中剥离出来，以独立的进程或容器运行，并与主应用部署在同一环境中共享生命周期。</p>
+<p>类比现实世界：三轮摩托车的边车（Sidecar）附加在车身旁，提供额外载客能力但不改变主车结构。在软件架构中，Sidecar 进程附加在主应用进程旁，提供日志、监控、代理、安全等辅助能力，主应用无需感知其存在。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    subgraph &quot;Pod&quot;
+        subgraph &quot;共享网络命名空间 localhost&quot;
+            A[&quot;主容器&lt;br&#x2F;&gt;业务应用&quot;] --- B[&quot;Sidecar 容器&lt;br&#x2F;&gt;代理&#x2F;日志&#x2F;监控&quot;]
+        end
+        C[&quot;共享存储卷&lt;br&#x2F;&gt;emptyDir&#x2F;PVC&quot;]
+        A --- C
+        B --- C
+    end</pre></div>
+
+
+<h3 id="1-2-演进历史"><a href="#1-2-演进历史" class="headerlink" title="1.2 演进历史"></a>1.2 演进历史</h3><p>Sidecar 模式经历了三个阶段的演进：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>架构形态</th>
+<th>耦合度</th>
+<th>典型问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>单体内置</strong></td>
+<td>辅助功能作为函数&#x2F;模块嵌入进程</td>
+<td>强耦合（函数级）</td>
+<td>语言锁定、无法独立更新、资源竞争</td>
+</tr>
+<tr>
+<td><strong>SDK 库</strong></td>
+<td>辅助功能封装为第三方库，代码内调用</td>
+<td>中等耦合（API 级）</td>
+<td>版本依赖冲突、升级需改代码、多语言需多套 SDK</td>
+</tr>
+<tr>
+<td><strong>Sidecar 独立进程</strong></td>
+<td>辅助功能作为独立进程&#x2F;容器，localhost 通信</td>
+<td>松耦合（协议级）</td>
+<td>额外资源开销、通信延迟增加</td>
+</tr>
+</tbody></table>
+<p><strong>单体内置阶段</strong>：早期应用将日志、监控等能力直接写在代码里，辅助功能与业务逻辑紧耦合，更换日志库或升级监控 SDK 需要修改业务代码并重新部署。</p>
+<p><strong>SDK 库阶段</strong>：辅助功能封装为 SDK，通过 API 调用集成。一定程度上实现了复用，但仍然存在版本依赖冲突、多语言需维护多套 SDK、升级 SDK 需重新编译发布等问题。</p>
+<p><strong>Sidecar 独立进程阶段</strong>：辅助功能以独立进程运行，通过 HTTP&#x2F;gRPC 或共享文件系统与主应用通信。主应用完全不知道 Sidecar 的存在，实现了真正的关注点分离。</p>
+<h3 id="1-3-核心原理：Pod-多容器模型"><a href="#1-3-核心原理：Pod-多容器模型" class="headerlink" title="1.3 核心原理：Pod 多容器模型"></a>1.3 核心原理：Pod 多容器模型</h3><p>在 Kubernetes 中，Pod 是最小调度单元，一个 Pod 内可运行多个容器。这些容器共享两个关键资源：</p>
+<ul>
+<li><strong>网络命名空间（Network Namespace）</strong>：所有容器共享同一个 IP 地址和端口空间，容器之间通过 <code>localhost</code> 通信，无需 Service 发现</li>
+<li><strong>存储卷（Volume）</strong>：通过 <code>emptyDir</code>、<code>hostPath</code> 或 <code>PVC</code> 共享文件系统，Sidecar 可以读取主容器写入的日志文件</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">sidecar-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log/nginx</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sidecar-log-collector</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">fluentd</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log/nginx</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">      <span class="attr">emptyDir:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-Sidecar-vs-其他模式的对比"><a href="#1-4-Sidecar-vs-其他模式的对比" class="headerlink" title="1.4 Sidecar vs 其他模式的对比"></a>1.4 Sidecar vs 其他模式的对比</h3><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>部署形态</th>
+<th>通信方式</th>
+<th>隔离性</th>
+<th>独立升级</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SDK</strong></td>
+<td>库文件嵌入应用</td>
+<td>函数调用</td>
+<td>无</td>
+<td>需要重新编译</td>
+<td>简单功能集成</td>
+</tr>
+<tr>
+<td><strong>Sidecar</strong></td>
+<td>同 Pod 独立容器</td>
+<td>localhost 网络或共享 Volume</td>
+<td>进程级</td>
+<td>独立部署</td>
+<td>辅助功能解耦</td>
+</tr>
+<tr>
+<td><strong>Ambassador</strong></td>
+<td>同 Pod 独立容器</td>
+<td>localhost 网络</td>
+<td>进程级</td>
+<td>独立部署</td>
+<td>代理&#x2F;路由功能</td>
+</tr>
+<tr>
+<td><strong>Adapter</strong></td>
+<td>同 Pod 独立容器</td>
+<td>localhost 网络</td>
+<td>进程级</td>
+<td>独立部署</td>
+<td>协议转换&#x2F;适配</td>
+</tr>
+<tr>
+<td><strong>独立进程</strong></td>
+<td>独立主机&#x2F;VM</td>
+<td>网络通信</td>
+<td>主机级</td>
+<td>独立部署</td>
+<td>需要独立扩展的服务</td>
+</tr>
+</tbody></table>
+<p><strong>Sidecar vs Ambassador</strong>：Ambassador 其实是 Sidecar 的一个子模式，特指充当代理的角色（如 Redis 代理 Envoy）。所有 Ambassador 都是 Sidecar，但 Sidecar 不一定是 Ambassador。</p>
+<h3 id="1-5-适用场景"><a href="#1-5-适用场景" class="headerlink" title="1.5 适用场景"></a>1.5 适用场景</h3><ul>
+<li><strong>多语言环境</strong>：团队使用不同语言开发微服务，Sidecar 提供语言无关的辅助能力</li>
+<li><strong>第三方组件集成</strong>：将日志采集器、监控 Exporter 等第三方组件作为 Sidecar 与主应用捆绑部署</li>
+<li><strong>独立更新组件</strong>：Sidecar 组件可以独立发布和升级，不影响主应用</li>
+<li><strong>细粒度资源控制</strong>：Sidecar 和主应用可分别设置 CPU&#x2F;内存 limits，实现资源隔离</li>
+</ul>
+<h3 id="1-6-不适用场景"><a href="#1-6-不适用场景" class="headerlink" title="1.6 不适用场景"></a>1.6 不适用场景</h3><ul>
+<li><strong>IPC 频繁的应用</strong>：主应用与辅助功能之间频繁通信，Sidecar 的额外网络开销无法接受</li>
+<li><strong>小型应用</strong>：单个 Pod 多容器增加的资源开销大于收益</li>
+<li><strong>需要独立扩展的组件</strong>：辅助功能需要根据负载独立扩缩容，绑定在 Pod 内无法实现</li>
+<li><strong>平台已提供原生能力</strong>：K8s 已提供的功能（如 <code>kubectl logs</code> 采集 stdout&#x2F;stderr）无需 Sidecar</li>
+</ul>
+<hr>
+<h2 id="2-Kubernetes-原生-Sidecar"><a href="#2-Kubernetes-原生-Sidecar" class="headerlink" title="2. Kubernetes 原生 Sidecar"></a>2. Kubernetes 原生 Sidecar</h2><h3 id="2-1-原生支持的必要性"><a href="#2-1-原生支持的必要性" class="headerlink" title="2.1 原生支持的必要性"></a>2.1 原生支持的必要性</h3><p>在 K8s 原生 Sidecar 支持之前，用户通过普通容器模拟 Sidecar 行为，存在严重缺陷：</p>
+<ul>
+<li>Job 场景下主容器退出后 Sidecar 仍在运行，Pod 无法进入 <code>Completed</code> 状态</li>
+<li>无法保证 Sidecar 在主容器启动前就绪</li>
+<li>Pod 终止时 Sidecar 和主容器同时收到 <code>SIGTERM</code>，Sidecar 可能过早退出导致主容器异常</li>
+</ul>
+<p>KEP-753（Kubernetes Enhancement Proposal 753）正是为解决这些问题而生。</p>
+<h3 id="2-2-KEP-753-演进路线"><a href="#2-2-KEP-753-演进路线" class="headerlink" title="2.2 KEP-753 演进路线"></a>2.2 KEP-753 演进路线</h3><table>
+<thead>
+<tr>
+<th>Kubernetes 版本</th>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.28（2023-08）</td>
+<td><strong>Alpha</strong></td>
+<td>引入 <code>SidecarContainers</code> feature gate，默认关闭</td>
+</tr>
+<tr>
+<td>v1.29（2023-12）</td>
+<td><strong>Beta</strong></td>
+<td>默认启用，在 <code>initContainers</code> 上支持 <code>restartPolicy: Always</code></td>
+</tr>
+<tr>
+<td>v1.33（2025-08）</td>
+<td><strong>Stable</strong></td>
+<td>正式 GA，无需 feature gate</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-restartPolicy-Always-行为详解"><a href="#2-3-restartPolicy-Always-行为详解" class="headerlink" title="2.3 restartPolicy: Always 行为详解"></a>2.3 restartPolicy: Always 行为详解</h3><p>K8s 原生 Sidecar 的实现方式是在 <code>initContainers</code> 字段中设置 <code>restartPolicy: Always</code>。这个字段有四个关键行为变化：</p>
+<ol>
+<li><strong>退出自动重启</strong>：无论退出码是 0 还是非 0，Sidecar 容器都会自动重启（忽略 Pod 级别的 <code>restartPolicy</code>）</li>
+<li><strong>先于主容器启动</strong>：Sidecar 在 init 阶段启动，确保在主容器启动前就已就绪</li>
+<li><strong>资源计入 Pod 总量</strong>：Sidecar 的 <code>requests</code>&#x2F;<code>limits</code> 计入 Pod 的资源总和</li>
+<li><strong>Pod 终止只依据主容器</strong>：Kubelet 只根据普通容器的状态判断 Pod 是否终止，忽略 Sidecar 的生命周期</li>
+</ol>
+<h3 id="2-4-YAML-配置示例"><a href="#2-4-YAML-配置示例" class="headerlink" title="2.4 YAML 配置示例"></a>2.4 YAML 配置示例</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">native-sidecar-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">initContainers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sidecar-proxy</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">envoyproxy/envoy:v1.31-latest</span></span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Always</span>                    <span class="comment"># 关键标记：声明为 Sidecar 容器</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9901</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">admin</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">envoy-config</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/etc/envoy</span></span><br><span class="line">      <span class="attr">startupProbe:</span>                            <span class="comment"># 确保 Sidecar 就绪后再启动主容器</span></span><br><span class="line">        <span class="attr">httpGet:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">/ready</span></span><br><span class="line">          <span class="attr">port:</span> <span class="number">9901</span></span><br><span class="line">        <span class="attr">initialDelaySeconds:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">periodSeconds:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">failureThreshold:</span> <span class="number">30</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">nginx:latest</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">envoy-config</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">envoy-config</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-启动顺序"><a href="#2-5-启动顺序" class="headerlink" title="2.5 启动顺序"></a>2.5 启动顺序</h3><p>K8s 原生 Sidecar 改变了 Pod 的启动顺序：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>sequenceDiagram
+    participant K as Kubelet
+    participant I1 as Init 容器 1
+    participant I2 as Init 容器 2
+    participant S as Sidecar 容器
+    participant A as 主容器
+
+<pre><code>K-&amp;gt;&amp;gt;I1: 启动 Init 容器 1（串行）
+Note over I1: 运行到完成
+K-&amp;gt;&amp;gt;I2: 启动 Init 容器 2（串行）
+Note over I2: 运行到完成
+K-&amp;gt;&amp;gt;S: 启动 Sidecar（restartPolicy: Always）
+Note over S: 持续运行，不退出
+K-&amp;gt;&amp;gt;S: startupProbe 探测（周期性检查）
+Note over S: 探测就绪后
+K-&amp;gt;&amp;gt;A: 启动主容器（以及所有普通容器，并行启动）
+Note over S,A: Sidecar 与主容器并行运行&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<ol>
+<li>Init 容器按声明顺序<strong>串行</strong>执行（每个运行到完成）</li>
+<li>声明了 <code>restartPolicy: Always</code> 的 Init 容器被视为 Sidecar，启动后<strong>持续运行</strong>，不等待完成</li>
+<li>Sidecar 容器的 <code>startupProbe</code> 就绪后，触发后续 Init 容器启动</li>
+<li>所有 Init 容器完成后，普通容器<strong>并行</strong>启动</li>
+</ol>
+<h3 id="2-6-终止顺序"><a href="#2-6-终止顺序" class="headerlink" title="2.6 终止顺序"></a>2.6 终止顺序</h3><p>Pod 终止时，Sidecar 的终止顺序遵循”主容器先退出，Sidecar 最后终止”的原则：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>sequenceDiagram
+    participant U as 用户
+    participant K as Kubelet
+    participant A as 主容器
+    participant S as Sidecar
+
+<pre><code>U-&amp;gt;&amp;gt;K: kubectl delete pod
+K-&amp;gt;&amp;gt;A: SIGTERM（主容器）
+Note over A: 开始优雅退出
+A--&amp;gt;&amp;gt;K: 主容器退出
+Note over K: 进入 Pod 终止宽限期
+K-&amp;gt;&amp;gt;S: SIGTERM（Sidecar 容器）
+Note over S: Sidecar 自动终止
+S--&amp;gt;&amp;gt;K: Sidecar 退出
+Note over K: Pod 进入 Terminating&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p>关键行为：</p>
+<ul>
+<li>主容器退出后，Pod 进入终止宽限期</li>
+<li>Sidecar 在宽限期内自动收到 <code>SIGTERM</code> 信号</li>
+<li>如果 Sidecar 未在宽限期内优雅退出，会收到 <code>SIGKILL</code></li>
+<li>只有所有容器（包括 Sidecar）都退出后，Pod 才完成终止</li>
+</ul>
+<h3 id="2-7-Job-场景的原生解决"><a href="#2-7-Job-场景的原生解决" class="headerlink" title="2.7 Job 场景的原生解决"></a>2.7 Job 场景的原生解决</h3><p>在原生 Sidecar 之前，Job Pod 主容器退出后 Sidecar 仍在运行，Pod 永远无法进入 <code>Completed</code> 状态：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 原生 Sidecar 正确支持 Job 场景</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">batch/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Job</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">sidecar-job</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">initContainers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sidecar-logger</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">          <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;while true; do sleep 1; done&quot;</span>]</span><br><span class="line">          <span class="attr">restartPolicy:</span> <span class="string">Always</span>                <span class="comment"># 声明为原生 Sidecar</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">worker</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">          <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;echo &#x27;job done&#x27;&quot;</span>]</span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Never</span></span><br></pre></td></tr></table></figure>
+
+<p>Kubelet 检测到主容器（非 Sidecar）退出后，即使 Sidecar 仍在运行，也会将 Pod 标记为 <code>Completed</code>。这解决了困扰用户多年的 Sidecar 在 Job 场景的残留问题。</p>
+<h3 id="2-8-三种容器对比"><a href="#2-8-三种容器对比" class="headerlink" title="2.8 三种容器对比"></a>2.8 三种容器对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Init 容器</th>
+<th>Sidecar 容器（原生）</th>
+<th>普通容器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定义位置</strong></td>
+<td><code>initContainers[]</code></td>
+<td><code>initContainers[]</code> + <code>restartPolicy: Always</code></td>
+<td><code>containers[]</code></td>
+</tr>
+<tr>
+<td><strong>启动顺序</strong></td>
+<td>串行，按声明顺序</td>
+<td>在 init 阶段启动，先于主容器</td>
+<td>init 全部完成后串行&#x2F;并行</td>
+</tr>
+<tr>
+<td><strong>运行时间</strong></td>
+<td>运行到完成即退出</td>
+<td>持续运行，Pod 整个生命周期</td>
+<td>持续运行</td>
+</tr>
+<tr>
+<td><strong>重启策略</strong></td>
+<td>无，退出即结束</td>
+<td><code>Always</code>，始终重启</td>
+<td>由 Pod <code>restartPolicy</code> 控制</td>
+</tr>
+<tr>
+<td><strong>资源计数</strong></td>
+<td>不计入 Pod 资源总和</td>
+<td>计入 Pod 资源总和</td>
+<td>计入 Pod 资源总和</td>
+</tr>
+<tr>
+<td><strong>健康检查</strong></td>
+<td>不支持</td>
+<td>支持 startup&#x2F;liveness&#x2F;readiness</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>Job 兼容性</strong></td>
+<td>不影响</td>
+<td>不影响（主容器退出即算完成）</td>
+<td>阻止 Job 完成</td>
+</tr>
+<tr>
+<td><strong>终止顺序</strong></td>
+<td>完成后即终止</td>
+<td>主容器之后终止</td>
+<td>同时收到 SIGTERM</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="3-Service-Mesh-中的-Sidecar"><a href="#3-Service-Mesh-中的-Sidecar" class="headerlink" title="3. Service Mesh 中的 Sidecar"></a>3. Service Mesh 中的 Sidecar</h2><h3 id="3-1-什么是-Service-Mesh-Sidecar"><a href="#3-1-什么是-Service-Mesh-Sidecar" class="headerlink" title="3.1 什么是 Service Mesh Sidecar"></a>3.1 什么是 Service Mesh Sidecar</h3><p>Service Mesh（服务网格）将微服务的流量管理、安全通信、可观测性从应用代码中剥离，以 Sidecar 代理的形式透明地附加到每个服务 Pod 中。最流行的实现是 <strong>Istio</strong>，它使用 Envoy 代理作为 Sidecar。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    subgraph &quot;Pod A&quot;
+        A1[&quot;业务容器&quot;] --- A2[&quot;Envoy Sidecar&quot;]
+    end
+    subgraph &quot;Pod B&quot;
+        B1[&quot;业务容器&quot;] --- B2[&quot;Envoy Sidecar&quot;]
+    end
+    A2 &lt;&#x3D;&#x3D; &quot;mTLS 加密通信&quot; &#x3D;&#x3D;&gt; B2
+    A1 -- &quot;localhost:8080&quot; --&gt; A2
+    B2 -- &quot;localhost:8080&quot; --&gt; B1
+    style A2 fill:#f9f,stroke:#333
+    style B2 fill:#f9f,stroke:#333</pre></div>
+
+
+<h3 id="3-2-Sidecar-注入方式"><a href="#3-2-Sidecar-注入方式" class="headerlink" title="3.2 Sidecar 注入方式"></a>3.2 Sidecar 注入方式</h3><h4 id="自动注入（推荐）"><a href="#自动注入（推荐）" class="headerlink" title="自动注入（推荐）"></a>自动注入（推荐）</h4><ol>
+<li>为命名空间打标签：<code>kubectl label namespace default istio-injection=enabled</code></li>
+<li>在该命名空间创建 Pod 时，<strong>MutatingAdmissionWebhook</strong> 拦截 Pod 创建请求</li>
+<li>Webhook 动态修改 Pod spec，注入 <code>istio-init</code> 和 <code>istio-proxy</code> 容器</li>
+<li>用户无需手动修改任何 Deployment YAML</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用自动注入</span></span><br><span class="line">kubectl label namespace default istio-injection=enabled</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 Pod 后检查是否注入成功</span></span><br><span class="line">kubectl describe pod &lt;pod-name&gt;</span><br><span class="line"><span class="comment"># 输出中应有 2 个容器（业务容器 + istio-proxy）+ 1 个 Init Container</span></span><br><span class="line"></span><br><span class="line">kubectl get pods</span><br><span class="line"><span class="comment"># READY 列显示 2/2 表示主容器和 Sidecar 都已就绪</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="手动注入"><a href="#手动注入" class="headerlink" title="手动注入"></a>手动注入</h4><p>使用 <code>istioctl kube-inject</code> 命令在 YAML 层面注入 Sidecar，适用于 CI&#x2F;CD 流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 部署时注入</span></span><br><span class="line">kubectl apply -f &lt;(istioctl kube-inject -f deployment.yaml)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成注入后的 YAML 文件</span></span><br><span class="line">istioctl kube-inject -f deployment.yaml -o deployment-injected.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新已有 Deployment</span></span><br><span class="line">kubectl get deployment -o yaml | istioctl kube-inject -f - | kubectl apply -f -</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-istio-init-istio-proxy-双容器模型"><a href="#3-3-istio-init-istio-proxy-双容器模型" class="headerlink" title="3.3 istio-init &#x2F; istio-proxy 双容器模型"></a>3.3 istio-init &#x2F; istio-proxy 双容器模型</h3><p>Istio Sidecar 由两个容器组成：</p>
+<table>
+<thead>
+<tr>
+<th>容器</th>
+<th>镜像</th>
+<th>作用</th>
+<th>生命周期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>istio-init</code></td>
+<td><code>istio/proxyv2</code></td>
+<td>设置 iptables 规则，流量劫持</td>
+<td>Init 容器，运行即退出</td>
+</tr>
+<tr>
+<td><code>istio-proxy</code></td>
+<td><code>istio/proxyv2</code></td>
+<td>运行 Envoy 代理，处理全部流量</td>
+<td>持续运行，Pod 生命周期</td>
+</tr>
+</tbody></table>
+<p><strong>istio-init</strong>（普通 init 容器）负责在 Pod 网络命名空间中注入 iptables 规则，将所有进出流量透明地重定向到 Envoy（istio-proxy）。它执行以下 iptables 操作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># iptables 规则示意（由 istio-init 自动配置）</span></span><br><span class="line"><span class="comment"># 将所有出站 TCP 流量重定向到 Envoy 的 15001 端口</span></span><br><span class="line">iptables -t nat -A OUTPUT -p tcp -j REDIRECT --to-port 15001</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将所有入站 TCP 流量重定向到 Envoy 的 15006 端口</span></span><br><span class="line">iptables -t nat -A PREROUTING -p tcp -j REDIRECT --to-port 15006</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-iptables-流量劫持流程"><a href="#3-4-iptables-流量劫持流程" class="headerlink" title="3.4 iptables 流量劫持流程"></a>3.4 iptables 流量劫持流程</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart LR
+    subgraph &quot;Pod 内部&quot;
+        direction TB
+        A[&quot;业务容器&quot;] -- &quot;出站请求&lt;br&#x2F;&gt;src: localhost:xxxx&quot; --&gt; B
+        B[&quot;iptables OUTPUT 链&lt;br&#x2F;&gt;NAT 表规则&quot;] -- &quot;重定向到 15001&quot; --&gt; C[&quot;Envoy Sidecar&lt;br&#x2F;&gt;(istio-proxy)&quot;]
+        C -- &quot;转发到目标服务&quot; --&gt; D[&quot;目标 Pod&quot;]
+        
+<pre><code>    E[&amp;quot;外部请求&amp;quot;] -- &amp;quot;入站流量&amp;quot; --&amp;gt; F[&amp;quot;iptables PREROUTING 链&amp;lt;br&amp;#x2F;&amp;gt;NAT 表规则&amp;quot;]
+    F -- &amp;quot;重定向到 15006&amp;quot; --&amp;gt; C
+    C -- &amp;quot;转发 localhost:PORT&amp;quot; --&amp;gt; A
+end&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>出站流量劫持</strong>：</p>
+<ol>
+<li>业务容器发起对外部服务的 TCP 连接（如调用服务 B）</li>
+<li>iptables OUTPUT 链匹配出站 TCP 包，重定向到 Envoy 的 <code>15001</code> 端口</li>
+<li>Envoy 根据 xDS 配置的服务发现和路由规则，将请求转发到正确的目标</li>
+</ol>
+<p><strong>入站流量劫持</strong>：</p>
+<ol>
+<li>外部请求到达 Pod IP 的某个端口</li>
+<li>iptables PREROUTING 链匹配入站 TCP 包，重定向到 Envoy 的 <code>15006</code> 端口</li>
+<li>Envoy 处理请求后转发到业务容器监听的本机端口</li>
+</ol>
+<h3 id="3-5-Envoy-代理架构简介"><a href="#3-5-Envoy-代理架构简介" class="headerlink" title="3.5 Envoy 代理架构简介"></a>3.5 Envoy 代理架构简介</h3><p>Envoy 是 Istio 数据平面的核心组件，采用以下三层架构：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TD
+    subgraph &quot;Envoy 代理&quot;
+        L1[&quot;Listener（监听端口）&lt;br&#x2F;&gt;如 15001（出站）&#x2F; 15006（入站）&quot;]
+        L1 --&gt; FC1[&quot;Filter Chain 1&lt;br&#x2F;&gt;HTTP 连接管理器（HCM）&quot;]
+        L1 --&gt; FC2[&quot;Filter Chain N&quot;]
+        FC1 --&gt; R[&quot;Router Filter&quot;]
+        R --&gt; C1[&quot;Cluster A&lt;br&#x2F;&gt;HTTP:&#x2F;&#x2F;service-a:8080&quot;]
+        R --&gt; C2[&quot;Cluster B&lt;br&#x2F;&gt;HTTP:&#x2F;&#x2F;service-b:8080&quot;]
+    end
+    
+<pre><code>subgraph &amp;quot;控制平面（Pilot）&amp;quot;
+    X[&amp;quot;xDS API 推送&amp;quot;]
+end
+
+X -. &amp;quot;动态更新&amp;quot; .-&amp;gt; L1
+X -. &amp;quot;动态更新&amp;quot; .-&amp;gt; FC1
+X -. &amp;quot;动态更新&amp;quot; .-&amp;gt; C1&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<ul>
+<li><strong>Listener</strong>：监听指定端口接收流量（如 15001 出站、15006 入站）</li>
+<li><strong>Filter Chain</strong>：过滤器链处理流量（HTTP 连接管理、RBAC、限流等）</li>
+<li><strong>Cluster</strong>：上游服务集群定义（目标地址、负载均衡策略、健康检查）</li>
+<li><strong>xDS API</strong>：Envoy 通过 xDS（Listener Discovery Service、Cluster Discovery Service 等）从 Istio 控制平面（Pilot）动态获取配置，无需重启即可生效</li>
+</ul>
+<h3 id="3-6-mTLS-加密通信"><a href="#3-6-mTLS-加密通信" class="headerlink" title="3.6 mTLS 加密通信"></a>3.6 mTLS 加密通信</h3><p>Istio 自动为 Pod 之间的 Sidecar 建立双向 TLS（mTLS）连接，应用层完全无感知：</p>
+<ul>
+<li>Sidecar 之间通信自动加密和双向认证</li>
+<li>通过 Istio <code>PeerAuthentication</code> 资源控制 mTLS 模式（STRICT &#x2F; PERMISSIVE &#x2F; DISABLE）</li>
+<li>证书轮换由 Istio Citadel（或 istiod）自动管理</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用严格的 mTLS</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">security.istio.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PeerAuthentication</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">istio-system</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">mtls:</span></span><br><span class="line">    <span class="attr">mode:</span> <span class="string">STRICT</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-7-流量管理能力"><a href="#3-7-流量管理能力" class="headerlink" title="3.7 流量管理能力"></a>3.7 流量管理能力</h3><p>在 Sidecar 层实现流量管理，为灰度发布、蓝绿部署、金丝雀发布等提供基础设施：</p>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+<th>Istio 资源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>灰度发布</td>
+<td>按权重&#x2F;Header 分流到不同版本</td>
+<td><code>VirtualService</code> + <code>DestinationRule</code></td>
+</tr>
+<tr>
+<td>熔断</td>
+<td>异常阈值触发断路保护</td>
+<td><code>DestinationRule</code></td>
+</tr>
+<tr>
+<td>超时&#x2F;重试</td>
+<td>请求超时控制和失败重试</td>
+<td><code>VirtualService</code></td>
+</tr>
+<tr>
+<td>故障注入</td>
+<td>注入延迟&#x2F;错误用于混沌测试</td>
+<td><code>VirtualService</code></td>
+</tr>
+<tr>
+<td>限流</td>
+<td>本地或全局速率限制</td>
+<td><code>EnvoyFilter</code> &#x2F; <code>RateLimit</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-常见-Sidecar-实现模式"><a href="#4-常见-Sidecar-实现模式" class="headerlink" title="4. 常见 Sidecar 实现模式"></a>4. 常见 Sidecar 实现模式</h2><h3 id="4-1-日志收集-Sidecar"><a href="#4-1-日志收集-Sidecar" class="headerlink" title="4.1 日志收集 Sidecar"></a>4.1 日志收集 Sidecar</h3><p><strong>概念</strong>：将日志采集 agent（Filebeat、Fluentd、Logstash 等）作为 Sidecar，与主应用共享日志目录，由 Sidecar 读取并转发到集中式日志系统（Elasticsearch、Loki、S3 等）。</p>
+<p><strong>架构</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    subgraph &quot;Pod&quot;
+        A[&quot;主应用容器&lt;br&#x2F;&gt;写入日志&lt;br&#x2F;&gt;&#x2F;var&#x2F;log&#x2F;app&quot;] -- &quot;emptyDir 共享&quot; --&gt; V[&quot;emptyDir Volume&quot;]
+        B[&quot;Filebeat Sidecar&lt;br&#x2F;&gt;读取日志文件&quot;] -- &quot;读取&quot; --&gt; V
+        B -- &quot;转发&quot; --&gt; ES[&quot;Elasticsearch &#x2F; Loki&quot;]
+    end</pre></div>
+
+
+<p><strong>YAML 配置</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">log-sidecar-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">my-app:latest</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log/app</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">filebeat</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">docker.elastic.co/beats/filebeat:8.15.0</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log/app</span></span><br><span class="line">          <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">filebeat-config</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/filebeat/filebeat.yml</span></span><br><span class="line">          <span class="attr">subPath:</span> <span class="string">filebeat.yml</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">logs</span></span><br><span class="line">      <span class="attr">emptyDir:</span> &#123;&#125;</span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">filebeat-config</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">filebeat-config</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-监控-Sidecar（Prometheus-Exporter）"><a href="#4-2-监控-Sidecar（Prometheus-Exporter）" class="headerlink" title="4.2 监控 Sidecar（Prometheus Exporter）"></a>4.2 监控 Sidecar（Prometheus Exporter）</h3><p><strong>概念</strong>：将 Prometheus Exporter 作为 Sidecar 部署，将主应用的服务指标暴露为 Prometheus 可采集的格式。</p>
+<p><strong>典型场景</strong>：</p>
+<ul>
+<li>MySQL Exporter：采集 MySQL 数据库指标</li>
+<li>Redis Exporter：采集 Redis 缓存指标</li>
+<li>Nginx Exporter：采集 Nginx HTTP 指标</li>
+<li>自定义 Exporter：将应用自定义指标转换为 Prometheus 格式</li>
+</ul>
+<p><strong>架构</strong>：Exporter 通过 <code>localhost:PORT</code> 连接主应用暴露的 metrics 端点，自身在 <code>localhost:9104</code> 等端口暴露 Prometheus 采集端点。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysql-monitor</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">mysql</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">mysql:8.4</span></span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MYSQL_ROOT_PASSWORD</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">secretKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">mysql-secret</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">password</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">mysqld-exporter</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">prom/mysqld-exporter:v0.15.1</span></span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">DATA_SOURCE_NAME</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">&quot;root:$(MYSQL_ROOT_PASSWORD)@(localhost:3306)/&quot;</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9104</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-认证代理-Sidecar"><a href="#4-3-认证代理-Sidecar" class="headerlink" title="4.3 认证代理 Sidecar"></a>4.3 认证代理 Sidecar</h3><p><strong>概念</strong>：在 Sidecar 层实现认证逻辑（JWT 验证、OAuth2 代理、Basic Auth 等），主应用专注于业务逻辑，无需处理认证。</p>
+<p><strong>架构</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart LR
+    C[&quot;客户端请求&quot;] --&gt; S[&quot;Auth Sidecar&lt;br&#x2F;&gt;localhost:8080&quot;]
+    S -- &quot;验证 JWT &#x2F; OAuth&quot; --&gt; S
+    S -- &quot;验证通过，转发请求&quot; --&gt; A[&quot;主应用&lt;br&#x2F;&gt;localhost:8081&quot;]
+    A -- &quot;响应&quot; --&gt; S
+    S -- &quot;响应&quot; --&gt; C</pre></div>
+
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以 OAuth2 Proxy 为例</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">auth-sidecar-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">my-web-app:latest</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8081</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">oauth2-proxy</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">quay.io/oauth2-proxy/oauth2-proxy:v7.6.0</span></span><br><span class="line">      <span class="attr">args:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--upstream=http://localhost:8081</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--http-address=0.0.0.0:8080</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--provider=oidc</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--client-id=xxxx</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--client-secret=xxxx</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-配置-Secret-同步-Sidecar"><a href="#4-4-配置-Secret-同步-Sidecar" class="headerlink" title="4.4 配置&#x2F;Secret 同步 Sidecar"></a>4.4 配置&#x2F;Secret 同步 Sidecar</h3><p><strong>概念</strong>：Sidecar 监听外部配置源（K8s ConfigMap&#x2F;Secret、Consul、Nacos 等）的变更，将最新配置同步到本地文件或通过 localhost 推送至主应用，实现热更新。</p>
+<p><strong>架构</strong>：Sidecar 通过 Watch API 监听资源变更，将配置写入共享 Volume，主应用通过文件变化通知或轮询获取最新配置。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">config-sync-sidecar</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">my-app:latest</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">shared-config</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/etc/app/config</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">consul-template</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">hashicorp/consul-template:0.39.1</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">shared-config</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/etc/app/config</span></span><br><span class="line">      <span class="attr">args:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">-template=/etc/consul-template/template.ctmpl:/etc/app/config/app.yml</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-Protocol-Adapter-Sidecar"><a href="#4-5-Protocol-Adapter-Sidecar" class="headerlink" title="4.5 Protocol Adapter Sidecar"></a>4.5 Protocol Adapter Sidecar</h3><p><strong>概念</strong>：Sidecar 负责协议转换，将一种协议转换为另一种协议，隔离异构协议处理逻辑。</p>
+<p><strong>典型场景</strong>：</p>
+<ul>
+<li><strong>HTTP -&gt; gRPC</strong>：外部系统通过 HTTP REST 调用，内部服务使用 gRPC，Sidecar 做协议转换</li>
+<li><strong>TCP -&gt; UDP</strong>：日志采集收 TCP 连接，转发到 UDP 目标</li>
+<li><strong>格式转换</strong>：XML -&gt; JSON、Avro -&gt; Protobuf 等</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">protocol-adapter</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">grpc-service</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">my-grpc-service:latest</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">50051</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">grpc-gateway</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">my-grpc-gateway:latest</span></span><br><span class="line">      <span class="attr">args:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--grpc-server-endpoint=localhost:50051</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">--http-listen=0.0.0.0:8080</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-Go-实现认证代理-Sidecar-实战"><a href="#5-Go-实现认证代理-Sidecar-实战" class="headerlink" title="5. Go 实现认证代理 Sidecar 实战"></a>5. Go 实现认证代理 Sidecar 实战</h2><p>本节将用 Go 构建一个完整的认证代理 Sidecar，在 Sidecar 层完成 JWT 认证，然后将请求转发给主应用。</p>
+<h3 id="5-1-整体架构"><a href="#5-1-整体架构" class="headerlink" title="5.1 整体架构"></a>5.1 整体架构</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    subgraph &quot;Pod 内部&quot;
+        subgraph &quot;Auth Sidecar（Go）&quot;
+            HE[&quot;&#x2F;healthz 健康检查&quot;]
+            PR[&quot;&#x2F;proxy&#x2F;*path&lt;br&#x2F;&gt;ReverseProxy + JWT Auth&quot;]
+        end
+        subgraph &quot;主应用（Go Web）&quot;
+            AP[&quot;&#x2F;api&#x2F;data&lt;br&#x2F;&gt;业务 API&quot;]
+        end
+    end
+    
+<pre><code>REQ[&amp;quot;外部请求&amp;lt;br&amp;#x2F;&amp;gt;localhost:8080&amp;quot;] --&amp;gt; PR
+PR -- &amp;quot;JWT 验证通过&amp;quot; --&amp;gt; AP
+KC[&amp;quot;健康检查&amp;lt;br&amp;#x2F;&amp;gt;kubelet&amp;quot;] --&amp;gt; HE
+style HE fill:#cfc,stroke:#363
+style PR fill:#ccf,stroke:#363&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<p><strong>通信流程</strong>：</p>
+<ol>
+<li>客户端请求到达 Auth Sidecar（监听 <code>localhost:8080</code>）</li>
+<li>Sidecar 提取 HTTP Header 中的 JWT Token</li>
+<li>验证 Token 签名、有效期和权限（Claim）</li>
+<li>验证通过后，通过 <code>httputil.ReverseProxy</code> 转发到主应用（<code>localhost:8081</code>）</li>
+<li>验证失败，返回 401&#x2F;403 错误</li>
+</ol>
+<h3 id="5-2-主应用服务"><a href="#5-2-主应用服务" class="headerlink" title="5.2 主应用服务"></a>5.2 主应用服务</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.go — 主应用服务（监听 8081 端口）</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;net/http&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    r := gin.Default()</span><br><span class="line"></span><br><span class="line">    r.GET(<span class="string">&quot;/api/data&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        c.JSON(http.StatusOK, gin.H&#123;</span><br><span class="line">            <span class="string">&quot;message&quot;</span>: <span class="string">&quot;这是受保护的业务数据&quot;</span>,</span><br><span class="line">            <span class="string">&quot;status&quot;</span>:  <span class="string">&quot;ok&quot;</span>,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    r.GET(<span class="string">&quot;/api/public&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        c.JSON(http.StatusOK, gin.H&#123;</span><br><span class="line">            <span class="string">&quot;message&quot;</span>: <span class="string">&quot;这是公开数据，无需认证&quot;</span>,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 主应用监听 8081 端口，只接受 localhost 连接</span></span><br><span class="line">    r.Run(<span class="string">&quot;127.0.0.1:8081&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-认证代理-Sidecar"><a href="#5-3-认证代理-Sidecar" class="headerlink" title="5.3 认证代理 Sidecar"></a>5.3 认证代理 Sidecar</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sidecar.go — 认证代理 Sidecar（监听 8080 端口）</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;net/http&quot;</span></span><br><span class="line">    <span class="string">&quot;net/http/httputil&quot;</span></span><br><span class="line">    <span class="string">&quot;net/url&quot;</span></span><br><span class="line">    <span class="string">&quot;strings&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/golang-jwt/jwt/v5&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> jwtSecret = []<span class="type">byte</span>(<span class="string">&quot;your-256-bit-secret&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// AuthMiddleware 验证 JWT Token</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">AuthMiddleware</span><span class="params">()</span></span> gin.HandlerFunc &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        authHeader := c.GetHeader(<span class="string">&quot;Authorization&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> authHeader == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">            c.JSON(http.StatusUnauthorized, gin.H&#123;</span><br><span class="line">                <span class="string">&quot;error&quot;</span>: <span class="string">&quot;缺少 Authorization Header&quot;</span>,</span><br><span class="line">            &#125;)</span><br><span class="line">            c.Abort()</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 提取 Bearer Token</span></span><br><span class="line">        tokenString := strings.TrimPrefix(authHeader, <span class="string">&quot;Bearer &quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> tokenString == authHeader &#123;</span><br><span class="line">            c.JSON(http.StatusUnauthorized, gin.H&#123;</span><br><span class="line">                <span class="string">&quot;error&quot;</span>: <span class="string">&quot;Authorization 格式应为 Bearer &lt;token&gt;&quot;</span>,</span><br><span class="line">            &#125;)</span><br><span class="line">            c.Abort()</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 解析并验证 JWT</span></span><br><span class="line">        token, err := jwt.Parse(tokenString, <span class="function"><span class="keyword">func</span><span class="params">(token *jwt.Token)</span></span> (any, <span class="type">error</span>) &#123;</span><br><span class="line">            <span class="comment">// 验证签名算法为 HMAC</span></span><br><span class="line">            <span class="keyword">if</span> _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;非预期的签名方法: %v&quot;</span>, token.Header[<span class="string">&quot;alg&quot;</span>])</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> jwtSecret, <span class="literal">nil</span></span><br><span class="line">        &#125;,</span><br><span class="line">            jwt.WithValidMethods([]<span class="type">string</span>&#123;<span class="string">&quot;HS256&quot;</span>&#125;),</span><br><span class="line">            jwt.WithLeeway(<span class="number">30</span>*time.Second), <span class="comment">// 30 秒时钟偏差容忍</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> || !token.Valid &#123;</span><br><span class="line">            c.JSON(http.StatusUnauthorized, gin.H&#123;</span><br><span class="line">                <span class="string">&quot;error&quot;</span>: <span class="string">&quot;Token 无效或已过期&quot;</span>,</span><br><span class="line">            &#125;)</span><br><span class="line">            c.Abort()</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 Claim 注入请求 Header，传递给主应用</span></span><br><span class="line">        <span class="keyword">if</span> claims, ok := token.Claims.(jwt.MapClaims); ok &#123;</span><br><span class="line">            c.Request.Header.Set(<span class="string">&quot;X-User-Id&quot;</span>, fmt.Sprintf(<span class="string">&quot;%v&quot;</span>, claims[<span class="string">&quot;sub&quot;</span>]))</span><br><span class="line">            c.Request.Header.Set(<span class="string">&quot;X-User-Role&quot;</span>, fmt.Sprintf(<span class="string">&quot;%v&quot;</span>, claims[<span class="string">&quot;role&quot;</span>]))</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        c.Next()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    r := gin.Default()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 健康检查端点</span></span><br><span class="line">    r.GET(<span class="string">&quot;/healthz&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        c.JSON(http.StatusOK, gin.H&#123;</span><br><span class="line">            <span class="string">&quot;status&quot;</span>: <span class="string">&quot;healthy&quot;</span>,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 配置反向代理到主应用</span></span><br><span class="line">    target, _ := url.Parse(<span class="string">&quot;http://127.0.0.1:8081&quot;</span>)</span><br><span class="line">    proxy := httputil.ReverseProxy&#123;</span><br><span class="line">        Director: <span class="function"><span class="keyword">func</span><span class="params">(req *http.Request)</span></span> &#123;</span><br><span class="line">            req.URL.Scheme = target.Scheme</span><br><span class="line">            req.URL.Host = target.Host</span><br><span class="line">            req.URL.Path = strings.TrimPrefix(req.URL.Path, <span class="string">&quot;/proxy&quot;</span>)</span><br><span class="line">            <span class="keyword">if</span> req.URL.Path == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">                req.URL.Path = <span class="string">&quot;/&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 受保护的端点：需要 JWT 认证</span></span><br><span class="line">    r.Any(<span class="string">&quot;/proxy/*path&quot;</span>, AuthMiddleware(), <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        proxy.ServeHTTP(c.Writer, c.Request)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 默认路由处理</span></span><br><span class="line">    r.Any(<span class="string">&quot;/*path&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        proxy.ServeHTTP(c.Writer, c.Request)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Sidecar 监听 8080 端口</span></span><br><span class="line">    r.Run(<span class="string">&quot;0.0.0.0:8080&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键代码说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>代码段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AuthMiddleware()</code></td>
+<td>Gin 中间件，提取并验证 JWT Bearer Token</td>
+</tr>
+<tr>
+<td><code>jwt.Parse()</code></td>
+<td>解析 JWT，传入 Keyfunc 验证签名。使用 <code>WithValidMethods</code> 限制只接受 HS256 算法，防止算法混淆攻击</td>
+</tr>
+<tr>
+<td><code>jwt.WithLeeway(30*time.Second)</code></td>
+<td>允许 30 秒时钟偏差，避免 Token 在极端时差下被误判为过期</td>
+</tr>
+<tr>
+<td><code>httputil.ReverseProxy</code></td>
+<td>Go 标准库反向代理，将认证通过后的请求转发到主应用</td>
+</tr>
+<tr>
+<td><code>Director</code> 函数</td>
+<td>修改请求 URL（去掉 <code>/proxy</code> 前缀），设置 target 为 <code>localhost:8081</code></td>
+</tr>
+<tr>
+<td><code>X-User-Id</code> &#x2F; <code>X-User-Role</code></td>
+<td>将 JWT Claim 注入转发请求的 Header，主应用直接读取即可</td>
+</tr>
+</tbody></table>
+<h3 id="5-4-Docker-多阶段构建"><a href="#5-4-Docker-多阶段构建" class="headerlink" title="5.4 Docker 多阶段构建"></a>5.4 Docker 多阶段构建</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Dockerfile — 多阶段构建</span></span><br><span class="line"><span class="comment"># ===== 阶段 1：编译 Go 二进制 =====</span></span><br><span class="line"><span class="keyword">FROM</span> golang:<span class="number">1.23</span>-alpine AS builder</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提前下载依赖（利用 Docker 层缓存）</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> go.mod go.sum ./</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> go mod download</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译主应用</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> main.go .</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> CGO_ENABLED=0 GOOS=linux go build -o /app/main .</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译 Sidecar</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> sidecar.go .</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> CGO_ENABLED=0 GOOS=linux go build -o /app/sidecar .</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 阶段 2：运行镜像 =====</span></span><br><span class="line"><span class="keyword">FROM</span> alpine:<span class="number">3.20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apk add --no-cache ca-certificates tzdata</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意：这是多容器 Pod，这里只构建 Sidecar 镜像</span></span><br><span class="line"><span class="comment"># 主应用应分别构建自己的 Docker 镜像</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=builder /app/sidecar /sidecar</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">8080</span></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;/sidecar&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>版本要求</strong>：Go 1.21+（<code>golang-jwt/jwt/v5</code> 要求），推荐 Go 1.23+。</p>
+<h3 id="5-5-Kubernetes-部署配置"><a href="#5-5-Kubernetes-部署配置" class="headerlink" title="5.5 Kubernetes 部署配置"></a>5.5 Kubernetes 部署配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">2</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="comment"># --- 主应用容器 ---</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">app</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">my-app:latest</span>       <span class="comment"># 替换为实际主应用镜像</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8081</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">http-app</span></span><br><span class="line">          <span class="attr">env:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">LISTEN_ADDR</span></span><br><span class="line">              <span class="attr">value:</span> <span class="string">&quot;127.0.0.1:8081&quot;</span></span><br><span class="line">          <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">&quot;100m&quot;</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">&quot;64Mi&quot;</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">&quot;500m&quot;</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">&quot;256Mi&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># --- Auth Sidecar 容器 ---</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">auth-sidecar</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">my-auth-sidecar:latest</span>  <span class="comment"># 替换为构建的 Sidecar 镜像</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">http-auth</span></span><br><span class="line">          <span class="attr">env:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JWT_SECRET</span></span><br><span class="line">              <span class="attr">valueFrom:</span></span><br><span class="line">                <span class="attr">secretKeyRef:</span></span><br><span class="line">                  <span class="attr">name:</span> <span class="string">jwt-secret</span></span><br><span class="line">                  <span class="attr">key:</span> <span class="string">secret</span></span><br><span class="line">          <span class="attr">startupProbe:</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">            <span class="attr">initialDelaySeconds:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">2</span></span><br><span class="line">            <span class="attr">failureThreshold:</span> <span class="number">15</span></span><br><span class="line">          <span class="attr">livenessProbe:</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">            <span class="attr">initialDelaySeconds:</span> <span class="number">5</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line">          <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">&quot;50m&quot;</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">&quot;32Mi&quot;</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">&quot;200m&quot;</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">&quot;128Mi&quot;</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="comment"># service.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">auth-sidecar-app</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">8080</span>    <span class="comment"># 指向 Auth Sidecar</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">ClusterIP</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="comment"># jwt-secret.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">jwt-secret</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">stringData:</span></span><br><span class="line">  <span class="attr">secret:</span> <span class="string">&quot;your-256-bit-secret-here&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>部署步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建 Secret</span></span><br><span class="line">kubectl apply -f jwt-secret.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 部署主应用和 Sidecar</span></span><br><span class="line">kubectl apply -f deployment.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 暴露 Service</span></span><br><span class="line">kubectl apply -f service.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证部署</span></span><br><span class="line">kubectl get pods -l app=auth-sidecar-app</span><br><span class="line"><span class="comment"># 预期输出: READY 2/2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 测试带认证的请求</span></span><br><span class="line"><span class="comment"># 生成 JWT Token（使用 jwt.io 或自行签发）</span></span><br><span class="line">TOKEN=<span class="string">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span></span><br><span class="line">curl -H <span class="string">&quot;Authorization: Bearer <span class="variable">$TOKEN</span>&quot;</span> http://localhost:8080/proxy/api/data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 测试未认证请求</span></span><br><span class="line">curl http://localhost:8080/proxy/api/data</span><br><span class="line"><span class="comment"># 预期输出: &#123;&quot;error&quot;:&quot;缺少 Authorization Header&quot;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-go-mod-依赖"><a href="#5-6-go-mod-依赖" class="headerlink" title="5.6 go.mod 依赖"></a>5.6 go.mod 依赖</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">module auth-sidecar</span><br><span class="line"></span><br><span class="line">go 1.23</span><br><span class="line"></span><br><span class="line">require (</span><br><span class="line">    github.com/gin-gonic/gin v1.10.0</span><br><span class="line">    github.com/golang-jwt/jwt/v5 v5.2.1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-7-生产化增强建议"><a href="#5-7-生产化增强建议" class="headerlink" title="5.7 生产化增强建议"></a>5.7 生产化增强建议</h3><table>
+<thead>
+<tr>
+<th>增强项</th>
+<th>说明</th>
+<th>实现方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>JWT 公钥验证</strong></td>
+<td>使用 RSA&#x2F;ECDSA 而非 HMAC，从 JWKS 端点获取公钥</td>
+<td><code>jwt.ParseRSAPublicKeyFromPEM()</code></td>
+</tr>
+<tr>
+<td><strong>请求速率限制</strong></td>
+<td>防止暴力破解和 DDoS</td>
+<td><code>golang.org/x/time/rate</code> 或 Envoy 限流</td>
+</tr>
+<tr>
+<td><strong>请求日志审计</strong></td>
+<td>记录所有经过 Sidecar 的请求</td>
+<td>Gin 中间件记录 <code>request_id</code>、<code>user_id</code>、耗时</td>
+</tr>
+<tr>
+<td><strong>TLS 终止</strong></td>
+<td>在 Sidecar 层终止 HTTPS</td>
+<td>配置 TLS 证书监听 443 端口</td>
+</tr>
+<tr>
+<td><strong>优雅关闭</strong></td>
+<td>Sidecar 收到 SIGTERM 后排水已有连接</td>
+<td><code>signal.Notify</code> + <code>http.Server.Shutdown</code></td>
+</tr>
+<tr>
+<td><strong>指标暴露</strong></td>
+<td>暴露 Prometheus 指标</td>
+<td><code>promhttp.Handler</code> 在 <code>/metrics</code> 端点上</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="A-OpenKruise-SidecarSet"><a href="#A-OpenKruise-SidecarSet" class="headerlink" title="A. OpenKruise SidecarSet"></a>A. OpenKruise SidecarSet</h3><p><a target="_blank" rel="noopener" href="https://openkruise.io/">OpenKruise</a> 是阿里开源的 K8s 扩展套件，其中的 <strong>SidecarSet</strong> 提供了比 K8s 原生 Sidecar 更强大的声明式 Sidecar 管理能力。</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>K8s 原生 Sidecar</th>
+<th>OpenKruise SidecarSet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>注入方式</strong></td>
+<td>手动在 Pod spec 中声明</td>
+<td>自动注入（Admission Webhook + CRD selector）</td>
+</tr>
+<tr>
+<td><strong>升级模式</strong></td>
+<td>重建 Pod</td>
+<td>原地升级（仅更新 Sidecar 镜像，不重启主容器）</td>
+</tr>
+<tr>
+<td><strong>启动顺序控制</strong></td>
+<td>restartPolicy: Always（保证先启动）</td>
+<td>Container Launch Priority（精细控制）</td>
+</tr>
+<tr>
+<td><strong>Job 兼容</strong></td>
+<td>原生支持</td>
+<td>SidecarTerminator 处理</td>
+</tr>
+<tr>
+<td><strong>资源管理</strong></td>
+<td>计入 Pod 总量</td>
+<td>独立资源视图</td>
+</tr>
+</tbody></table>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># SidecarSet 示例：自动注入日志采集 Sidecar</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps.kruise.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">SidecarSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">log-collector</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">my-app</span>              <span class="comment"># 匹配目标 Pod</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">filebeat</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">docker.elastic.co/beats/filebeat:8.15.0</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">log-volume</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">log-volume</span></span><br><span class="line">      <span class="attr">hostPath:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">/var/log/pods</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="B-Dapr-Sidecar"><a href="#B-Dapr-Sidecar" class="headerlink" title="B. Dapr Sidecar"></a>B. Dapr Sidecar</h3><p><a target="_blank" rel="noopener" href="https://dapr.io/">Dapr</a>（Distributed Application Runtime）以 Sidecar 模式提供分布式应用运行时能力，应用通过 HTTP&#x2F;gRPC API 调用 Sidecar 获取状态管理、服务调用、发布订阅、绑定、Actor 等能力。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    subgraph &quot;Pod&quot;
+        A[&quot;应用容器&quot;] -- &quot;localhost:3500&lt;br&#x2F;&gt;HTTP&#x2F;gRPC API&quot; --&gt; B[&quot;Dapr Sidecar&quot;]
+        B -- &quot;状态管理&quot; --&gt; S[&quot;Redis &#x2F; Consul&quot;]
+        B -- &quot;Pub&#x2F;Sub&quot; --&gt; P[&quot;Kafka &#x2F; RabbitMQ&quot;]
+        B -- &quot;服务调用&quot; --&gt; T[&quot;目标服务 Dapr Sidecar&quot;]
+        B -- &quot;绑定（Binding）&quot; --&gt; E[&quot;外部系统&quot;]
+    end</pre></div>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用 Dapr Sidecar</span></span><br><span class="line">dapr run --app-id my-app --app-port 8080 --dapr-http-port 3500 go run main.go</span><br></pre></td></tr></table></figure>
+
+<p>在 K8s 环境中通过注解（<code>dapr.io/enabled: &quot;true&quot;</code>）自动注入 Dapr Sidecar。</p>
+<h3 id="C-参考链接"><a href="#C-参考链接" class="headerlink" title="C. 参考链接"></a>C. 参考链接</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/">Kubernetes 官方文档 - Sidecar Containers</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/docs/tutorials/configuration/pod-sidecar-containers/">Kubernetes 官方教程 - Pod Sidecar Containers</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/753-sidecar-containers">KEP-753: Sidecar Containers</a></li>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/architecture/patterns/sidecar">Azure Architecture Center - Sidecar Pattern</a></li>
+<li><a target="_blank" rel="noopener" href="https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/">Istio 官方文档 - Sidecar Injection</a></li>
+<li><a target="_blank" rel="noopener" href="https://openkruise.io/docs/user-manuals/sidecarset/">OpenKruise 官方文档 - SidecarSet</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.dapr.io/">Dapr 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/golang-jwt/jwt">golang-jwt 库文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.envoyproxy.io/docs/envoy/latest/">Envoy 代理架构文档</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/">https://ziogn.github.io/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/go/">go</a><a class="post-meta__tags" href="/tags/devops/">devops</a><a class="post-meta__tags" href="/tags/kubernetes/">kubernetes</a><a class="post-meta__tags" href="/tags/sidecar/">sidecar</a><a class="post-meta__tags" href="/tags/service-mesh/">service-mesh</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">go语言知识规划——微服务</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——微服务 本文档覆盖面试权重 10% 的 Go 微服务知识，按”gRPC 通信基础 → 框架选型 → 治理能力”的逻辑递进。与核心基础、云原生等方向的知识关联见总览文档的跨域链路。  1.1 gRPC + Protobuf 详解gRPC 是 Go 微服务生态中事实标准的 RPC 通信框架，基于 HTTP&#x2F;2 协议，默认使用 Protobuf 作为序列化协议。面试考查重点在 proto3 语法规则、四种通信模式的应用场景、拦截器机制、TLS 认证配置和健康检查实现。  proto3 语法核心proto3 是 Protocol Buffers 的第三个主要版本，与 proto2 相比移除了 required&#x2F;optional（3.15+ 重新引入 optional）、默认值和 extensions，简化了语法。 基础 service&#x2F;message&#x2F;rpc 定义： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">go语言知识规划——数据库</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——数据库 本文档覆盖面试权重 10% 的数据库方向知识，按”ORM 框架 → 缓存中间件 → 连接池管理 → 其他框架解”的逻辑递进。与 Go 核心基础、Web 框架、微服务等方向的知识关联见总览文档的跨域链路。   1. GORM 详解GORM 是 Go 生态最主流的 ORM 框架（Star 37k+），设计理念融合了 JPA 的约定优于配置和 MyBatis 的灵活 SQL 能力。核心特征：零配置 CRUD、链式调用、关联自动映射、Hook 生命周期、AutoMigrate 自动建表。  模型定义与 TagGORM 通过 struct Tag（`gorm:&quot;...&quot;`）定义字段映射规则。零配置时按约定自动映射（ID → 主键，UserID → 外键，CreatedAt&#x2F;UpdatedAt → 自动填充，蛇形命名 → 表名）。 123456789101112131415161718192021222324type User struct &#123;    ID        uint           `gorm:&quot;...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E4%BA%91%E5%8E%9F%E7%94%9F/" title="go语言知识规划——云原生"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——云原生</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——云原生 云原生是 Go 语言生态中最具说服力的舞台。Kubernetes 本身由 Go 编写，Docker、containerd、Etcd、Prometheus 等云原生基础设施的基石项目也全部使用 Go。掌握云原生方向的技术栈，意味着理解 Go 语言在分布式系统中”非它不可”的生态位。本文档是总览文档中”云原生”方向的展开，权重 15%。   1. Docker 容器化 Go 应用1.1 为什么需要容器化Go 编译为静态二进制文件，天生适合容器化部署。与 Java&#x2F;Python 等运行时依赖 JVM 或解释器的语言不同，Go 的编译产物是一个独立的可执行文件，可以运行在没有任何依赖的 scratch（空镜像）中。 容器化对 Go 应用的核心价值：    维度 说明    环境一致性 开发、测试、生产环境完全一致，消除”在我机器上能跑”问题   资源隔离 通过 cgroup&#x2F;namespace 实现 CPU、内存、网络隔离   快速部署 镜像体积小（Go 静态编译后仅数 MB），秒级启动   弹性伸缩 配合 K8s HPA（Horizont...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%A0%B8%E5%BF%83/" title="go语言知识规划——核心"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——核心</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——核心 本文档覆盖面试权重 25% 的 Go 核心知识，按”语法基础 → 接口设计 → 错误处理 → 并发模型 → 同步原语 → 上下文传播 → 泛型 → 标准库”的逻辑递进。与 Redis 缓存、分布式系统、Java 并发模型等方向的知识关联见 总览文档 的跨域链路。  1.1 Go 语法概览Go 语言语法简洁但设计独到，包管理、变量声明、数据类型和控制流均有不同于 C&#x2F;Java 的语法特性。  包管理机制Go 从 1.11 起引入 Go Modules，1.16 起默认启用，替代了早期的 GOPATH 模式：  go.mod 定义模块路径和依赖，go.sum 记录依赖的校验和 导入路径使用完整模块路径：import &quot;github.com/gin-gonic/gin&quot; 未使用的导入会在编译时报错（不允许死代码） 包级可见性：大写字母开头 &#x3D; 导出（public），小写字母开头 &#x3D; 包内私有（private）  123456789// go.mod 示例module example.com/myappgo 1....</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94web%E6%A1%86%E6%9E%B6/" title="go语言知识规划——web框架"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——web框架</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——web框架 本文档覆盖面试权重 15% 的 Go Web 框架知识，按”Gin 框架详解 → RESTful 设计实践 → 框架选型对比 → 追问链”的逻辑递进。与 Go 语言基础、数据库、缓存等方向的知识关联见知识体系总览文档（待补充）。  2.1 Gin 框架Gin 是 Go 生态中最主流的 HTTP 框架（GitHub 78k+ stars），以出色的路由性能、极致的 API 设计和丰富的中间件生态著称。面试考察点集中在路由实现原理、中间件链、参数绑定与验证三大模块。  高性能路由：基数树（Radix Tree）Gin 的路由引擎基于 httprouter 的基数树实现。基数树（Radix Tree &#x2F; Patricia Trie）是压缩前缀树——将共享前缀合并为单一路径节点，减少树的高度，实现 O(path-length) 的路由查找。 路由注册示例： 123456789101112131415161718192021package mainimport (    &quot;net/http&quot;    &quot;github.co...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——测试调试</div></div><div class="info-2"><div class="info-item-1">go 语言知识规划——测试调试Go 语言内置了完善的测试工具链和性能分析工具，从单元测试、基准测试、模糊测试到 CPU&#x2F;内存&#x2F;阻塞分析和调试器，均作为标准工具链的一等公民提供。本文系统梳理 Go 测试体系与性能分析调试两大方向的核心知识点，包含可运行的代码示例和常见面试追问链。  1. Go 测试体系详解Go 的测试体系以 testing 标准库为核心，原子操作的 go test 命令统一驱动。测试文件命名约定为 *_test.go，测试函数通过约定的函数签名自动识别。 1.1 基础单元测试函数签名：func TestXxx(t *testing.T)，其中 Xxx 以大写字母开头。使用 t.Error&#x2F;t.Errorf 报告失败（继续执行），或 t.Fatal&#x2F;t.Fatalf 终止测试。 12345678910// math.gopackage mathfunc Add(a, b int) int &#123;    return a + b&#125;func Subtract(a, b int) int &#123;    retu...</div></div></div></a><a class="pagination-related" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">go语言知识规划——高级话题</div></div><div class="info-2"><div class="info-item-1">go语言知识规划——高级话题 高级话题方向在 Go 面试知识体系中权重 10%。它不涉及日常 CRUD，而是深入 Go 运行时的底层原理——调度器如何调度 goroutine、GC 如何回收内存、网络 I&#x2F;O 如何不阻塞。这部分知识区分”会用”和”懂原理”，是面试中拉开差距的关键战场。面向具备 Go 核心基础、希望深入理解运行时机制的开发者。   GMP 调度器GMP 调度器是 Go 并发模型最核心的运行时实现。goroutine 之所以能被称为”轻量级线程”（初始栈仅 2KB，可动态伸缩），根本原因在于 Go 运行时在用户态完成了 goroutine 的调度，不依赖 OS 内核调度。 G、M、P 三大核心结构   结构 全称 说明 数量级    G Goroutine 调度基本单位，包含 goroutine 栈、PC&#x2F;SP 寄存器（gobuf）、状态、ID 等 十万~百万级   M Machine 操作系统内核线程，由 OS 调度，M 必须绑定 P 才能执行 G 与 P 1:1（非阻塞时）   P Processor 逻辑处理器，调度上下文，持有本地 run...</div></div></div></a><a class="pagination-related" href="/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="Nginx 配置实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-26</div><div class="info-item-2">Nginx 配置实战指南</div></div><div class="info-2"><div class="info-item-1">Nginx 配置实战指南本教程以实际项目配置为基础，覆盖 Nginx 的两大核心场景：静态站点部署与反向代理配置。所有配置示例均来自生产环境实践，可直接复用。 1. Nginx 基础概念1.1 配置文件结构Nginx 的配置体系由主配置文件和站点配置目录组成：    路径 用途    /etc/nginx/nginx.conf 主配置文件，定义全局设置（user、worker_processes、events、http 块）   /etc/nginx/sites-available/ 站点配置文件存放目录   /etc/nginx/sites-enabled/ 已启用站点的符号链接目录   /var/log/nginx/ 默认日志目录   主配置文件中通过 include 指令加载站点配置： 12345# nginx.conf 中的关键 include 行http &#123;    # ...    include /etc/nginx/sites-enabled/*;&#125;  站点启用机制：将配置文件放在 sites-available/，然后创建符号链接到 sites...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Sidecar-%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">Sidecar 机制详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Sidecar-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">1. Sidecar 设计模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF-Sidecar-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 什么是 Sidecar 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%BC%94%E8%BF%9B%E5%8E%86%E5%8F%B2"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 演进历史</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%EF%BC%9APod-%E5%A4%9A%E5%AE%B9%E5%99%A8%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 核心原理：Pod 多容器模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-Sidecar-vs-%E5%85%B6%E4%BB%96%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.4.</span> <span class="toc-text">1.4 Sidecar vs 其他模式的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.5.</span> <span class="toc-text">1.5 适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E4%B8%8D%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.6.</span> <span class="toc-text">1.6 不适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Kubernetes-%E5%8E%9F%E7%94%9F-Sidecar"><span class="toc-number">1.2.</span> <span class="toc-text">2. Kubernetes 原生 Sidecar</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8E%9F%E7%94%9F%E6%94%AF%E6%8C%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 原生支持的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-KEP-753-%E6%BC%94%E8%BF%9B%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 KEP-753 演进路线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-restartPolicy-Always-%E8%A1%8C%E4%B8%BA%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 restartPolicy: Always 行为详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-YAML-%E9%85%8D%E7%BD%AE%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 YAML 配置示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%90%AF%E5%8A%A8%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.2.5.</span> <span class="toc-text">2.5 启动顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E7%BB%88%E6%AD%A2%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.2.6.</span> <span class="toc-text">2.6 终止顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-Job-%E5%9C%BA%E6%99%AF%E7%9A%84%E5%8E%9F%E7%94%9F%E8%A7%A3%E5%86%B3"><span class="toc-number">1.2.7.</span> <span class="toc-text">2.7 Job 场景的原生解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-%E4%B8%89%E7%A7%8D%E5%AE%B9%E5%99%A8%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.8.</span> <span class="toc-text">2.8 三种容器对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Service-Mesh-%E4%B8%AD%E7%9A%84-Sidecar"><span class="toc-number">1.3.</span> <span class="toc-text">3. Service Mesh 中的 Sidecar</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BB%80%E4%B9%88%E6%98%AF-Service-Mesh-Sidecar"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 什么是 Service Mesh Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Sidecar-%E6%B3%A8%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 Sidecar 注入方式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">自动注入（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E6%B3%A8%E5%85%A5"><span class="toc-number">1.3.2.2.</span> <span class="toc-text">手动注入</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-istio-init-istio-proxy-%E5%8F%8C%E5%AE%B9%E5%99%A8%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 istio-init &#x2F; istio-proxy 双容器模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-iptables-%E6%B5%81%E9%87%8F%E5%8A%AB%E6%8C%81%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.4.</span> <span class="toc-text">3.4 iptables 流量劫持流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-Envoy-%E4%BB%A3%E7%90%86%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.3.5.</span> <span class="toc-text">3.5 Envoy 代理架构简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-mTLS-%E5%8A%A0%E5%AF%86%E9%80%9A%E4%BF%A1"><span class="toc-number">1.3.6.</span> <span class="toc-text">3.6 mTLS 加密通信</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%B5%81%E9%87%8F%E7%AE%A1%E7%90%86%E8%83%BD%E5%8A%9B"><span class="toc-number">1.3.7.</span> <span class="toc-text">3.7 流量管理能力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%B8%B8%E8%A7%81-Sidecar-%E5%AE%9E%E7%8E%B0%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.4.</span> <span class="toc-text">4. 常见 Sidecar 实现模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%97%A5%E5%BF%97%E6%94%B6%E9%9B%86-Sidecar"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 日志收集 Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%9B%91%E6%8E%A7-Sidecar%EF%BC%88Prometheus-Exporter%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 监控 Sidecar（Prometheus Exporter）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%AE%A4%E8%AF%81%E4%BB%A3%E7%90%86-Sidecar"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 认证代理 Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E9%85%8D%E7%BD%AE-Secret-%E5%90%8C%E6%AD%A5-Sidecar"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 配置&#x2F;Secret 同步 Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-Protocol-Adapter-Sidecar"><span class="toc-number">1.4.5.</span> <span class="toc-text">4.5 Protocol Adapter Sidecar</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Go-%E5%AE%9E%E7%8E%B0%E8%AE%A4%E8%AF%81%E4%BB%A3%E7%90%86-Sidecar-%E5%AE%9E%E6%88%98"><span class="toc-number">1.5.</span> <span class="toc-text">5. Go 实现认证代理 Sidecar 实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%BB%E5%BA%94%E7%94%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 主应用服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%AE%A4%E8%AF%81%E4%BB%A3%E7%90%86-Sidecar"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3 认证代理 Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Docker-%E5%A4%9A%E9%98%B6%E6%AE%B5%E6%9E%84%E5%BB%BA"><span class="toc-number">1.5.4.</span> <span class="toc-text">5.4 Docker 多阶段构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-Kubernetes-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE"><span class="toc-number">1.5.5.</span> <span class="toc-text">5.5 Kubernetes 部署配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-go-mod-%E4%BE%9D%E8%B5%96"><span class="toc-number">1.5.6.</span> <span class="toc-text">5.6 go.mod 依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-%E7%94%9F%E4%BA%A7%E5%8C%96%E5%A2%9E%E5%BC%BA%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.5.7.</span> <span class="toc-text">5.7 生产化增强建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">1.6.</span> <span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#A-OpenKruise-SidecarSet"><span class="toc-number">1.6.1.</span> <span class="toc-text">A. OpenKruise SidecarSet</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#B-Dapr-Sidecar"><span class="toc-number">1.6.2.</span> <span class="toc-text">B. Dapr Sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C-%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-number">1.6.3.</span> <span class="toc-text">C. 参考链接</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,1944 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>GSD Workspace 隔离工作区使用教程 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="用大白话讲透 GSD Workspace——从 3 分钟上手到 5 个真实实战场景，覆盖创建&#x2F;列出&#x2F;删除三大命令、worktree vs clone 双策略、独立 .planning 隔离、安全机制与边界细节">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GSD Workspace 隔离工作区使用教程">
+<meta property="og:url" content="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-workspace/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="用大白话讲透 GSD Workspace——从 3 分钟上手到 5 个真实实战场景，覆盖创建&#x2F;列出&#x2F;删除三大命令、worktree vs clone 双策略、独立 .planning 隔离、安全机制与边界细节">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-06-13T16:55:00.000Z">
+<meta property="article:modified_time" content="2026-07-01T17:07:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="git-worktree">
+<meta property="article:tag" content="gsd">
+<meta property="article:tag" content="isolation">
+<meta property="article:tag" content="workspace">
+<meta property="article:tag" content="多仓库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "GSD Workspace 隔离工作区使用教程",
+  "url": "https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-workspace/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-06-13T16:55:00.000Z",
+  "dateModified": "2026-07-01T17:07:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-workspace/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'GSD Workspace 隔离工作区使用教程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">GSD Workspace 隔离工作区使用教程</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">GSD Workspace 隔离工作区使用教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-13T16:55:00.000Z" title="发表于 2026-06-14 00:55:00">2026-06-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-01T17:07:00.000Z" title="更新于 2026-07-02 01:07:00">2026-07-02</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">12.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>47分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="GSD-Workspace-隔离工作区使用教程"><a href="#GSD-Workspace-隔离工作区使用教程" class="headerlink" title="GSD Workspace 隔离工作区使用教程"></a>GSD Workspace 隔离工作区使用教程</h1><blockquote>
+<p>本文用「先讲你遇到的麻烦，再讲怎么解决」的方式，把 GSD（Get Shit Done）的 <strong>Workspace（工作区）技能</strong>讲明白。基于 <a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core">open-gsd&#x2F;gsd-core</a> 仓库 main 分支的一手源码编写，所有命令、参数、输出格式都与源码一致。</p>
+<p>配套阅读：《<a href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/">GSD使用教程-并行开发</a>》第 4 章是本文的速览版（约 120 行），本文是它的完整展开。官方 how-to：<a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core/blob/main/docs/zh-CN/how-to/isolate-work-with-workspaces.md">isolate-work-with-workspaces</a>。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E7%AC%AC-0-%E7%AB%A0-%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2%E8%BF%99%E4%BB%BD%E6%95%99%E7%A8%8B%E6%80%8E%E4%B9%88%E5%B8%AE%E4%BD%A0">第 0 章 写在前面：这份教程怎么帮你</a></li>
+<li><a href="#%E7%AC%AC-1-%E7%AB%A0-3-%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%E8%B7%91%E9%80%9A%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-workspace">第 1 章 3 分钟上手：跑通你的第一个 Workspace</a></li>
+<li><a href="#%E7%AC%AC-2-%E7%AB%A0-workspace-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%E7%94%A8%E7%94%9F%E6%B4%BB%E7%B1%BB%E6%AF%94%E8%AE%B2%E6%B8%85%E6%A5%9A">第 2 章 Workspace 到底是什么：用生活类比讲清楚</a></li>
+<li><a href="#%E7%AC%AC-3-%E7%AB%A0-%E8%AF%A5%E7%94%A8-workspace-%E8%BF%98%E6%98%AF-workstream%E5%85%88%E5%81%9A%E5%AF%B9%E9%80%89%E6%8B%A9">第 3 章 该用 Workspace 还是 Workstream？先做对选择</a></li>
+<li><a href="#%E7%AC%AC-4-%E7%AB%A0-%E5%88%9B%E5%BB%BA%E5%B7%A5%E4%BD%9C%E5%8C%BA%E6%89%8B%E6%8A%8A%E6%89%8B%E6%8E%8C%E6%8F%A1%E6%AF%8F%E4%B8%AA%E5%8F%82%E6%95%B0">第 4 章 创建工作区：手把手掌握每个参数</a></li>
+<li><a href="#%E7%AC%AC-5-%E7%AB%A0-worktree-%E8%BF%98%E6%98%AF-clone%E4%B8%80%E5%BC%A0%E5%9B%BE%E5%81%9A%E5%AF%B9%E9%80%89%E6%8B%A9">第 5 章 worktree 还是 clone：一张图做对选择</a></li>
+<li><a href="#%E7%AC%AC-6-%E7%AB%A0-workspacemd%E8%BF%99%E4%B8%AA%E6%96%87%E4%BB%B6%E6%84%8F%E5%91%B3%E7%9D%80%E4%BB%80%E4%B9%88">第 6 章 WORKSPACE.md：这个文件意味着什么</a></li>
+<li><a href="#%E7%AC%AC-7-%E7%AB%A0-%E5%88%97%E5%87%BA%E5%B7%A5%E4%BD%9C%E5%8C%BA%E7%9C%8B%E7%9C%8B%E4%BD%A0%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E4%BD%9C%E5%8C%BA">第 7 章 列出工作区：看看你有哪些工作区</a></li>
+<li><a href="#%E7%AC%AC-8-%E7%AB%A0-%E5%88%A0%E9%99%A4%E5%B7%A5%E4%BD%9C%E5%8C%BAgsd-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E8%B0%A8%E6%85%8E">第 8 章 删除工作区：GSD 为什么这么谨慎</a></li>
+<li><a href="#%E7%AC%AC-9-%E7%AB%A0-%E5%AE%9E%E6%88%98%E6%BC%94%E7%BB%835-%E4%B8%AA%E7%9C%9F%E5%AE%9E%E5%9C%BA%E6%99%AF%E6%89%8B%E6%8A%8A%E6%89%8B%E5%B8%A6%E4%BD%A0%E5%81%9A">第 9 章 实战演练：5 个真实场景，手把手带你做</a></li>
+<li><a href="#%E7%AC%AC-10-%E7%AB%A0-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86%E4%BB%8E%E5%88%9B%E5%BB%BA%E5%88%B0%E5%88%A0%E9%99%A4%E7%9A%84%E7%BA%AA%E5%BE%8B">第 10 章 生命周期管理：从创建到删除的纪律</a></li>
+<li><a href="#%E7%AC%AC-11-%E7%AB%A0-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%85%BC%E5%AE%B9%E6%80%A7%E4%B8%8E%E9%85%8D%E7%BD%AE">第 11 章 运行时兼容性与配置</a></li>
+<li><a href="#%E7%AC%AC-12-%E7%AB%A0-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5">第 12 章 故障排查</a></li>
+<li><a href="#%E7%AC%AC-13-%E7%AB%A0-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">第 13 章 最佳实践</a></li>
+<li><a href="#%E9%99%84%E5%BD%95">附录</a></li>
+</ul>
+<hr>
+<h2 id="第-0-章-写在前面：这份教程怎么帮你"><a href="#第-0-章-写在前面：这份教程怎么帮你" class="headerlink" title="第 0 章 写在前面：这份教程怎么帮你"></a>第 0 章 写在前面：这份教程怎么帮你</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：让你在 1 分钟内判断「这份教程跟我有没有关系」，以及该从哪里开始读。</p>
+</blockquote>
+<h3 id="0-1-你可能正遇到这些麻烦"><a href="#0-1-你可能正遇到这些麻烦" class="headerlink" title="0.1 你可能正遇到这些麻烦"></a>0.1 你可能正遇到这些麻烦</h3><p>先看看下面这些场景，有没有你熟悉的味道：</p>
+<table>
+<thead>
+<tr>
+<th>你的麻烦</th>
+<th>具体表现</th>
+<th>Workspace 怎么帮</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>一个仓库同时干两件事</strong></td>
+<td>正在开发新功能，突然要修生产 bug，<code>git stash</code> 来回切，心态崩了</td>
+<td>开个工作区，bug 修复和新功能各占一个分支，互不打扰</td>
+</tr>
+<tr>
+<td><strong>前后端要联调</strong></td>
+<td>后端接口和前端页面要一起改、一起测，但各有各的 GSD 规划，上下文割裂</td>
+<td>一个工作区装下两个仓库，共享一份规划，协调推进</td>
+</tr>
+<tr>
+<td><strong>想做大重构但不敢动主线</strong></td>
+<td>Spring Boot 2→3 升级、MyBatis 换 JPA 这种大工程，怕搞乱主分支</td>
+<td>开个工作区放手重构，主分支继续日常迭代</td>
+</tr>
+<tr>
+<td><strong>想试个方案又怕回不去</strong></td>
+<td>想试两种实现思路对比，又怕把现有状态搞脏</td>
+<td>各开一个工作区，完全独立的构建产物和规划记录</td>
+</tr>
+<tr>
+<td><strong>多人&#x2F;多线并行</strong></td>
+<td>几个人同时在不同功能上推进，规划状态互相覆盖</td>
+<td>每条线一个工作区，规划状态彻底隔离</td>
+</tr>
+</tbody></table>
+<p>如果你点了头，那这份教程就是为你写的。</p>
+<h3 id="0-2-Workspace-一句话能帮你解决什么"><a href="#0-2-Workspace-一句话能帮你解决什么" class="headerlink" title="0.2 Workspace 一句话能帮你解决什么"></a>0.2 Workspace 一句话能帮你解决什么</h3><blockquote>
+<p><strong>Workspace 给你一个「独立的开发房间」</strong>：房间里的代码、git 分支、GSD 规划记录、构建产物，全是这个房间专属的。你关起门来干活，外面的人（主仓库、其他工作区）完全不受影响，你也碰不到他们的东西。</p>
+</blockquote>
+<p>需要同时推进多条线、或者要做「不敢在主仓库直接动手」的事时，开一个工作区就对了。</p>
+<h3 id="0-3-这份教程怎么读（阅读路径）"><a href="#0-3-这份教程怎么读（阅读路径）" class="headerlink" title="0.3 这份教程怎么读（阅读路径）"></a>0.3 这份教程怎么读（阅读路径）</h3><p>不同的人有不同的读法，挑一条适合自己的：</p>
+<ul>
+<li><strong>急着用</strong> → 直接跳 <a href="#%E7%AC%AC-1-%E7%AB%A0-3-%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%E8%B7%91%E9%80%9A%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-workspace">第 1 章 3 分钟上手</a>，跑通一个最小示例，够用 90% 的场景。</li>
+<li><strong>想真正搞懂</strong> → 从第 0 章顺序读到第 5 章，建立完整的心智模型。</li>
+<li><strong>已经在用了</strong> → 跳到 <a href="#%E7%AC%AC-9-%E7%AB%A0-%E5%AE%9E%E6%88%98%E6%BC%94%E7%BB%835-%E4%B8%AA%E7%9C%9F%E5%AE%9E%E5%9C%BA%E6%99%AF%E6%89%8B%E6%8A%8A%E6%89%8B%E5%B8%A6%E4%BD%A0%E5%81%9A">第 9 章实战演练</a> 或 <a href="#%E7%AC%AC-12-%E7%AB%A0-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5">第 12 章故障排查</a>。</li>
+</ul>
+<hr>
+<h2 id="第-1-章-3-分钟上手：跑通你的第一个-Workspace"><a href="#第-1-章-3-分钟上手：跑通你的第一个-Workspace" class="headerlink" title="第 1 章 3 分钟上手：跑通你的第一个 Workspace"></a>第 1 章 3 分钟上手：跑通你的第一个 Workspace</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：让你在 3 分钟内亲手跑通一个 workspace，获得「我能用」的成就感。后面所有深入内容都建立在这个最小体验上。</p>
+</blockquote>
+<h3 id="1-1-准备：你只需要这两样"><a href="#1-1-准备：你只需要这两样" class="headerlink" title="1.1 准备：你只需要这两样"></a>1.1 准备：你只需要这两样</h3><table>
+<thead>
+<tr>
+<th>前提</th>
+<th>怎么验证</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>装了 GSD Core</td>
+<td>在 Claude Code 里输入 <code>/gsd-</code>，能看到命令补全</td>
+</tr>
+<tr>
+<td>当前在一个 git 仓库里</td>
+<td>终端里 <code>ls -la .git</code> 能看到 <code>.git</code> 目录</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认 git 可用</span></span><br><span class="line">$ git --version</span><br><span class="line">git version 2.45.0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认当前目录是 git 仓库（能看到 .git 目录或文件）</span></span><br><span class="line">$ <span class="built_in">ls</span> -la ~/Projects/be-star/.git</span><br><span class="line">drwxr-xr-x  .git/    <span class="comment"># 看到这个就对了</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>做完看到什么</strong>：两条命令都正常输出，说明环境就绪。如果 <code>ls .git</code> 报错，说明当前目录不是 git 仓库——<code>cd</code> 到你的项目目录再试。</p>
+</blockquote>
+<h3 id="1-2-三步跑通"><a href="#1-2-三步跑通" class="headerlink" title="1.2 三步跑通"></a>1.2 三步跑通</h3><p>我们用最简单的「单仓库」方式，3 步走完一个完整生命周期：<strong>创建 → 初始化 → 删除</strong>。</p>
+<p><strong>第 1 步：创建工作区</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name try-first --repos . --auto</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>--name try-first</code>：工作区叫 <code>try-first</code></li>
+<li><code>--repos .</code>：用 <code>.</code> 表示「当前这个仓库」</li>
+<li><code>--auto</code>：跳过所有交互提问，全用默认值（新手最省心的写法）</li>
+</ul>
+<p><strong>做完看到什么</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Workspace created: ~/gsd-workspaces/try-first</span><br><span class="line"></span><br><span class="line">  Repos: 1</span><br><span class="line">  Strategy: worktree</span><br><span class="line">  Branch: workspace/try-first</span><br><span class="line"></span><br><span class="line">Next steps:</span><br><span class="line">  cd &quot;~/gsd-workspaces/try-first&quot;</span><br><span class="line">  /gsd-new-project    # Initialize GSD in the workspace</span><br></pre></td></tr></table></figure>
+
+<p><strong>第 2 步：进去并初始化 GSD</strong></p>
+<p>这一步很关键——<strong>创建只是搭了个空壳</strong>，必须进去执行 <code>/gsd-new-project</code> 才算真正可用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/try-first</span><br><span class="line">$ /gsd-new-project</span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：工作区里多出一个 <code>.planning/</code> 目录，里面有 <code>PROJECT.md</code>、<code>ROADMAP.md</code> 等 GSD 规划文件。这时候你才能用 <code>/gsd-discuss-phase</code>、<code>/gsd-plan-phase</code> 这些命令。</p>
+<p><strong>第 3 步：用完删除</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ /gsd-workspace --remove try-first</span><br></pre></td></tr></table></figure>
+
+<p>GSD 会让你<strong>输入工作区名字确认</strong>（防止手滑误删），输入 <code>try-first</code> 回车。</p>
+<p><strong>做完看到什么</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Workspace &quot;try-first&quot; removed.</span><br><span class="line"></span><br><span class="line">  Path: ~/gsd-workspaces/try-first (deleted)</span><br><span class="line">  Repos: 1 worktrees cleaned up</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>出错了怎么办</strong>：如果提示 <code>Cannot remove workspace ... uncommitted changes</code>，说明工作区里有没提交的改动。先 <code>git add . &amp;&amp; git commit</code> 或 <code>git stash</code>，再重新 <code>--remove</code>。这是 GSD 的保护机制，详见 <a href="#%E7%AC%AC-8-%E7%AB%A0-%E5%88%A0%E9%99%A4%E5%B7%A5%E4%BD%9C%E5%8C%BAgsd-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E8%B0%A8%E6%85%8E">第 8 章</a>。</p>
+</blockquote>
+<h3 id="1-3-跑通后你已经掌握了什么"><a href="#1-3-跑通后你已经掌握了什么" class="headerlink" title="1.3 跑通后你已经掌握了什么"></a>1.3 跑通后你已经掌握了什么</h3><p>别小看这 3 步——它覆盖了 Workspace <strong>90% 的日常用法</strong>：</p>
+<ul>
+<li><code>--new</code> 创建、<code>--remove</code> 删除（两个最常用的命令）</li>
+<li><code>--repos .</code> 表示「当前仓库」</li>
+<li><code>--auto</code> 非交互模式</li>
+<li><strong>创建后必须 cd + &#x2F;gsd-new-project</strong>（最容易漏的一步）</li>
+</ul>
+<p>后面的章节只是把每个参数讲透、把使用场景铺开。你已经入门了。</p>
+<hr>
+<h2 id="第-2-章-Workspace-到底是什么：用生活类比讲清楚"><a href="#第-2-章-Workspace-到底是什么：用生活类比讲清楚" class="headerlink" title="第 2 章 Workspace 到底是什么：用生活类比讲清楚"></a>第 2 章 Workspace 到底是什么：用生活类比讲清楚</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：建立对 Workspace 的直觉。不讲术语，先用生活经验让你「秒懂」，再给准确定义。</p>
+</blockquote>
+<h3 id="2-1-一个生活类比：独立的开发房间"><a href="#2-1-一个生活类比：独立的开发房间" class="headerlink" title="2.1 一个生活类比：独立的开发房间"></a>2.1 一个生活类比：独立的开发房间</h3><p>想象你在一个共享办公室里工作。平时大家都围着同一张桌子（主仓库）干活，谁改了什么别人都看得到，东西也容易混在一起。</p>
+<p>现在你要做一个需要专注、不想被打扰的项目——<strong>你申请隔出一个独立的小房间</strong>。这个房间有这些特点：</p>
+<ul>
+<li>房间里有<strong>这个项目专属的代码副本</strong>（门一关，你改你的，不影响大厅）</li>
+<li>房间里有<strong>专属的笔记本</strong>（规划记录，跟大厅的笔记本完全分开）</li>
+<li>房间里<strong>桌上的东西</strong>（构建产物，比如 <code>node_modules</code>、<code>target/</code>）也是这个房间专属的</li>
+</ul>
+<p>这个「独立小房间」，就是 <strong>Workspace</strong>。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    MAIN[&quot;🏠 主仓库&lt;br&#x2F;&gt;（共享大厅）&quot;] --&gt; WS
+    WS[&quot;🚪 Workspace 独立房间&quot;] --&gt; A[&quot;📦 代码副本&lt;br&#x2F;&gt;worktree 或 clone&quot;]
+    WS --&gt; B[&quot;📒 专属规划记录&lt;br&#x2F;&gt;.planning&#x2F; 独立目录&quot;]
+    WS --&gt; C[&quot;📋 房间清单&lt;br&#x2F;&gt;WORKSPACE.md&quot;]
+    style WS fill:#d4edda</pre></div>
+
+
+<h3 id="2-2-Workspace-的三大组成"><a href="#2-2-Workspace-的三大组成" class="headerlink" title="2.2 Workspace 的三大组成"></a>2.2 Workspace 的三大组成</h3><p>把「房间」类比翻译成技术语言，一个 Workspace 包含三个东西：</p>
+<table>
+<thead>
+<tr>
+<th>组成</th>
+<th>生活类比</th>
+<th>技术含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>git worktree 或 clone</strong></td>
+<td>房间里的代码副本</td>
+<td>一个或多个 git 工作树，在专用分支上检出（默认分支名 <code>workspace/&lt;名字&gt;</code>）</td>
+</tr>
+<tr>
+<td><strong>独立的 <code>.planning/</code> 根目录</strong></td>
+<td>专属笔记本</td>
+<td>GSD 的规划状态（PROJECT.md、ROADMAP.md 等）完全独立，不是主仓库 <code>.planning/</code> 的子目录</td>
+</tr>
+<tr>
+<td><strong>WORKSPACE.md 清单</strong></td>
+<td>房间登记表</td>
+<td>一个 Markdown 文件，记录这个工作区里有哪些成员仓库</td>
+</tr>
+</tbody></table>
+<p>记住这三样，Workspace 的本质就清楚了。</p>
+<h3 id="2-3-四维隔离：为什么不会互相影响"><a href="#2-3-四维隔离：为什么不会互相影响" class="headerlink" title="2.3 四维隔离：为什么不会互相影响"></a>2.3 四维隔离：为什么不会互相影响</h3><p>Workspace 在四个维度上跟主仓库「断开」，这就是「关起门干活」的底气：</p>
+<table>
+<thead>
+<tr>
+<th>隔离维度</th>
+<th>Workspace 与主仓库的关系</th>
+<th>生活类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>代码</strong></td>
+<td>独立工作树（你有自己的代码副本）</td>
+<td>房间里有自己的书</td>
+</tr>
+<tr>
+<td><strong>分支</strong></td>
+<td>独立分支（默认 <code>workspace/&lt;名字&gt;</code>）</td>
+<td>你在书的某一页夹了自己的书签</td>
+</tr>
+<tr>
+<td><strong>规划状态</strong></td>
+<td>独立 <code>.planning/</code>（PROJECT.md 等全独立）</td>
+<td>你有自己的笔记本</td>
+</tr>
+<tr>
+<td><strong>构建产物</strong></td>
+<td>独立（<code>node_modules</code>、<code>target/</code> 互不影响）</td>
+<td>你桌上有自己的文具</td>
+</tr>
+</tbody></table>
+<p>工作区在磁盘上的样子：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">~/gsd-workspaces/</span><br><span class="line">└── feature-payment/              # ← 这就是那个「房间」（工作区根目录）</span><br><span class="line">    ├── WORKSPACE.md              # 房间登记表</span><br><span class="line">    ├── .planning/                # 专属笔记本（完全独立的 GSD 状态）</span><br><span class="line">    │   ├── PROJECT.md</span><br><span class="line">    │   ├── ROADMAP.md</span><br><span class="line">    │   └── ...</span><br><span class="line">    └── be-star/                  # 代码副本（worktree 或 clone）</span><br><span class="line">        └── ...</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关键点</strong>：默认所有工作区都放在 <code>~/gsd-workspaces/&lt;工作区名&gt;/</code> 下，每个工作区是一个独立目录，互不嵌套。<code>.planning/</code> 在工作区<strong>根目录</strong>，跟成员仓库平级——这正是它「完全独立」的原因。</p>
+</blockquote>
+<h3 id="2-4-命令叫什么：-gsd-workspace-而非-gsd-workspace"><a href="#2-4-命令叫什么：-gsd-workspace-而非-gsd-workspace" class="headerlink" title="2.4 命令叫什么：/gsd-workspace 而非 gsd:workspace"></a>2.4 命令叫什么：<code>/gsd-workspace</code> 而非 <code>gsd:workspace</code></h3><p>在继续之前，先把命令名字澄清一下，免得你被不同写法搞晕：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>在哪能看到</th>
+<th>你该用哪个</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workspace</code></td>
+<td>所有官方文档、命令补全</td>
+<td>✅ <strong>日常就用这个</strong>（连字符）</td>
+</tr>
+<tr>
+<td><code>gsd:workspace</code></td>
+<td>命令文件内部、报错信息里</td>
+<td>❌ 这是内部注册名，不用管</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>历史小八卦</strong>：GSD 早期，工作区是三个独立命令（<code>/gsd-new-workspace</code>、<code>/gsd-list-workspaces</code>、<code>/gsd-remove-workspace</code>）。后来（变更 #2790 ）合并成了一个命令 <code>/gsd-workspace</code>，用 <code>--new</code> &#x2F; <code>--list</code> &#x2F; <code>--remove</code> 三个 flag 区分。你在旧文档里看到三命令形式，都是过时的。</p>
+</blockquote>
+<hr>
+<h2 id="第-3-章-该用-Workspace-还是-Workstream？先做对选择"><a href="#第-3-章-该用-Workspace-还是-Workstream？先做对选择" class="headerlink" title="第 3 章 该用 Workspace 还是 Workstream？先做对选择"></a>第 3 章 该用 Workspace 还是 Workstream？先做对选择</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：GSD 有两种「隔离」工具——Workspace（重）和 Workstream（轻）。选错了要么大材小用，要么隔离不够。这章帮你一次选对。</p>
+</blockquote>
+<h3 id="3-1-一张决策树帮你选"><a href="#3-1-一张决策树帮你选" class="headerlink" title="3.1 一张决策树帮你选"></a>3.1 一张决策树帮你选</h3><p>不用记概念，跟着决策树走：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    Q1{&quot;要跨多个仓库&lt;br&#x2F;&gt;协同工作吗？&quot;}
+    Q1 --&gt;|&quot;是&quot;| WS[&quot;✅ 用 Workspace&quot;]
+    Q1 --&gt;|&quot;否&quot;| Q2{&quot;需要独立的&lt;br&#x2F;&gt;git worktree 或分支吗？&quot;}
+    Q2 --&gt;|&quot;是&quot;| WS
+    Q2 --&gt;|&quot;否&quot;| Q3{&quot;需要完全独立的&lt;br&#x2F;&gt;.planning 规划记录吗？&quot;}
+    Q3 --&gt;|&quot;是&quot;| WS
+    Q3 --&gt;|&quot;否&quot;| Q4{&quot;是 Issue 驱动&lt;br&#x2F;&gt;一个 issue 一个工作区吗？&quot;}
+    Q4 --&gt;|&quot;是&quot;| WS
+    Q4 --&gt;|&quot;否&quot;| STR[&quot;✅ 用 Workstream&quot;]
+    style WS fill:#d4edda
+    style STR fill:#cce5ff</pre></div>
+
+
+<p>一句话总结：<strong>只要涉及「独立的代码 &#x2F; 分支 &#x2F; 多仓库」，就用 Workspace；只是在同一个仓库里并发跑几个不同的规划，用 Workstream 就够了。</strong></p>
+<h3 id="3-2-七维度详细对比"><a href="#3-2-七维度详细对比" class="headerlink" title="3.2 七维度详细对比"></a>3.2 七维度详细对比</h3><p>如果你想知道得更细，这张表把两者掰开揉碎：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Workspace（工作区）</th>
+<th>Workstream（工作流）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>隔离级别</td>
+<td>git worktree&#x2F;分支级 + 独立 <code>.planning/</code></td>
+<td>仅规划产物级（STATE.md 隔离）</td>
+</tr>
+<tr>
+<td>代码隔离</td>
+<td>✅ 完全独立工作树</td>
+<td>❌ 共享同一份代码和 git 历史</td>
+</tr>
+<tr>
+<td><code>.planning/</code></td>
+<td>✅ 完全独立根目录</td>
+<td>主 <code>.planning/</code> 的子目录 <code>workstreams/&lt;名字&gt;/</code></td>
+</tr>
+<tr>
+<td>分支</td>
+<td>✅ 独立分支</td>
+<td>❌ 共享分支</td>
+</tr>
+<tr>
+<td>构建产物</td>
+<td>✅ 独立（<code>target/</code>、<code>node_modules/</code> 互不影响）</td>
+<td>❌ 共享</td>
+</tr>
+<tr>
+<td>重量</td>
+<td>重（要创建 worktree、独立状态）</td>
+<td>轻（只切规划上下文）</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>多仓库协调、功能分支硬隔离、实验性工作</td>
+<td>单仓库内并发规划不同关注点</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-一句话口诀"><a href="#3-3-一句话口诀" class="headerlink" title="3.3 一句话口诀"></a>3.3 一句话口诀</h3><p>记两句口诀就够了：</p>
+<ul>
+<li><strong>「Workspace 隔代码，Workstream 隔规划」</strong>——Workspace 连代码带状态全隔离；Workstream 只隔规划状态。</li>
+<li><strong>「重活用 Workspace，并发规划用 Workstream」</strong>——破坏性工作、多仓库协调这种「重活」用 Workspace；同一个仓库里并发跑几个 plan，用 Workstream。</li>
+</ul>
+<hr>
+<h2 id="第-4-章-创建工作区：手把手掌握每个参数"><a href="#第-4-章-创建工作区：手把手掌握每个参数" class="headerlink" title="第 4 章 创建工作区：手把手掌握每个参数"></a>第 4 章 创建工作区：手把手掌握每个参数</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：把 <code>/gsd-workspace --new</code> 用透。先讲日常最常用的交互式创建，再给完整参数表，最后把 GSD 内部的 9 步逻辑作为「可选深入」讲给爱钻研的你。</p>
+</blockquote>
+<h3 id="4-1-最常用的创建方式：交互式"><a href="#4-1-最常用的创建方式：交互式" class="headerlink" title="4.1 最常用的创建方式：交互式"></a>4.1 最常用的创建方式：交互式</h3><p>如果你不确定该传哪些参数，<strong>只给一个 <code>--name</code> 就行</strong>，GSD 会一步步引导你：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ /gsd-workspace --new --name feature-payment</span><br></pre></td></tr></table></figure>
+
+<p>GSD 会依次问你（如果在多仓库目录下运行）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">① 选哪些仓库加入工作区？（多选）</span><br><span class="line">   ☐ be-star</span><br><span class="line">   ☐ star-app</span><br><span class="line">   ☐ docs</span><br><span class="line"></span><br><span class="line">② 怎么复制这些仓库？</span><br><span class="line">   ○ Worktree (recommended) — 轻量，共享 .git</span><br><span class="line">   ○ Clone — 完全独立</span><br><span class="line"></span><br><span class="line">③ 要不要现在初始化 GSD 项目？</span><br><span class="line">   ○ Yes   ○ Cancel</span><br></pre></td></tr></table></figure>
+
+<p>按提示选完，工作区就建好了。<strong>交互式适合第一次用、或参数拿不准的时候。</strong></p>
+<h3 id="4-2-new-全部参数速查"><a href="#4-2-new-全部参数速查" class="headerlink" title="4.2 --new 全部参数速查"></a>4.2 <code>--new</code> 全部参数速查</h3><p>想精确控制每个细节，就显式传参数。完整参数表：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+<th>默认值</th>
+<th>必填</th>
+<th>白话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--name</code></td>
+<td>工作区名字</td>
+<td>—</td>
+<td>是（除非 <code>--auto</code>）</td>
+<td>给房间起个名</td>
+</tr>
+<tr>
+<td><code>--repos</code></td>
+<td>哪些仓库放进来，逗号分隔；<code>.</code> 表示当前仓库</td>
+<td>—</td>
+<td><code>--auto</code> 时必填</td>
+<td>房间里放哪些项目</td>
+</tr>
+<tr>
+<td><code>--path</code></td>
+<td>工作区建在哪</td>
+<td><code>~/gsd-workspaces/&lt;name&gt;</code></td>
+<td>否</td>
+<td>房间建在哪个地址</td>
+</tr>
+<tr>
+<td><code>--strategy</code></td>
+<td>复制策略：<code>worktree</code> 或 <code>clone</code></td>
+<td><code>worktree</code></td>
+<td>否</td>
+<td>怎么复制代码</td>
+</tr>
+<tr>
+<td><code>--branch</code></td>
+<td>检出的分支名</td>
+<td><code>workspace/&lt;name&gt;</code></td>
+<td>否</td>
+<td>用哪个分支干活</td>
+</tr>
+<tr>
+<td><code>--auto</code></td>
+<td>跳过所有交互提问，全用默认值</td>
+<td>false</td>
+<td>否</td>
+<td>别问我，全自动</td>
+</tr>
+<tr>
+<td><code>--text</code></td>
+<td>文本模式（编号列表替代交互弹窗）</td>
+<td>false</td>
+<td>否</td>
+<td>给非 Claude 运行时用</td>
+</tr>
+</tbody></table>
+<p><strong>常见组合</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 最省心：全自动</span></span><br><span class="line">/gsd-workspace --new --name feature-payment --repos be-star,star-app --auto</span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义分支名（遵守团队规范）</span></span><br><span class="line">/gsd-workspace --new --name payment --repos be-star --branch feature/payment-v2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义位置（团队统一存放）</span></span><br><span class="line">/gsd-workspace --new --name feature-payment --repos be-star,star-app \</span><br><span class="line">  --path /projects/workspaces/payment</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用 clone 策略（子模块项目或需完全独立）</span></span><br><span class="line">/gsd-workspace --new --name legacy-refactor --repos . --strategy <span class="built_in">clone</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-repos-怎么填：四种写法"><a href="#4-3-repos-怎么填：四种写法" class="headerlink" title="4.3 --repos 怎么填：四种写法"></a>4.3 <code>--repos</code> 怎么填：四种写法</h3><p><code>--repos</code> 是创建时最容易困惑的参数，它接受逗号分隔的值，有四种写法：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>含义</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>绝对路径</strong></td>
+<td>直接用这个路径</td>
+<td><code>--repos /Users/ziogn/Projects/be-star</code></td>
+</tr>
+<tr>
+<td><strong>相对路径 &#x2F; 名称</strong></td>
+<td>相对项目根目录解析</td>
+<td><code>--repos be-star</code>（在 <code>~/Projects</code> 下运行）</td>
+</tr>
+<tr>
+<td><strong>特殊值 <code>.</code></strong></td>
+<td>表示「当前仓库」</td>
+<td><code>--repos .</code></td>
+</tr>
+<tr>
+<td><strong>多值</strong></td>
+<td>逗号分隔多个</td>
+<td><code>--repos be-star,star-app,docs</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>怎么理解</strong>：GSD 创建前会扫描当前目录（项目根）下的子 git 仓库。你用「名称」时，就是从扫到的子仓库里匹配；用绝对路径则绕过扫描直接定位。</p>
+</blockquote>
+<blockquote>
+<p><strong>一个坑</strong>：如果你的仓库藏在 <code>.repos/</code> 这种<strong>隐藏目录</strong>（<code>.</code> 开头）下，GSD 会自动跳过它（默认不扫隐藏目录）。这时候必须用绝对路径显式指定：<code>--repos .repos/be-star</code>。</p>
+</blockquote>
+<h3 id="4-4-创建时-GSD-偷偷做了什么（9-步源码级·可选深入）"><a href="#4-4-创建时-GSD-偷偷做了什么（9-步源码级·可选深入）" class="headerlink" title="4.4 创建时 GSD 偷偷做了什么（9 步源码级·可选深入）"></a>4.4 创建时 GSD 偷偷做了什么（9 步源码级·可选深入）</h3><blockquote>
+<p>这一节是给「想知道底层发生了什么」的你准备的。<strong>日常使用完全不必懂</strong>，遇到奇怪行为再回来看。</p>
+</blockquote>
+<p><code>new-workspace</code> 工作流内部有 9 步：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    S1[&quot;① Setup：init new-workspace&lt;br&#x2F;&gt;拿到一段 JSON&quot;] --&gt; S2[&quot;② 解析参数&lt;br&#x2F;&gt;name&#x2F;repos&#x2F;path&#x2F;strategy&#x2F;branch&quot;]
+    S2 --&gt; S3[&quot;③ 选仓库&lt;br&#x2F;&gt;（四分支决策，见下）&quot;]
+    S3 --&gt; S4[&quot;④ 选策略&lt;br&#x2F;&gt;worktree 或 clone&quot;]
+    S4 --&gt; S5[&quot;⑤ 一次性验证&lt;br&#x2F;&gt;把所有错误一起报&quot;]
+    S5 --&gt; G{&quot;验证通过？&quot;}
+    G --&gt;|&quot;否&quot;| ERR[&quot;报错退出&lt;br&#x2F;&gt;列出全部错误&quot;]
+    G --&gt;|&quot;是&quot;| S6[&quot;⑥ 创建目录&lt;br&#x2F;&gt;逐仓库 worktree&#x2F;clone&quot;]
+    S6 --&gt; S7[&quot;⑦ 写 WORKSPACE.md&quot;]
+    S7 --&gt; S8[&quot;⑧ 初始化 .planning&quot;]
+    S8 --&gt; S9[&quot;⑨ 报告 + 提示 cd 和 &#x2F;gsd-new-project&quot;]</pre></div>
+
+
+<p><strong>第 ① 步拿到的 JSON 字段</strong>（驱动后续决策）：</p>
+<table>
+<thead>
+<tr>
+<th>JSON 字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default_workspace_base</code></td>
+<td>默认工作区根目录（通常是 <code>~/gsd-workspaces/</code>）</td>
+</tr>
+<tr>
+<td><code>child_repos</code></td>
+<td>扫描到的子仓库数组</td>
+</tr>
+<tr>
+<td><code>child_repo_count</code></td>
+<td>子仓库数量（决定走哪个选择分支）</td>
+</tr>
+<tr>
+<td><code>worktree_available</code></td>
+<td>git 是否可用（支持 worktree）</td>
+</tr>
+<tr>
+<td><code>is_git_repo</code></td>
+<td>当前目录是不是 git 仓库</td>
+</tr>
+<tr>
+<td><code>cwd_repo_name</code></td>
+<td>当前仓库名（<code>--repos .</code> 时用）</td>
+</tr>
+<tr>
+<td><code>project_root</code></td>
+<td>项目根目录（解析相对路径的基准）</td>
+</tr>
+</tbody></table>
+<p><strong>第 ③ 步仓库选择的四分支决策</strong>（最复杂的一步）：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    START[&quot;第 ③ 步：选仓库&quot;] --&gt; Q1{&quot;已提供 --repos 吗？&quot;}
+    Q1 --&gt;|&quot;是&quot;| R1[&quot;直接解析&lt;br&#x2F;&gt;绝对路径&#x2F;名称&#x2F;点&quot;]
+    Q1 --&gt;|&quot;否&quot;| Q2{&quot;是 --auto 模式吗？&quot;}
+    Q2 --&gt;|&quot;是&quot;| ERR1[&quot;❌ 报错退出&lt;br&#x2F;&gt;auto 模式必须先给 repos&quot;]
+    Q2 --&gt;|&quot;否&quot;| Q3{&quot;扫到了子仓库吗？&lt;br&#x2F;&gt;child_repo_count 大于 0&quot;}
+    Q3 --&gt;|&quot;是&quot;| R2[&quot;弹多选&lt;br&#x2F;&gt;让你勾选子仓库&quot;]
+    Q3 --&gt;|&quot;否&quot;| Q4{&quot;当前目录是&lt;br&#x2F;&gt;git 仓库吗？&quot;}
+    Q4 --&gt;|&quot;是&quot;| R3[&quot;问你：用当前仓库吗？&quot;]
+    Q4 --&gt;|&quot;否&quot;| ERR2[&quot;❌ 报错退出&lt;br&#x2F;&gt;No git repos found&quot;]</pre></div>
+
+
+<p><strong>第 ⑤ 步一次性验证</strong>（GSD 的贴心设计）：创建前会检查三件事，<strong>关键是一次性把所有错误都报出来</strong>，而不是遇到第一个就停——避免「修一个、再跑、又报一个」的循环：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>失败条件</th>
+<th>错误提示</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目标路径</td>
+<td><code>--path</code> 指向的目录已存在且非空</td>
+<td><code>Target path already exists and is not empty</code></td>
+</tr>
+<tr>
+<td>源仓库</td>
+<td><code>--repos</code> 里某个路径没有 <code>.git</code></td>
+<td><code>Not a git repo: &lt;路径&gt;</code></td>
+</tr>
+<tr>
+<td>worktree 可用</td>
+<td>用了 worktree 策略但 git 不可用</td>
+<td><code>git is not available. Install git or use --strategy clone.</code></td>
+</tr>
+</tbody></table>
+<h3 id="4-5-创建后必做的一步：cd-gsd-new-project"><a href="#4-5-创建后必做的一步：cd-gsd-new-project" class="headerlink" title="4.5 创建后必做的一步：cd + &#x2F;gsd-new-project"></a>4.5 创建后必做的一步：cd + &#x2F;gsd-new-project</h3><p>这一点怎么强调都不过分——<strong>创建工作区只是搭了个空壳</strong>，里面只有一个空的 <code>.planning/</code> 目录。必须：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment   <span class="comment"># 先 cd 进去！</span></span><br><span class="line">$ /gsd-new-project                       <span class="comment"># 再初始化 GSD 项目</span></span><br></pre></td></tr></table></figure>
+
+<p>不做这一步会怎样？后续的 <code>/gsd-discuss-phase</code>、<code>/gsd-plan-phase</code>、<code>/gsd-execute-phase</code> 全都无从谈起——因为工作区里没有 GSD 项目，没有 PROJECT.md、ROADMAP.md。</p>
+<blockquote>
+<p><strong>GSD 会提醒你</strong>：如果不是 <code>--auto</code> 模式，创建完成后 GSD 会主动问「要不要现在初始化 GSD 项目？」。但 <code>--auto</code> 模式不会问，你得自己记得做。</p>
+</blockquote>
+<hr>
+<h2 id="第-5-章-worktree-还是-clone：一张图做对选择"><a href="#第-5-章-worktree-还是-clone：一张图做对选择" class="headerlink" title="第 5 章 worktree 还是 clone：一张图做对选择"></a>第 5 章 worktree 还是 clone：一张图做对选择</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：创建工作区时要选「怎么复制代码」——worktree 还是 clone。这俩决定了磁盘占用、独立性、兼容性。一张图帮你选对。</p>
+</blockquote>
+<h3 id="5-1-生活类比：分身-vs-复印件"><a href="#5-1-生活类比：分身-vs-复印件" class="headerlink" title="5.1 生活类比：分身 vs 复印件"></a>5.1 生活类比：分身 vs 复印件</h3><ul>
+<li><strong>worktree（工作树）</strong> ≈「<strong>分身术</strong>」：还是同一个仓库，只是多分出一个「分身」来干活。分身和本体共享同一份历史记录（<code>.git</code> objects），所以很省空间、很快。</li>
+<li><strong>clone（克隆）</strong> ≈「<strong>复印件</strong>」：把整个仓库复印一份，完全独立。复印件和原件没有任何连接，所以更独立，但也更占地方。</li>
+</ul>
+<h3 id="5-2-worktree-vs-clone-对比图"><a href="#5-2-worktree-vs-clone-对比图" class="headerlink" title="5.2 worktree vs clone 对比图"></a>5.2 worktree vs clone 对比图</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    subgraph WT [&quot;worktree（分身）&quot;]
+        W1[&quot;源仓库 .git&lt;br&#x2F;&gt;（共享 objects）&quot;] -.共享.-&gt; W2[&quot;工作区副本&lt;br&#x2F;&gt;.git 是个文件&quot;]
+    end
+    subgraph CL [&quot;clone（复印件）&quot;]
+        C1[&quot;源仓库 .git&quot;] x--x C2[&quot;工作区副本&lt;br&#x2F;&gt;.git 是完整目录&quot;]
+        C2 --- C3[&quot;完全独立&lt;br&#x2F;&gt;互不连接&quot;]
+    end
+    style W1 fill:#d4edda
+    style W2 fill:#d4edda
+    style C2 fill:#cce5ff
+    style C3 fill:#cce5ff</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>worktree</th>
+<th>clone</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.git</code> 形态</td>
+<td><strong>文件</strong>（指向源仓库的链接）</td>
+<td><strong>完整目录</strong>（独立的 objects）</td>
+</tr>
+<tr>
+<td>与源仓库关系</td>
+<td>共享 <code>.git</code> objects</td>
+<td>完全独立，无连接</td>
+</tr>
+<tr>
+<td>磁盘占用</td>
+<td>极省（不复制历史）</td>
+<td>较大（复制完整历史）</td>
+</tr>
+<tr>
+<td>创建速度</td>
+<td>快</td>
+<td>较慢</td>
+</tr>
+<tr>
+<td>合并方式</td>
+<td>回源仓库 <code>git merge</code></td>
+<td>需 push 远程或 <code>git remote add</code> 桥接</td>
+</tr>
+</tbody></table>
+<p><strong>怎么验证你用的是哪种</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># worktree：.git 是文件，内容是指向源仓库的引用</span></span><br><span class="line">$ <span class="built_in">cat</span> ~/gsd-workspaces/feature-payment/be-star/.git</span><br><span class="line">gitdir: /Users/ziogn/Projects/be-star/.git/worktrees/be-star</span><br><span class="line"></span><br><span class="line"><span class="comment"># clone：.git 是完整目录</span></span><br><span class="line">$ <span class="built_in">ls</span> -la ~/gsd-workspaces/legacy-refactor/legacy-app/.git</span><br><span class="line">drwxr-xr-x  .git/    <span class="comment"># 这是目录，内含完整 objects</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-策略选择决策表"><a href="#5-3-策略选择决策表" class="headerlink" title="5.3 策略选择决策表"></a>5.3 策略选择决策表</h3><table>
+<thead>
+<tr>
+<th>你的场景</th>
+<th>推荐</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同一仓库的不同功能分支</td>
+<td><strong>worktree</strong></td>
+<td>轻量、共享 objects、快</td>
+</tr>
+<tr>
+<td>常规多仓库协调</td>
+<td><strong>worktree</strong></td>
+<td>默认就够，省空间</td>
+</tr>
+<tr>
+<td>不同版本的代码库（对比 v1&#x2F;v2）</td>
+<td><strong>clone</strong></td>
+<td>需要完全独立</td>
+</tr>
+<tr>
+<td>项目用了 git <strong>子模块</strong></td>
+<td><strong>clone</strong></td>
+<td>worktree 下子模块路径不安全</td>
+</tr>
+<tr>
+<td>某些运行时不支持 worktree（如部分 Codex）</td>
+<td><strong>clone</strong></td>
+<td>兼容性</td>
+</tr>
+<tr>
+<td>需要破坏性实验（删 <code>.git</code>、改历史）</td>
+<td><strong>clone</strong></td>
+<td>不影响源仓库</td>
+</tr>
+</tbody></table>
+<h3 id="5-4-子模块为什么不能用-worktree"><a href="#5-4-子模块为什么不能用-worktree" class="headerlink" title="5.4 子模块为什么不能用 worktree"></a>5.4 子模块为什么不能用 worktree</h3><p>如果你的仓库用了 <code>git submodule</code>，<strong>必须用 clone</strong>。原因：</p>
+<p>worktree 隔离下，涉及子模块路径的计划「不安全」——子模块的 <code>.git</code> 链接会指向错误位置。GSD 检测到这种情况会<strong>自动回退到主工作树顺序执行</strong>（隔离就失效了）。所以子模块项目直接用 <code>--strategy clone</code> 最稳妥。</p>
+<h3 id="5-5-深入：底层命令与时间戳回退（可选）"><a href="#5-5-深入：底层命令与时间戳回退（可选）" class="headerlink" title="5.5 深入：底层命令与时间戳回退（可选）"></a>5.5 深入：底层命令与时间戳回退（可选）</h3><p><strong>worktree 底层命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$SOURCE_REPO_PATH</span>&quot;</span></span><br><span class="line">git worktree add <span class="string">&quot;<span class="variable">$TARGET_PATH</span>/<span class="variable">$REPO_NAME</span>&quot;</span> -b <span class="string">&quot;<span class="variable">$BRANCH_NAME</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>clone 底层命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> <span class="string">&quot;<span class="variable">$SOURCE_REPO_PATH</span>&quot;</span> <span class="string">&quot;<span class="variable">$TARGET_PATH</span>/<span class="variable">$REPO_NAME</span>&quot;</span></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$TARGET_PATH</span>/<span class="variable">$REPO_NAME</span>&quot;</span></span><br><span class="line">git checkout -b <span class="string">&quot;<span class="variable">$BRANCH_NAME</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>分支已存在的时间戳回退</strong>（worktree 策略的容错）：</p>
+<p>当默认分支名 <code>workspace/&lt;name&gt;</code> <strong>已经存在</strong>时（比如上次没删干净），<code>git worktree add -b</code> 会失败。GSD 的容错是自动追加时间戳后缀：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一次尝试失败（分支已存在）</span></span><br><span class="line">git worktree add ... -b workspace/feature-payment</span><br><span class="line"><span class="comment"># 回退：加时间戳</span></span><br><span class="line">git worktree add ... -b workspace/feature-payment-20260614005512</span><br></pre></td></tr></table></figure>
+
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    A[&quot;尝试创建 workspace&#x2F;name 分支&quot;] --&gt; B{&quot;成功？&quot;}
+    B --&gt;|&quot;是&quot;| OK[&quot;用 workspace&#x2F;name&quot;]
+    B --&gt;|&quot;否&quot;| C[&quot;加时间戳&lt;br&#x2F;&gt;workspace&#x2F;name-时间戳&quot;]
+    C --&gt; D{&quot;成功？&quot;}
+    D --&gt;|&quot;是&quot;| OK2[&quot;用带时间戳的分支&quot;]
+    D --&gt;|&quot;否&quot;| FAIL[&quot;报错，继续处理其他仓库&quot;]</pre></div>
+
+
+<blockquote>
+<p><strong>实战提醒</strong>：如果你重复创建同名工作区，第二次的分支会变成 <code>workspace/&lt;name&gt;-时间戳</code>。合并时<strong>别想当然</strong>，先用 <code>git branch</code> 确认实际分支名。</p>
+</blockquote>
+<hr>
+<h2 id="第-6-章-WORKSPACE-md：这个文件意味着什么"><a href="#第-6-章-WORKSPACE-md：这个文件意味着什么" class="headerlink" title="第 6 章 WORKSPACE.md：这个文件意味着什么"></a>第 6 章 WORKSPACE.md：这个文件意味着什么</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：每个工作区根目录都有个 <code>WORKSPACE.md</code>，讲清它是什么格式、你能改它什么。</p>
+</blockquote>
+<h3 id="6-1-先纠正一个常见误解：它不是-YAML"><a href="#6-1-先纠正一个常见误解：它不是-YAML" class="headerlink" title="6.1 先纠正一个常见误解：它不是 YAML"></a>6.1 先纠正一个常见误解：它不是 YAML</h3><p>⚠️ <strong>重要纠正</strong>：有些早期文档（包括《GSD使用教程-并行开发》第 4.1 节）把 WORKSPACE.md 描述成 YAML frontmatter（<code>name</code>&#x2F;<code>created</code>&#x2F;<code>strategy</code>&#x2F;<code>repos</code> 字段），<strong>这是错的</strong>。</p>
+<p>实际格式是 <strong>Markdown</strong>，里面有一张「Member Repos」表格。证据来自源码 <code>new-workspace.md</code> 第 170–186 行 + 测试 fixture 双重确认。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>错误认知（YAML）</th>
+<th>真实格式（Markdown）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>格式</td>
+<td>YAML frontmatter</td>
+<td>Markdown</td>
+</tr>
+<tr>
+<td>内容</td>
+<td><code>name</code>&#x2F;<code>created</code>&#x2F;<code>strategy</code>&#x2F;<code>repos</code> 字段</td>
+<td>标题 + <code>Created</code>&#x2F;<code>Strategy</code> 行 + Member Repos 表格</td>
+</tr>
+</tbody></table>
+<p>这个纠正有实际意义：因为它是 Markdown，你用任何编辑器直接打开就能读、能改 <code>## Notes</code> 区，不用学 YAML 语法。</p>
+<h3 id="6-2-真实格式详解"><a href="#6-2-真实格式详解" class="headerlink" title="6.2 真实格式详解"></a>6.2 真实格式详解</h3><p>完整正确的 WORKSPACE.md 长这样：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Workspace: feature-payment</span></span><br><span class="line"></span><br><span class="line">Created: 2026-06-14</span><br><span class="line">Strategy: worktree</span><br><span class="line"></span><br><span class="line"><span class="section">## Member Repos</span></span><br><span class="line"></span><br><span class="line">| Repo | Source | Branch | Strategy |</span><br><span class="line">|------|--------|--------|----------|</span><br><span class="line">| be-star | /Users/ziogn/Projects/be-star | workspace/feature-payment | worktree |</span><br><span class="line">| star-app | /Users/ziogn/Projects/star-app | workspace/feature-payment | worktree |</span><br><span class="line"></span><br><span class="line"><span class="section">## Notes</span></span><br><span class="line"></span><br><span class="line">[Add context about what this workspace is for]</span><br></pre></td></tr></table></figure>
+
+<p>各部分含义：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>内容</th>
+<th>谁维护</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code># Workspace: &lt;名字&gt;</code></td>
+<td>一级标题</td>
+<td>GSD 生成</td>
+</tr>
+<tr>
+<td><code>Created</code></td>
+<td>创建日期</td>
+<td>GSD 生成</td>
+</tr>
+<tr>
+<td><code>Strategy</code></td>
+<td>worktree 或 clone</td>
+<td>GSD 生成</td>
+</tr>
+<tr>
+<td><code>## Member Repos</code> 表格</td>
+<td>每个成员仓库一行（名称&#x2F;源路径&#x2F;分支&#x2F;策略）</td>
+<td>GSD 生成</td>
+</tr>
+<tr>
+<td><code>## Notes</code></td>
+<td>工作区用途说明</td>
+<td>✅ <strong>你可以自由编辑</strong></td>
+</tr>
+</tbody></table>
+<h3 id="6-3-你能编辑什么：Notes-区是你的"><a href="#6-3-你能编辑什么：Notes-区是你的" class="headerlink" title="6.3 你能编辑什么：Notes 区是你的"></a>6.3 你能编辑什么：Notes 区是你的</h3><p><code>## Notes</code> 区是<strong>专门留给你</strong>的，建议写清楚：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## Notes</span></span><br><span class="line"></span><br><span class="line">为 v2.3 支付重构创建。包含 be-star（后端接口）和 star-app（前端页面）。</span><br><span class="line">关联 issue: #456。计划 6/20 前合并回 main。</span><br></pre></td></tr></table></figure>
+
+<p>写清楚「这个工作区在干什么、关联哪个 issue、什么时候该删」，过两周回来看也不至于一脸懵。</p>
+<blockquote>
+<p><strong><code>## Member Repos</code> 表格别手改</strong>：它由 GSD 维护，手动改不影响实际的 worktree（真实状态在 git 层）。要调整成员仓库，建议删除工作区重建。</p>
+</blockquote>
+<hr>
+<h2 id="第-7-章-列出工作区：看看你有哪些工作区"><a href="#第-7-章-列出工作区：看看你有哪些工作区" class="headerlink" title="第 7 章 列出工作区：看看你有哪些工作区"></a>第 7 章 列出工作区：看看你有哪些工作区</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：用 <code>/gsd-workspace --list</code> 查看你建了哪些工作区，特别是发现「半成品」工作区。</p>
+</blockquote>
+<h3 id="7-1-–list-输出长什么样"><a href="#7-1-–list-输出长什么样" class="headerlink" title="7.1 –list 输出长什么样"></a>7.1 –list 输出长什么样</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ /gsd-workspace --list</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GSD Workspaces (~/gsd-workspaces/)</span><br><span class="line"></span><br><span class="line">| Name | Repos | Strategy | GSD Project |</span><br><span class="line">|------|-------|----------|-------------|</span><br><span class="line">| feature-payment | 2 | worktree | Yes |</span><br><span class="line">| hotfix-auth | 1 | clone | No |</span><br><span class="line">| legacy-refactor | 1 | clone | Yes |</span><br></pre></td></tr></table></figure>
+
+<p>逐列解释：</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Name</td>
+<td>工作区目录名</td>
+</tr>
+<tr>
+<td>Repos</td>
+<td>成员仓库数量</td>
+</tr>
+<tr>
+<td>Strategy</td>
+<td>复制策略（worktree&#x2F;clone）</td>
+</tr>
+<tr>
+<td>GSD Project</td>
+<td>是否已初始化 GSD（检测 <code>.planning/PROJECT.md</code> 是否存在）</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-GSD-Project-列：发现半成品工作区"><a href="#7-2-GSD-Project-列：发现半成品工作区" class="headerlink" title="7.2 GSD Project 列：发现半成品工作区"></a>7.2 GSD Project 列：发现半成品工作区</h3><p><strong>GSD Project 列特别有用</strong>：<code>No</code> 表示这个工作区创建了但还没 <code>/gsd-new-project</code>——也就是个「半成品」，后续命令都用不了。</p>
+<p>定期 <code>--list</code> 一下，看到 <code>No</code> 的，要么补 <code>/gsd-new-project</code>，要么直接 <code>--remove</code> 清理掉。</p>
+<p>无工作区时：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">No workspaces found in ~/gsd-workspaces/</span><br><span class="line"></span><br><span class="line">Create one with:</span><br><span class="line">  /gsd-workspace --new --name my-workspace --repos repo1,repo2</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-两个要注意的边界"><a href="#7-3-两个要注意的边界" class="headerlink" title="7.3 两个要注意的边界"></a>7.3 两个要注意的边界</h3><ul>
+<li><strong>自定义路径的工作区不在列表里</strong>：<code>--list</code> 只扫描默认的 <code>~/gsd-workspaces/</code>。如果你用 <code>--path</code> 建到别处了，<code>--list</code> 看不到，得自己记路径。</li>
+<li><strong>只认有 WORKSPACE.md 的目录</strong>：手动建了个目录却没 WORKSPACE.md，<code>--list</code> 也不会显示。</li>
+</ul>
+<hr>
+<h2 id="第-8-章-删除工作区：GSD-为什么这么谨慎"><a href="#第-8-章-删除工作区：GSD-为什么这么谨慎" class="headerlink" title="第 8 章 删除工作区：GSD 为什么这么谨慎"></a>第 8 章 删除工作区：GSD 为什么这么谨慎</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：删除是不可逆操作，GSD 设了三道安全防线防止数据丢失。理解「为什么这么谨慎」，你就知道每道防线在保护你什么。</p>
+</blockquote>
+<h3 id="8-1-删除流程一览"><a href="#8-1-删除流程一览" class="headerlink" title="8.1 删除流程一览"></a>8.1 删除流程一览</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph TB
+    S1[&quot;① Setup：init remove-workspace&quot;] --&gt; Q0{&quot;给了工作区名吗？&quot;}
+    Q0 --&gt;|&quot;否&quot;| LIST[&quot;先 --list 展示&lt;br&#x2F;&gt;再让你选&quot;]
+    Q0 --&gt;|&quot;是&quot;| S2
+    LIST --&gt; S2[&quot;② 第一道防线&lt;br&#x2F;&gt;有未提交改动吗？&quot;]
+    S2 --&gt; G1{&quot;有 dirty 仓库？&quot;}
+    G1 --&gt;|&quot;是&quot;| BLK1[&quot;❌ 拒绝删除&lt;br&#x2F;&gt;提示 commit&#x2F;stash&quot;]
+    G1 --&gt;|&quot;否&quot;| S3[&quot;③ 第二道防线&lt;br&#x2F;&gt;输入名字确认&quot;]
+    S3 --&gt; G2{&quot;名字匹配？&quot;}
+    G2 --&gt;|&quot;否&quot;| BLK2[&quot;❌ Removal cancelled&quot;]
+    G2 --&gt;|&quot;是&quot;| S4[&quot;④ 清理 worktree&quot;]
+    S4 --&gt; G3{&quot;worktree 策略？&quot;}
+    G3 --&gt;|&quot;是&quot;| CHK[&quot;第三道防线&lt;br&#x2F;&gt;有 remove 失败吗？&quot;]
+    G3 --&gt;|&quot;否&quot;| S5
+    CHK --&gt;|&quot;失败&quot;| BLK3[&quot;❌ fail closed&lt;br&#x2F;&gt;拒绝删目录&quot;]
+    CHK --&gt;|&quot;成功&quot;| S5[&quot;⑤ 删除目录&quot;]
+    S5 --&gt; S6[&quot;⑥ 报告&quot;]</pre></div>
+
+
+<h3 id="8-2-第一道防线：有未提交改动不让删（dirty-检查）"><a href="#8-2-第一道防线：有未提交改动不让删（dirty-检查）" class="headerlink" title="8.2 第一道防线：有未提交改动不让删（dirty 检查）"></a>8.2 第一道防线：有未提交改动不让删（dirty 检查）</h3><p>删除前，GSD 会检查每个成员仓库有没有<strong>未提交的改动</strong>（dirty）。如果有，<strong>直接拒绝删除</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Cannot remove workspace &quot;feature-payment&quot; — the following repos have uncommitted changes:</span><br><span class="line"></span><br><span class="line">  - be-star</span><br><span class="line">  - star-app</span><br><span class="line"></span><br><span class="line">Commit or stash changes in these repos before removing the workspace:</span><br><span class="line">  cd &quot;~/gsd-workspaces/feature-payment/be-star&quot;</span><br><span class="line">  git stash   # or git commit</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么需要这道防线</strong>：未提交的改动一旦随工作区删除（<code>rm -rf</code>）就<strong>永久丢失</strong>，git 也救不回来。这是防止数据丢失的最重要防线。</p>
+<p><strong>怎么过这道关</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 看到拒绝提示后，逐个处理</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment/be-star</span><br><span class="line">$ git stash            <span class="comment"># 暂存（之后可 git stash pop 找回）</span></span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;wip: 保存工作区进度&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理完所有 dirty 仓库，重新删除</span></span><br><span class="line">$ /gsd-workspace --remove feature-payment</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-第二道防线：输入名字才能删"><a href="#8-3-第二道防线：输入名字才能删" class="headerlink" title="8.3 第二道防线：输入名字才能删"></a>8.3 第二道防线：输入名字才能删</h3><p>过了 dirty 检查后，GSD 要求你<strong>手动输入工作区名字</strong>确认：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Remove workspace &#x27;feature-payment&#x27; at ~/gsd-workspaces/feature-payment?</span><br><span class="line">This will delete all files in the workspace directory. Type the workspace name to confirm:</span><br></pre></td></tr></table></figure>
+
+<p>输入必须<strong>精确匹配</strong>工作区名，不匹配就 <code>Removal cancelled.</code>。这道防线防止「手滑选错」或「以为在删别的东西」。</p>
+<h3 id="8-4-第三道防线：worktree-删不掉就全停（fail-closed）"><a href="#8-4-第三道防线：worktree-删不掉就全停（fail-closed）" class="headerlink" title="8.4 第三道防线：worktree 删不掉就全停（fail closed）"></a>8.4 第三道防线：worktree 删不掉就全停（fail closed）</h3><p>这道防线<strong>只有 worktree 策略</strong>生效。GSD 会对每个成员仓库执行 <code>git worktree remove</code>，<strong>只要有任何一个失败，就拒绝删工作区目录</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Refusing to delete &quot;~/gsd-workspaces/feature-payment&quot; because one or more git worktrees could not be removed.</span><br><span class="line">Resolve the failed worktree removal manually, then rerun remove-workspace.</span><br></pre></td></tr></table></figure>
+
+<p>这是 <strong>fail closed（失败即关闭）</strong> 设计——宁可保留目录让你手动处理，也不冒险删掉一半。失败原因通常是：源仓库被移动&#x2F;删除、worktree 被锁定、残留 dirty 状态。</p>
+<h3 id="8-5-安全检查的边界：检查什么、不检查什么"><a href="#8-5-安全检查的边界：检查什么、不检查什么" class="headerlink" title="8.5 安全检查的边界：检查什么、不检查什么"></a>8.5 安全检查的边界：检查什么、不检查什么</h3><p>清楚「检查什么」和「不检查什么」很重要，避免误以为「删了就万事大吉」：</p>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>是否检查</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未提交改动（dirty）</td>
+<td>✅ 检查</td>
+<td>有则拒绝删除</td>
+</tr>
+<tr>
+<td>worktree remove 失败</td>
+<td>✅ 检查</td>
+<td>fail closed，不删目录</td>
+</tr>
+<tr>
+<td>未推送的提交</td>
+<td>❌ 不检查</td>
+<td>删之前自己确认是否 push</td>
+</tr>
+<tr>
+<td>未合并的分支</td>
+<td>❌ 不检查</td>
+<td>删之前自己确认是否 merge</td>
+</tr>
+<tr>
+<td><strong>远程分支</strong></td>
+<td>❌ <strong>不删除</strong></td>
+<td>只删本地，远程分支需手动清理</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>最重要的边界</strong>：<code>--remove</code> <strong>不会删除远程分支</strong>。它只删本地 worktree&#x2F;clone 和工作区目录。如果你的工作区分支已推到远程，删除工作区后远程分支还在——得手动 <code>git push origin --delete &lt;branch&gt;</code> 清理。</p>
+</blockquote>
+<p>删除成功的报告：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Workspace &quot;feature-payment&quot; removed.</span><br><span class="line"></span><br><span class="line">  Path: ~/gsd-workspaces/feature-payment (deleted)</span><br><span class="line">  Repos: 2 worktrees cleaned up</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第-9-章-实战演练：5-个真实场景，手把手带你做"><a href="#第-9-章-实战演练：5-个真实场景，手把手带你做" class="headerlink" title="第 9 章 实战演练：5 个真实场景，手把手带你做"></a>第 9 章 实战演练：5 个真实场景，手把手带你做</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：把前面学的命令用到真实场景里。5 个场景，每个都用「为什么做 → 怎么做 → 做完看到什么 &#x2F; 出错了怎么办」三段式。建议挑跟你最相关的那个跟着做一遍。</p>
+</blockquote>
+<h3 id="9-1-场景一：前后端联调（API-UI-一起发布）"><a href="#9-1-场景一：前后端联调（API-UI-一起发布）" class="headerlink" title="9.1 场景一：前后端联调（API + UI 一起发布）"></a>9.1 场景一：前后端联调（API + UI 一起发布）</h3><p><strong>为什么做</strong>：be-star（Java 后端）和 star-app（Flutter 前端）要协同实现支付功能，需要一起测试、一起发布。如果各自独立的 GSD 规划，上下文割裂；放进一个工作区，共享一份规划，协调顺畅。</p>
+<p><strong>怎么做</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 创建工作区（含两个仓库）</span></span><br><span class="line">$ /gsd-workspace --new \</span><br><span class="line">    --name feature-payment \</span><br><span class="line">    --repos be-star,star-app \</span><br><span class="line">    --strategy worktree \</span><br><span class="line">    --branch feature/payment \</span><br><span class="line">    --auto</span><br><span class="line"></span><br><span class="line"><span class="comment"># 做完看到：</span></span><br><span class="line"><span class="comment"># Workspace created: ~/gsd-workspaces/feature-payment</span></span><br><span class="line"><span class="comment">#   Repos: 2</span></span><br><span class="line"><span class="comment">#   Strategy: worktree</span></span><br><span class="line"><span class="comment">#   Branch: feature/payment</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 初始化 GSD（先 cd！）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment</span><br><span class="line">$ /gsd-new-project</span><br><span class="line"><span class="comment"># 工作区独立 .planning/ 下生成 PROJECT.md、ROADMAP.md</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 开发：讨论 → 规划 → 执行</span></span><br><span class="line">$ /gsd-discuss-phase 1      <span class="comment"># 讨论支付接口契约</span></span><br><span class="line">$ /gsd-plan-phase 1          <span class="comment"># 生成原子化计划</span></span><br><span class="line">$ /gsd-execute-phase 1       <span class="comment"># 执行（会同时改 be-star 和 star-app 两个副本）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 分别提交两个仓库的改动</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment/be-star</span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;feat: 实现支付接口&quot;</span></span><br><span class="line"></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment/star-app</span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;feat: 对接支付页面&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ⑤ 分别合并回各自的主仓库</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ git merge feature/payment</span><br><span class="line"></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/star-app</span><br><span class="line">$ git merge feature/payment</span><br><span class="line"></span><br><span class="line"><span class="comment"># ⑥ 删除工作区（改动已提交，dirty 检查会通过）</span></span><br><span class="line">$ /gsd-workspace --remove feature-payment</span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：两个仓库的支付功能都合并到各自主仓库，工作区被清理。ROADMAP.md 里可以同时记录「后端接口」和「前端对接」两条线，<code>/gsd-execute-phase</code> 的计划能跨仓库编排。</p>
+<p><strong>出错了怎么办</strong>：</p>
+<ul>
+<li>创建时提示 <code>Not a git repo</code> → 检查 <code>--repos</code> 路径是否正确，是不是真的 git 仓库</li>
+<li>删除时提示 dirty → 回到第 ④ 步检查两个仓库是否都 commit 了</li>
+</ul>
+<h3 id="9-2-场景二：单仓库功能分支隔离"><a href="#9-2-场景二：单仓库功能分支隔离" class="headerlink" title="9.2 场景二：单仓库功能分支隔离"></a>9.2 场景二：单仓库功能分支隔离</h3><p><strong>为什么做</strong>：在 be-star 单仓库上做一个实验性大重构，不想影响主工作树的日常迭代。主工作树保持干净，同事的 PR 不受影响。</p>
+<p><strong>怎么做</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 创建单仓库工作区（--repos . 表示当前仓库）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name refactor-db-migration --repos . --auto</span><br><span class="line"><span class="comment"># 在 ~/gsd-workspaces/refactor-db-migration/be-star 建一个 worktree</span></span><br><span class="line"><span class="comment"># 检出 workspace/refactor-db-migration 分支</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 进入工作区做重构（主工作树完全不受影响）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/refactor-db-migration/be-star</span><br><span class="line">$ /gsd-new-project</span><br><span class="line">$ /gsd-discuss-phase 1</span><br><span class="line">$ /gsd-plan-phase 1</span><br><span class="line">$ /gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时你可以：跑独立的 mvn clean（独立 target/）、切换 MyBatis 到 JPA 实验</span></span><br><span class="line"><span class="comment"># 而主工作树 ~/Projects/be-star 保持干净</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 重构完成后合并</span></span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;refactor: 数据库迁移层重构&quot;</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ git merge workspace/refactor-db-migration</span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 删除工作区</span></span><br><span class="line">$ /gsd-workspace --remove refactor-db-migration</span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：重构分支有独立的构建产物（<code>target/</code>）和独立的工作树状态，与主工作树的 <code>main</code> 分支并行推进。这是「热修复 + 功能开发并行」「大型重构 + 日常迭代并行」的标准模式。</p>
+<h3 id="9-3-场景三：大型重构-大版本升级并行（新增）"><a href="#9-3-场景三：大型重构-大版本升级并行（新增）" class="headerlink" title="9.3 场景三：大型重构 &#x2F; 大版本升级并行（新增）"></a>9.3 场景三：大型重构 &#x2F; 大版本升级并行（新增）</h3><p><strong>为什么做</strong>：Spring Boot 2→3 升级这种大工程，要改的文件多、风险高、周期长。在主分支上做会阻塞日常迭代；开个工作区放手升级，主分支继续跑日常 PR。</p>
+<p><strong>怎么做</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 创建升级工作区</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name upgrade-springboot3 --repos . --auto</span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 进入独立环境升级（主分支的日常 PR 完全不受影响）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/upgrade-springboot3/be-star</span><br><span class="line">$ /gsd-new-project</span><br><span class="line">$ /gsd-discuss-phase 1    <span class="comment"># 讨论升级方案：哪些 API 废弃、兼容性</span></span><br><span class="line">$ /gsd-plan-phase 1        <span class="comment"># 规划：分阶段升级（依赖→配置→代码）</span></span><br><span class="line">$ /gsd-execute-phase 1     <span class="comment"># 执行升级</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 在升级期间，主分支可以照常合并日常 PR</span></span><br><span class="line"><span class="comment"># （在 ~/Projects/be-star 主工作树上，跟平时一样）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 升级完成，充分测试后合并</span></span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;feat: 升级 Spring Boot 3&quot;</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ git merge workspace/upgrade-springboot3</span><br><span class="line"></span><br><span class="line"><span class="comment"># ⑤ 删除工作区</span></span><br><span class="line">$ /gsd-workspace --remove upgrade-springboot3</span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：升级工程有自己的 <code>target/</code>（Spring Boot 3 的依赖），跟主分支的 <code>target/</code>（Spring Boot 2）互不影响。升级期间团队照常迭代，升级完成一次性合并。</p>
+<p><strong>出错了怎么办</strong>：升级中发现某个方案走不通？直接 <code>--remove</code> 工作区，从 <code>--new</code> 重新开始，主分支一行代码没动过——这就是隔离的价值。</p>
+<h3 id="9-4-场景四：紧急热修复并行（新增）"><a href="#9-4-场景四：紧急热修复并行（新增）" class="headerlink" title="9.4 场景四：紧急热修复并行（新增）"></a>9.4 场景四：紧急热修复并行（新增）</h3><p><strong>为什么做</strong>：你正在 <code>feature-payment</code> 工作区专心开发新功能（改了一堆代码还没提交），突然生产环境出 bug 要紧急修复。这时候不想 <code>git stash</code> 打断新功能，开个新的热修复工作区，修完合并，原功能工作区纹丝不动。</p>
+<p><strong>怎么做</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 当前你在 feature-payment 工作区开发新功能（有未提交改动，先别动它）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ① 开一个热修复工作区（从主仓库创建，跟 feature-payment 完全独立）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name hotfix-prod-bug --repos . --branch hotfix/bug-789 --auto</span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 进入热修复工作区，快速修复</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/hotfix-prod-bug/be-star</span><br><span class="line">$ /gsd-new-project</span><br><span class="line">$ /gsd-execute-phase 1     <span class="comment"># 修复 bug</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 修复完，合并到主仓库并发布</span></span><br><span class="line">$ git add . &amp;&amp; git commit -m <span class="string">&quot;fix: 修复生产 bug #789&quot;</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ git merge hotfix/bug-789</span><br><span class="line">$ git push                  <span class="comment"># 紧急发布</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 删除热修复工作区</span></span><br><span class="line">$ /gsd-workspace --remove hotfix-prod-bug</span><br><span class="line"></span><br><span class="line"><span class="comment"># ⑤ 回到新功能工作区，继续之前的工作（啥也没丢）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/feature-payment/be-star</span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：热修复快速上线，新功能工作区的未提交改动完好无损。这就是「同时推进多条线」的能力——每条线一个工作区，互不干扰。</p>
+<h3 id="9-5-场景五：A-B-方案对比实验（新增）"><a href="#9-5-场景五：A-B-方案对比实验（新增）" class="headerlink" title="9.5 场景五：A&#x2F;B 方案对比实验（新增）"></a>9.5 场景五：A&#x2F;B 方案对比实验（新增）</h3><p><strong>为什么做</strong>：be-star 的数据访问层要重构，团队在「继续用 MyBatis」还是「换 JPA」之间犹豫。各开一个工作区，两种方案都实现一遍，对比性能和可维护性再决定。</p>
+<p><strong>怎么做</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 开方案 A 工作区（MyBatis 优化）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name plan-a-mybatis --repos . --auto</span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/plan-a-mybatis/be-star</span><br><span class="line">$ /gsd-new-project</span><br><span class="line"><span class="comment"># ... 实现 MyBatis 优化方案，跑基准测试</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 开方案 B 工作区（换 JPA）</span></span><br><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star</span><br><span class="line">$ /gsd-workspace --new --name plan-b-jpa --repos . --auto</span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/plan-b-jpa/be-star</span><br><span class="line">$ /gsd-new-project</span><br><span class="line"><span class="comment"># ... 实现 JPA 方案，跑同样的基准测试</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 两个方案各有独立的 target/ 和规划记录，对比干净</span></span><br><span class="line"><span class="comment"># 决定采用方案 B 后：</span></span><br><span class="line">$ /gsd-workspace --remove plan-a-mybatis     <span class="comment"># 删掉不采用的方案 A</span></span><br><span class="line"><span class="comment"># 方案 B 走正常的合并流程</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>做完看到什么</strong>：两个方案在完全隔离的环境里实现，构建产物和规划记录互不污染，对比结果可信。决定后删掉不采用的方案，干净利落。</p>
+<blockquote>
+<p><strong>为什么这个场景适合 clone 而非 worktree</strong>：如果你想在每个方案里做更激进的实验（比如重写 git 历史），用 <code>--strategy clone</code> 更安全——完全独立，不影响源仓库。</p>
+</blockquote>
+<h3 id="9-6-Issue-驱动工作流"><a href="#9-6-Issue-驱动工作流" class="headerlink" title="9.6 Issue 驱动工作流"></a>9.6 Issue 驱动工作流</h3><p><strong>模式</strong>：每个 tracker issue（GitHub&#x2F;Linear&#x2F;Jira）映射到一个专属 workspace，未完成的工作、中止的计划、探索性提交都保留在 <code>main</code> 之外。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    A[&quot;Tracker Issue&quot;] --&gt; B[&quot;&#x2F;gsd-workspace --new&lt;br&#x2F;&gt;name&#x3D;issue-slug repos&#x3D;点&quot;]
+    B --&gt; C[&quot;cd + &#x2F;gsd-discuss-phase&quot;]
+    C --&gt; D[&quot;&#x2F;gsd-plan-phase&quot;]
+    D --&gt; E[&quot;&#x2F;gsd-execute-phase&quot;]
+    E --&gt; F[&quot;&#x2F;gsd-verify-work&quot;]
+    F --&gt; G[&quot;&#x2F;gsd-code-review&quot;]
+    G --&gt; H[&quot;&#x2F;gsd-ship 开 PR&quot;]</pre></div>
+
+
+<p><strong>关键命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一个 issue 一个 workspace</span></span><br><span class="line">$ /gsd-workspace --new --name fix-login-redirect --repos . --strategy worktree</span><br><span class="line">$ <span class="built_in">cd</span> ~/gsd-workspaces/fix-login-redirect</span><br><span class="line">$ /gsd-discuss-phase 1     <span class="comment"># 把 issue URL 粘到讨论里，记入 CONTEXT.md</span></span><br><span class="line">$ /gsd-plan-phase 1</span><br><span class="line">$ /gsd-execute-phase 1</span><br><span class="line">$ /gsd-verify-work 1       <span class="comment"># 逐条核对 issue 验收标准</span></span><br><span class="line">$ /gsd-code-review 1 --fix</span><br><span class="line">$ /gsd-ship 1              <span class="comment"># PR 正文加 Closes #NNN，合并时自动关 issue</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>完整的 Issue 驱动八步流程（含里程碑、条件场景处理）见官方 how-to <a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core/blob/main/docs/zh-CN/how-to/drive-gsd-from-a-tracker-issue.md">drive-gsd-from-a-tracker-issue</a>。</p>
+</blockquote>
+<hr>
+<h2 id="第-10-章-生命周期管理：从创建到删除的纪律"><a href="#第-10-章-生命周期管理：从创建到删除的纪律" class="headerlink" title="第 10 章 生命周期管理：从创建到删除的纪律"></a>第 10 章 生命周期管理：从创建到删除的纪律</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：把 Workspace 的完整生命周期串起来，并讲清合并回主仓库的差异和「用完即删」的纪律。</p>
+</blockquote>
+<h3 id="10-1-生命周期时间线"><a href="#10-1-生命周期时间线" class="headerlink" title="10.1 生命周期时间线"></a>10.1 生命周期时间线</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>graph LR
+    A[&quot;① 创建（--new）&quot;] --&gt; B[&quot;② 初始化 GSD&lt;br&#x2F;&gt;cd + &#x2F;gsd-new-project&quot;]
+    B --&gt; C[&quot;③ 开发&lt;br&#x2F;&gt;discuss&#x2F;plan&#x2F;execute&quot;]
+    C --&gt; D[&quot;④ 提交&lt;br&#x2F;&gt;git commit&quot;]
+    D --&gt; E[&quot;⑤ 合并回主仓库&lt;br&#x2F;&gt;git merge&quot;]
+    E --&gt; F[&quot;⑥ 删除工作区（--remove）&quot;]</pre></div>
+
+
+<p>记住这条线：<strong>创建 → 初始化 → 开发 → 提交 → 合并 → 删除</strong>。每一步都对应前面章节讲过的命令。</p>
+<h3 id="10-2-合并回主仓库：worktree-和-clone-不同"><a href="#10-2-合并回主仓库：worktree-和-clone-不同" class="headerlink" title="10.2 合并回主仓库：worktree 和 clone 不同"></a>10.2 合并回主仓库：worktree 和 clone 不同</h3><p>这是最容易踩坑的地方，两种策略的合并方式不一样：</p>
+<table>
+<thead>
+<tr>
+<th>注意点</th>
+<th>worktree 策略</th>
+<th>clone 策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>合并方式</td>
+<td>回<strong>源仓库</strong>执行 <code>git merge &lt;分支&gt;</code></td>
+<td>需先 <code>git push</code> 到远程，再从源仓库 <code>git pull/merge</code>；或用 <code>git remote add</code> 桥接</td>
+</tr>
+<tr>
+<td>为什么不同</td>
+<td>worktree 共享源仓库的 refs，直接能 merge</td>
+<td>clone 完全独立，refs 不通，必须经远程或手动桥接</td>
+</tr>
+</tbody></table>
+<p><strong>跨仓库分支独立性</strong>：在第 9.1 的多仓库场景里，be-star 和 star-app 是<strong>两个不同的 git 仓库</strong>，各自维护独立的 refs。所以两边都检出 <code>feature/payment</code> 分支不会冲突——它们是各自仓库里的同名分支，互不可见。合并时也是各自仓库独立合并。</p>
+<p><strong>确认实际分支名</strong>（特别是重复创建过同名工作区的）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/Projects/be-star &amp;&amp; git branch | grep workspace</span><br><span class="line">  workspace/refactor-db-migration</span><br><span class="line">  workspace/feature-payment-20260614005512   <span class="comment"># ← 带时间戳的（时间戳回退产生）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-用完即删：避免-workspace-分支堆积"><a href="#10-3-用完即删：避免-workspace-分支堆积" class="headerlink" title="10.3 用完即删：避免 workspace&#x2F;* 分支堆积"></a>10.3 用完即删：避免 workspace&#x2F;* 分支堆积</h3><p>工作区用完不删，<code>workspace/*</code> 分支会越堆越多，最后自己都搞不清哪个还有用。三条纪律：</p>
+<table>
+<thead>
+<tr>
+<th>纪律</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>删除前确保提交&#x2F;合并</strong></td>
+<td>避免触发 dirty 检查；避免丢失未推送的工作</td>
+</tr>
+<tr>
+<td><strong>合并后立即 <code>--remove</code></strong></td>
+<td>合并回主仓库就立刻删，别留到「以后」</td>
+</tr>
+<tr>
+<td><strong>定期 <code>--list</code> 清理</strong></td>
+<td>发现 <code>GSD Project: No</code> 的半成品，决定补全或删除</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="第-11-章-运行时兼容性与配置"><a href="#第-11-章-运行时兼容性与配置" class="headerlink" title="第 11 章 运行时兼容性与配置"></a>第 11 章 运行时兼容性与配置</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：不同 AI 运行时（Claude &#x2F; Codex &#x2F; Gemini）下用 Workspace 的注意事项，以及相关配置项。</p>
+</blockquote>
+<h3 id="11-1-text-mode：非-Claude-运行时必备"><a href="#11-1-text-mode：非-Claude-运行时必备" class="headerlink" title="11.1 text_mode：非 Claude 运行时必备"></a>11.1 text_mode：非 Claude 运行时必备</h3><p>GSD 默认用 <strong>AskUserQuestion</strong>（Claude Code 的结构化询问 UI）做交互。但 OpenAI Codex、Gemini CLI 等非 Claude 运行时<strong>不支持 AskUserQuestion</strong>，这时要启用文本模式。</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>命令</th>
+<th>适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>临时 flag</td>
+<td><code>/gsd-workspace --new --name x --text</code></td>
+<td>单次</td>
+</tr>
+<tr>
+<td>配置项</td>
+<td><code>workflow.text_mode: true</code></td>
+<td>项目级</td>
+</tr>
+</tbody></table>
+<p>启用前后交互差异：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># AskUserQuestion 模式（Claude，默认）</span><br><span class="line">┌─ Strategy ────────────────────────────┐</span><br><span class="line">│ How should repos be copied?            │</span><br><span class="line">│ ○ Worktree (recommended)               │</span><br><span class="line">│ ○ Clone                                │</span><br><span class="line">└────────────────────────────────────────┘</span><br><span class="line"></span><br><span class="line"># text_mode 模式（Codex/Gemini）</span><br><span class="line">How should repos be copied into the workspace?</span><br><span class="line">  1. Worktree (recommended)</span><br><span class="line">  2. Clone</span><br><span class="line">Type your choice number: _</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-worktree-的运行时与子模块限制"><a href="#11-2-worktree-的运行时与子模块限制" class="headerlink" title="11.2 worktree 的运行时与子模块限制"></a>11.2 worktree 的运行时与子模块限制</h3><table>
+<thead>
+<tr>
+<th>限制</th>
+<th>说明</th>
+<th>应对</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>子模块路径不安全</td>
+<td>worktree 下子模块路径不安全，GSD 自动回退主工作树顺序执行</td>
+<td>用 <code>--strategy clone</code></td>
+</tr>
+<tr>
+<td>某些运行时不支持 worktree</td>
+<td>如部分 Codex 配置</td>
+<td>用 <code>--strategy clone</code></td>
+</tr>
+<tr>
+<td>全局禁用 worktree</td>
+<td>配置 <code>workflow.use_worktrees: false</code></td>
+<td>改用 clone 或重新启用</td>
+</tr>
+</tbody></table>
+<h3 id="11-3-配置项一览"><a href="#11-3-配置项一览" class="headerlink" title="11.3 配置项一览"></a>11.3 配置项一览</h3><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>默认值</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>workflow.use_worktrees</code></td>
+<td><code>true</code></td>
+<td>控制 GSD <strong>执行阶段</strong>是否用 worktree 隔离（影响 execute-phase 的 per-plan worktree，<strong>不是</strong> workspace 创建策略）</td>
+</tr>
+<tr>
+<td><code>workflow.text_mode</code></td>
+<td><code>false</code></td>
+<td>影响所有 AskUserQuestion 调用（含 workspace 交互）</td>
+</tr>
+</tbody></table>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;workflow&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;use_worktrees&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;text_mode&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>容易混淆的点</strong>：<code>workflow.use_worktrees</code> 控制的是 <strong>execute-phase 执行阶段</strong>的 worktree 隔离（per-plan worktree gate），<strong>不是</strong> workspace 创建时的策略。workspace 创建策略由 <code>--strategy</code> flag 控制。两者是不同的机制。</p>
+</blockquote>
+<h3 id="11-4-深入：-planning-路径解析（可选）"><a href="#11-4-深入：-planning-路径解析（可选）" class="headerlink" title="11.4 深入：.planning 路径解析（可选）"></a>11.4 深入：.planning 路径解析（可选）</h3><p>源码 <code>src/planning-workspace.cts</code> 的路径解析规则：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">planningDir(cwd, ws, project) = cwd/.planning/[project]/[workstreams/&lt;ws&gt;]</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cwd</code></td>
+<td>当前工作目录（workspace 内即为工作区根，所以 <code>.planning/</code> 落在工作区下）</td>
+</tr>
+<tr>
+<td><code>project</code></td>
+<td>项目标识，可由环境变量 <code>GSD_PROJECT</code> 指定</td>
+</tr>
+<tr>
+<td><code>ws</code></td>
+<td>workstream 名，可由环境变量 <code>GSD_WORKSTREAM</code> 指定</td>
+</tr>
+<tr>
+<td>路径遍历防护</td>
+<td>拒绝 project&#x2F;workstream 名含 <code>/</code>、<code>\</code>、<code>..</code>（防环境变量注入越界）</td>
+</tr>
+<tr>
+<td>planning lock</td>
+<td><code>withPlanningLock</code>，O_EXCL 创建锁文件，并发时重试（处理 Docker overlay-fs &#x2F; NFS 的瞬态 errno）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>实战影响</strong>：你可以用 <code>GSD_PROJECT</code> &#x2F; <code>GSD_WORKSTREAM</code> 环境变量在脚本里切换规划上下文；路径遍历防护确保注入的路径不会越界。</p>
+</blockquote>
+<hr>
+<h2 id="第-12-章-故障排查"><a href="#第-12-章-故障排查" class="headerlink" title="第 12 章 故障排查"></a>第 12 章 故障排查</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：遇到报错时快速定位。一张错误总表 + 高频 FAQ。</p>
+</blockquote>
+<h3 id="12-1-错误条件总表"><a href="#12-1-错误条件总表" class="headerlink" title="12.1 错误条件总表"></a>12.1 错误条件总表</h3><p>按创建 &#x2F; 删除 &#x2F; 列出三个阶段汇总：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>错误</th>
+<th>触发条件</th>
+<th>提示（节选）</th>
+<th>解决建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>创建</td>
+<td>无 git 仓库</td>
+<td>当前目录非 git 且无子仓库</td>
+<td><code>No git repos found</code></td>
+<td>从含 git 仓库的目录运行，或显式 <code>--repos</code></td>
+</tr>
+<tr>
+<td>创建</td>
+<td><code>--auto</code> 无 <code>--repos</code></td>
+<td><code>--auto</code> 但未指定仓库</td>
+<td><code>--auto requires --repos</code></td>
+<td>补 <code>--repos repo1,repo2</code></td>
+</tr>
+<tr>
+<td>创建</td>
+<td>目标路径非空</td>
+<td><code>--path</code> 指向已存在非空目录</td>
+<td><code>Target path already exists and is not empty</code></td>
+<td>换 <code>--name</code> 或 <code>--path</code></td>
+</tr>
+<tr>
+<td>创建</td>
+<td>源非 git 仓库</td>
+<td><code>--repos</code> 中某路径无 <code>.git</code></td>
+<td><code>Not a git repo: &lt;路径&gt;</code></td>
+<td>检查路径，或先 <code>git init</code></td>
+</tr>
+<tr>
+<td>创建</td>
+<td>git 不可用</td>
+<td>worktree 策略但无 git</td>
+<td><code>git is not available. Install git or use --strategy clone</code></td>
+<td>装 git 或用 clone</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>workspace 不存在</td>
+<td><code>--remove</code> 不存在的名称</td>
+<td><code>Workspace not found</code></td>
+<td>先 <code>--list</code> 看实际名称</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>workspace 无名称</td>
+<td><code>--remove</code> 未给名称</td>
+<td><code>workspace name required</code>（会列出可选）</td>
+<td>补名称或从列表选</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>dirty 仓库</td>
+<td>删除时有未提交更改</td>
+<td><code>Cannot remove workspace ... uncommitted changes</code></td>
+<td>先 commit&#x2F;stash</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>worktree remove 失败</td>
+<td>删除时 worktree remove 失败</td>
+<td><code>Refusing to delete ... worktrees could not be removed</code></td>
+<td>手动 <code>git worktree remove</code> 后重试</td>
+</tr>
+</tbody></table>
+<h3 id="12-2-常见问题-FAQ（含边界）"><a href="#12-2-常见问题-FAQ（含边界）" class="headerlink" title="12.2 常见问题 FAQ（含边界）"></a>12.2 常见问题 FAQ（含边界）</h3><p><strong>Q1：worktree 和 clone 哪个更快？</strong><br>worktree 更快且省空间（共享 <code>.git</code> objects）。除非有子模块、运行时不兼容或需要完全独立，否则用默认的 worktree。</p>
+<p><strong>Q2：删除工作区后数据还能恢复吗？</strong><br>worktree 策略下，源仓库的 <code>.git</code> objects 仍在（worktree 只是个链接），已提交的代码可通过分支找回；但<strong>未提交的改动</strong>会随 <code>rm -rf</code> 永久丢失——这正是为什么 GSD 有 dirty 检查（§8.2）。clone 策略下，整个目录被删，已提交内容若未 push 也丢失。</p>
+<p><strong>Q3：子模块项目为什么不能用 worktree？</strong><br>worktree 隔离下，涉及子模块路径的计划不安全（子模块的 <code>.git</code> 链接指向错误位置），GSD 会自动回退到主工作树顺序执行。用 <code>--strategy clone</code> 可避免。</p>
+<p><strong>Q4：重复创建同名工作区会怎样？</strong><br>默认分支 <code>workspace/&lt;name&gt;</code> 已存在时，GSD 自动追加时间戳后缀（如 <code>workspace/&lt;name&gt;-20260614005512</code>），见 §5.5。合并时注意实际分支名。</p>
+<p><strong>Q5：<code>--auto</code> 何时会报错？</strong><br><code>--auto</code> 模式跳过交互，但若<strong>未提供 <code>--repos</code></strong> 会报错退出（无法通过交互补全）。<code>--auto</code> 适合 CI&#x2F;脚本，但必须把所有必要参数传全。</p>
+<p><strong>Q6：WORKSPACE.md 能手动编辑吗？</strong><br>可以编辑 <code>## Notes</code> 区（写工作区用途）。<code>## Member Repos</code> 表格由 GSD 维护，手动改不影响实际 worktree（实际状态在 git 层）。详见 §6.3。</p>
+<p><strong>Q7：自定义 <code>--path</code> 的工作区为什么不在 <code>--list</code> 里？</strong><br><code>--list</code> 只扫描默认的 <code>~/gsd-workspaces/</code>。自定义路径的工作区需自己记录。见 §7.3。</p>
+<p><strong>Q8：删除会删远程分支吗？</strong><br><strong>不会</strong>。<code>--remove</code> 只删本地 worktree&#x2F;clone 和工作区目录。远程分支需手动 <code>git push origin --delete &lt;branch&gt;</code>。见 §8.5。</p>
+<p><strong>Q9：worktree 的 <code>git gc</code> 会有什么影响？（边界）</strong><br>多个 worktree 共享源仓库的 <code>.git</code> objects。在源仓库执行 <code>git gc</code>（垃圾回收）会影响所有共享该仓库的 worktree——一般无害，但要知道这层共享关系。</p>
+<p><strong>Q10：clone 工作区怎么合并回主仓库？（边界）</strong><br>clone 完全独立，refs 不通。两种方式：① <code>git push</code> 到远程，再从源仓库 <code>git pull/merge</code>；② 在源仓库 <code>git remote add &lt;临时名&gt; &lt;clone路径&gt;</code> 桥接，merge 后删除 remote。</p>
+<p><strong>Q11：并发创建工作区会冲突吗？（边界）</strong><br>GSD 用 <code>withPlanningLock</code>（O_EXCL 创建锁文件）保护 <code>.planning/</code> 写入，并发时会重试。在 Docker overlay-fs &#x2F; NFS 上偶尔有瞬态错误，重试机制能处理。</p>
+<hr>
+<h2 id="第-13-章-最佳实践"><a href="#第-13-章-最佳实践" class="headerlink" title="第 13 章 最佳实践"></a>第 13 章 最佳实践</h2><blockquote>
+<p><strong>这一章解决什么问题</strong>：把前面的经验总结成可操作的建议，外加边界陷阱速记。</p>
+</blockquote>
+<h3 id="13-1-策略选择最佳实践"><a href="#13-1-策略选择最佳实践" class="headerlink" title="13.1 策略选择最佳实践"></a>13.1 策略选择最佳实践</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同仓库多分支开发</td>
+<td>worktree</td>
+<td>轻量、省空间、快速</td>
+</tr>
+<tr>
+<td>跨仓库 &#x2F; 多仓库协调</td>
+<td>worktree</td>
+<td>默认即可</td>
+</tr>
+<tr>
+<td>实验性 &#x2F; 破坏性工作</td>
+<td>clone</td>
+<td>不影响源仓库</td>
+</tr>
+<tr>
+<td>子模块项目</td>
+<td>clone</td>
+<td>worktree 路径不安全</td>
+</tr>
+<tr>
+<td>不支持 worktree 的运行时</td>
+<td>clone</td>
+<td>兼容性</td>
+</tr>
+</tbody></table>
+<h3 id="13-2-删除纪律与生命周期管理"><a href="#13-2-删除纪律与生命周期管理" class="headerlink" title="13.2 删除纪律与生命周期管理"></a>13.2 删除纪律与生命周期管理</h3><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>删除前确保提交&#x2F;合并</strong></td>
+<td>避免触发 dirty 检查；避免丢失未推送的工作</td>
+</tr>
+<tr>
+<td><strong>用完即删</strong></td>
+<td>合并回主仓库后立即 <code>--remove</code>，避免 <code>workspace/*</code> 分支堆积</td>
+</tr>
+<tr>
+<td><strong>创建后立即 <code>/gsd-new-project</code></strong></td>
+<td>工作区只有空 <code>.planning/</code>，必须初始化才能跑 GSD 流程</td>
+</tr>
+<tr>
+<td><strong>定期 <code>--list</code> 清理</strong></td>
+<td>发现 <code>GSD Project: No</code> 的半成品工作区，决定补全或删除</td>
+</tr>
+<tr>
+<td><strong>Issue 驱动一 issue 一工作区</strong></td>
+<td>隔离清晰，PR 合并即删，生命周期与 issue 同步</td>
+</tr>
+</tbody></table>
+<h3 id="13-3-命名与组织建议"><a href="#13-3-命名与组织建议" class="headerlink" title="13.3 命名与组织建议"></a>13.3 命名与组织建议</h3><table>
+<thead>
+<tr>
+<th>建议</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用 kebab-case</td>
+<td><code>feature-payment</code>（✅）而非 <code>Feature Payment</code>（❌）</td>
+</tr>
+<tr>
+<td>名称关联功能&#x2F;issue</td>
+<td><code>fix-login-redirect</code>、<code>issue-456</code></td>
+</tr>
+<tr>
+<td>分支名遵守团队规范</td>
+<td><code>--branch feature/payment-v2</code> 而非默认 <code>workspace/...</code></td>
+</tr>
+<tr>
+<td>自定义路径团队统一</td>
+<td><code>--path /projects/workspaces/&lt;name&gt;</code>（注意不在 <code>--list</code> 中）</td>
+</tr>
+</tbody></table>
+<h3 id="13-4-边界与陷阱速记"><a href="#13-4-边界与陷阱速记" class="headerlink" title="13.4 边界与陷阱速记"></a>13.4 边界与陷阱速记</h3><p>把分散在各章的边界细节浓缩成速记清单，遇到怪问题先查这里：</p>
+<table>
+<thead>
+<tr>
+<th>陷阱</th>
+<th>要点</th>
+<th>详见</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git gc</code> 影响所有 worktree</td>
+<td>worktree 共享源仓库 objects，gc 在源仓库执行会影响全部分身</td>
+<td>§11.4、Q9</td>
+</tr>
+<tr>
+<td>clone 合并要桥接</td>
+<td>clone 独立，需 push 远程或 <code>git remote add</code> 桥接</td>
+<td>§10.2、Q10</td>
+</tr>
+<tr>
+<td>并发创建有锁</td>
+<td><code>withPlanningLock</code> 保护 <code>.planning/</code>，NFS 偶有瞬态错误会重试</td>
+<td>§11.4、Q11</td>
+</tr>
+<tr>
+<td>路径遍历被防</td>
+<td>project&#x2F;workstream 名含 <code>/</code>、<code>\</code>、<code>..</code> 会被拒</td>
+<td>§11.4</td>
+</tr>
+<tr>
+<td>时间戳分支回退</td>
+<td>重复创建同名工作区，分支名变 <code>workspace/&lt;name&gt;-时间戳</code></td>
+<td>§5.5</td>
+</tr>
+<tr>
+<td>不删远程分支</td>
+<td><code>--remove</code> 只删本地，远程分支要手动 <code>git push origin --delete</code></td>
+<td>§8.5</td>
+</tr>
+<tr>
+<td>自定义路径不显示</td>
+<td><code>--list</code> 只扫 <code>~/gsd-workspaces/</code>，自定义路径要自己记</td>
+<td>§7.3</td>
+</tr>
+<tr>
+<td>隐藏目录不扫描</td>
+<td><code>.</code> 开头的子目录 GSD 自动跳过，需绝对路径显式指定</td>
+<td>§4.3</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="附录-A：命令速查表"><a href="#附录-A：命令速查表" class="headerlink" title="附录 A：命令速查表"></a>附录 A：命令速查表</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ━━━ 创建 ━━━</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt;                              <span class="comment"># 交互式</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos repo1,repo2          <span class="comment"># 指定仓库</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos .                    <span class="comment"># 当前仓库</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos . --strategy <span class="built_in">clone</span>   <span class="comment"># clone 策略</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos . --branch feat/x    <span class="comment"># 自定义分支</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos . --path /custom     <span class="comment"># 自定义路径</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos . --auto             <span class="comment"># 全自动</span></span><br><span class="line">/gsd-workspace --new --name &lt;name&gt; --repos . --text             <span class="comment"># 文本模式</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ━━━ 列出 ━━━</span></span><br><span class="line">/gsd-workspace --list</span><br><span class="line"></span><br><span class="line"><span class="comment"># ━━━ 删除 ━━━</span></span><br><span class="line">/gsd-workspace --remove &lt;name&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数速查</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认</th>
+<th>必填</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--name</code></td>
+<td>—</td>
+<td>是（除非 –auto）</td>
+</tr>
+<tr>
+<td><code>--repos</code></td>
+<td>—</td>
+<td>–auto 时必填</td>
+</tr>
+<tr>
+<td><code>--path</code></td>
+<td><code>~/gsd-workspaces/&lt;name&gt;</code></td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>--strategy</code></td>
+<td><code>worktree</code></td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>--branch</code></td>
+<td><code>workspace/&lt;name&gt;</code></td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>--auto</code></td>
+<td>false</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>--text</code></td>
+<td>false</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<h3 id="附录-B：WORKSPACE-md-完整模板"><a href="#附录-B：WORKSPACE-md-完整模板" class="headerlink" title="附录 B：WORKSPACE.md 完整模板"></a>附录 B：WORKSPACE.md 完整模板</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Workspace: <span class="language-xml"><span class="tag">&lt;<span class="name">your-workspace-name</span>&gt;</span></span></span></span><br><span class="line"></span><br><span class="line">Created: 2026-06-14</span><br><span class="line">Strategy: worktree</span><br><span class="line"></span><br><span class="line"><span class="section">## Member Repos</span></span><br><span class="line"></span><br><span class="line">| Repo | Source | Branch | Strategy |</span><br><span class="line">|------|--------|--------|----------|</span><br><span class="line">| <span class="language-xml"><span class="tag">&lt;<span class="name">repo-name</span>&gt;</span></span> | <span class="language-xml"><span class="tag">&lt;<span class="name">source-path</span>&gt;</span></span> | <span class="language-xml"><span class="tag">&lt;<span class="name">branch</span>&gt;</span></span> | <span class="language-xml">&lt;worktree|clone&gt;</span> |</span><br><span class="line"></span><br><span class="line"><span class="section">## Notes</span></span><br><span class="line"></span><br><span class="line">&lt;在此填写工作区用途、关联 issue、计划完成时间等&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这是<strong>正确格式</strong>（Markdown，非 YAML）。GSD 创建时会自动生成，你主要编辑 <code>## Notes</code> 区。</p>
+</blockquote>
+<h3 id="附录-C：相关文档"><a href="#附录-C：相关文档" class="headerlink" title="附录 C：相关文档"></a>附录 C：相关文档</h3><table>
+<thead>
+<tr>
+<th>文档</th>
+<th>链接 &#x2F; 路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>并行开发教程（基础速览）</td>
+<td>《GSD使用教程-并行开发》第 4 章</td>
+<td>workspace + workstream + autonomous 并行开发全景</td>
+</tr>
+<tr>
+<td>gsd-tools CLI 教程</td>
+<td>《GSD-gsd-tools使用教程》</td>
+<td>CLI 底层（Command Routing Hub、worktree base-check 等）</td>
+</tr>
+<tr>
+<td>官方 how-to（中）</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core/blob/main/docs/zh-CN/how-to/isolate-work-with-workspaces.md">isolate-work-with-workspaces</a></td>
+<td>官方工作区隔离指南</td>
+</tr>
+<tr>
+<td>官方 how-to（Issue 驱动）</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core/blob/main/docs/zh-CN/how-to/drive-gsd-from-a-tracker-issue.md">drive-gsd-from-a-tracker-issue</a></td>
+<td>Issue → workspace 端到端八步</td>
+</tr>
+<tr>
+<td>gsd-core 仓库</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core">open-gsd&#x2F;gsd-core</a></td>
+<td>源码仓库</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>本文依据</strong>：基于 open-gsd&#x2F;gsd-core 仓库 main 分支一手源码编写（2026-06-14 clone），核心引用包括 <code>commands/gsd/workspace.md</code>、<code>gsd-core/workflows/{new,list,remove}-workspace.md</code>、<code>tests/workspace.test.cjs</code>、<code>src/planning-workspace.cts</code>、官方 how-to 文档。v1.0.0 在保留全部技术事实的基础上，重写为「先场景后原理」的通俗化实战指南，新增 3 个实战场景（大型重构并行、热修复并行、A&#x2F;B 对比）、Workspace 全景图与 worktree&#x2F;clone 对比图，并补充边界细节 FAQ。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-workspace/">https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-workspace/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/gsd/">gsd</a><a class="post-meta__tags" href="/tags/workspace/">workspace</a><a class="post-meta__tags" href="/tags/git-worktree/">git-worktree</a><a class="post-meta__tags" href="/tags/isolation/">isolation</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E4%BB%93%E5%BA%93/">多仓库</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/DeepSeek%20V4%20Flash%20vs%20MiniMax%20M3%20%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90/" title="DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 能否替代 MiniMax M3 胜任重度开发工作1. 引言：为什么做这个对比2026 年上半年，AI 编码模型领域迎来了两股重要力量：2026 年 4 月发布的 DeepSeek V4 Flash，以及 2026 年 6 月发布的 MiniMax M3。二者均采用 MoE（混合专家）架构，均支持 1M token 上下文窗口，均定位为面向开发者的通用推理与编码模型。 然而，两者的定价天差地别——DeepSeek V4 Flash 的输入&#x2F;输出定价仅为 MiniMax M3 的约七分之一。对于一个重度使用 AI 编码助手的开发者来说，这意味着一笔可观的成本差异。 本文试图回答一个实际问题：如果你目前在使用 MiniMax M3 进行日常开发工作，能否切换到 DeepSeek V4 Flash 来降低成本，同时不影响开发效率和代码质量？ 1.1 什么是”重度开发工作”本文讨论的”重度开发工作”特指以下场景：    场景 说明    复杂多步骤工程任务 修复 GitHub Issue、实现新功能、重构代码库，需要跨文件上下文追踪   长周期...</div></div></div></a><a class="pagination-related" href="/GSD-gsd-tools%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="GSD gsd-tools 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GSD gsd-tools 使用教程</div></div><div class="info-2"><div class="info-item-1">GSD gsd-tools 使用教程1. 引言与定位1.1 gsd-tools 是什么gsd-tools（全名 gsd-tools.cjs）是 open-gsd&#x2F;gsd-core 仓库中的核心 CLI 引擎，承担 GSD 五大阶段循环（Specify → Plan → Execute → Verify → Ship）的”后端 CLI”角色。在 GSD 的整体架构中，上层的所有 /gsd-* 斜杠命令、workflow Markdown 文档、agent Prompt 模板，最终都通过 Bash 工具调用 node gsd-tools.cjs ... 来完成实际的 STATE.md 读写、phase 目录操作、配置管理、artifact 验证、commit 提交等动作。 换句话说，gsd-tools 是 GSD 体系的”操作系统内核”：  上层 /gsd-* 命令 &#x3D; 用户接口（shell-like UI） 中层 workflows/*.md &#x3D; 编排逻辑（DSL） 底层 gsd-tools.cjs + lib/*.cjs &#x3D; 真正干活的工具...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/GSD-gsd-tools%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="GSD gsd-tools 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-13</div><div class="info-item-2">GSD gsd-tools 使用教程</div></div><div class="info-2"><div class="info-item-1">GSD gsd-tools 使用教程1. 引言与定位1.1 gsd-tools 是什么gsd-tools（全名 gsd-tools.cjs）是 open-gsd&#x2F;gsd-core 仓库中的核心 CLI 引擎，承担 GSD 五大阶段循环（Specify → Plan → Execute → Verify → Ship）的”后端 CLI”角色。在 GSD 的整体架构中，上层的所有 /gsd-* 斜杠命令、workflow Markdown 文档、agent Prompt 模板，最终都通过 Bash 工具调用 node gsd-tools.cjs ... 来完成实际的 STATE.md 读写、phase 目录操作、配置管理、artifact 验证、commit 提交等动作。 换句话说，gsd-tools 是 GSD 体系的”操作系统内核”：  上层 /gsd-* 命令 &#x3D; 用户接口（shell-like UI） 中层 workflows/*.md &#x3D; 编排逻辑（DSL） 底层 gsd-tools.cjs + lib/*.cjs &#x3D; 真正干活的工具...</div></div></div></a><a class="pagination-related" href="/gsd-core-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E8%AF%BB/" title="GSD-Core 配置文件完整解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-24</div><div class="info-item-2">GSD-Core 配置文件完整解读</div></div><div class="info-2"><div class="info-item-1">GSD-Core 配置文件完整解读 本文基于 open-gsd&#x2F;gsd-core 仓库（npm 包 @opengsd/gsd-core v1.7.0-rc.6）撰写，定位为配置参考手册。与已有文档 GSD-gsd-core 模型解析与 Agent 模型切换 互补——本文聚焦模型配置之外的所有配置域，模型相关字段仅列出名称和默认值，详细解读指向该文档。   1. 配置总览1.1 目标读者使用 GSD-Core 进行项目开发、需要自定义行为或排查配置问题的开发者。本文默认读者已了解 GSD 基本概念（plan、phase、workstream、agent）。 1.2 配置域全景图.planning/config.json 的配置按用途分为 15+ 个域，加上模型配置域（本文仅做交叉引用），总计约 90+ 可配置字段。    配置域 字段数量 本文章节 说明    项目基础 8 第 3 章 运行模式、粒度、项目标识、planning 子域   模型配置 15+ 第 4 章（交叉引用） profile、override、routing、policy 等   上下文与运行时 6 ...</div></div></div></a><a class="pagination-related" href="/GSD-gsd-core%20%E6%A8%A1%E5%9E%8B%E8%A7%A3%E6%9E%90%E4%B8%8E%20Agent%20%E6%A8%A1%E5%9E%8B%E5%88%87%E6%8D%A2/" title="GSD-gsd-core Agent↔Model 配置实战教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-18</div><div class="info-item-2">GSD-gsd-core Agent↔Model 配置实战教程</div></div><div class="info-2"><div class="info-item-1">GSD-gsd-core Agent↔Model 配置实战教程 本文基于 open-gsd/gsd-core 仓库源码(commit 308c7be,2026-06 仓库快照)撰写,核实基准为 npm 包 @opengsd/gsd-core@1.4.4 + GitHub raw。所有结论以仓库源码为最终准绳,与部分二手文档(deepwiki、旧版本教程)有出入的地方均已在文中标注。 本文定位是「实战教程」,不是原理书。前 7 章就能让你完成 90% 的配置任务;原理和深度表放在 §11 与附录里,想深入理解时再翻。   1. 30 秒上手目标:不读完整篇,也能改对配置。 一句话:GSD 把不同 agent(planner &#x2F; researcher &#x2F; debugger 等 34 个)自动分到 opus(重)&#x2F; sonnet(中)&#x2F; haiku(轻)三档模型,默认就帮你配好了;你要做的只是「想换档」时改个文件。 你最需要知道的 3 件事   # 问题 答案 详见    ① 配置文件在哪 &lt;项目根&gt;/.planning/config...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#GSD-Workspace-%E9%9A%94%E7%A6%BB%E5%B7%A5%E4%BD%9C%E5%8C%BA%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">GSD Workspace 隔离工作区使用教程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-0-%E7%AB%A0-%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2%EF%BC%9A%E8%BF%99%E4%BB%BD%E6%95%99%E7%A8%8B%E6%80%8E%E4%B9%88%E5%B8%AE%E4%BD%A0"><span class="toc-number">1.2.</span> <span class="toc-text">第 0 章 写在前面：这份教程怎么帮你</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0-1-%E4%BD%A0%E5%8F%AF%E8%83%BD%E6%AD%A3%E9%81%87%E5%88%B0%E8%BF%99%E4%BA%9B%E9%BA%BB%E7%83%A6"><span class="toc-number">1.2.1.</span> <span class="toc-text">0.1 你可能正遇到这些麻烦</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0-2-Workspace-%E4%B8%80%E5%8F%A5%E8%AF%9D%E8%83%BD%E5%B8%AE%E4%BD%A0%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.2.</span> <span class="toc-text">0.2 Workspace 一句话能帮你解决什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0-3-%E8%BF%99%E4%BB%BD%E6%95%99%E7%A8%8B%E6%80%8E%E4%B9%88%E8%AF%BB%EF%BC%88%E9%98%85%E8%AF%BB%E8%B7%AF%E5%BE%84%EF%BC%89"><span class="toc-number">1.2.3.</span> <span class="toc-text">0.3 这份教程怎么读（阅读路径）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-1-%E7%AB%A0-3-%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%EF%BC%9A%E8%B7%91%E9%80%9A%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-Workspace"><span class="toc-number">1.3.</span> <span class="toc-text">第 1 章 3 分钟上手：跑通你的第一个 Workspace</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%87%86%E5%A4%87%EF%BC%9A%E4%BD%A0%E5%8F%AA%E9%9C%80%E8%A6%81%E8%BF%99%E4%B8%A4%E6%A0%B7"><span class="toc-number">1.3.1.</span> <span class="toc-text">1.1 准备：你只需要这两样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%89%E6%AD%A5%E8%B7%91%E9%80%9A"><span class="toc-number">1.3.2.</span> <span class="toc-text">1.2 三步跑通</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E8%B7%91%E9%80%9A%E5%90%8E%E4%BD%A0%E5%B7%B2%E7%BB%8F%E6%8E%8C%E6%8F%A1%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">1.3.3.</span> <span class="toc-text">1.3 跑通后你已经掌握了什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-2-%E7%AB%A0-Workspace-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9A%E7%94%A8%E7%94%9F%E6%B4%BB%E7%B1%BB%E6%AF%94%E8%AE%B2%E6%B8%85%E6%A5%9A"><span class="toc-number">1.4.</span> <span class="toc-text">第 2 章 Workspace 到底是什么：用生活类比讲清楚</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%80%E4%B8%AA%E7%94%9F%E6%B4%BB%E7%B1%BB%E6%AF%94%EF%BC%9A%E7%8B%AC%E7%AB%8B%E7%9A%84%E5%BC%80%E5%8F%91%E6%88%BF%E9%97%B4"><span class="toc-number">1.4.1.</span> <span class="toc-text">2.1 一个生活类比：独立的开发房间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Workspace-%E7%9A%84%E4%B8%89%E5%A4%A7%E7%BB%84%E6%88%90"><span class="toc-number">1.4.2.</span> <span class="toc-text">2.2 Workspace 的三大组成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%9B%9B%E7%BB%B4%E9%9A%94%E7%A6%BB%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%BC%9A%E4%BA%92%E7%9B%B8%E5%BD%B1%E5%93%8D"><span class="toc-number">1.4.3.</span> <span class="toc-text">2.3 四维隔离：为什么不会互相影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%91%BD%E4%BB%A4%E5%8F%AB%E4%BB%80%E4%B9%88%EF%BC%9A-gsd-workspace-%E8%80%8C%E9%9D%9E-gsd-workspace"><span class="toc-number">1.4.4.</span> <span class="toc-text">2.4 命令叫什么：&#x2F;gsd-workspace 而非 gsd:workspace</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-3-%E7%AB%A0-%E8%AF%A5%E7%94%A8-Workspace-%E8%BF%98%E6%98%AF-Workstream%EF%BC%9F%E5%85%88%E5%81%9A%E5%AF%B9%E9%80%89%E6%8B%A9"><span class="toc-number">1.5.</span> <span class="toc-text">第 3 章 该用 Workspace 还是 Workstream？先做对选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%80%E5%BC%A0%E5%86%B3%E7%AD%96%E6%A0%91%E5%B8%AE%E4%BD%A0%E9%80%89"><span class="toc-number">1.5.1.</span> <span class="toc-text">3.1 一张决策树帮你选</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%83%E7%BB%B4%E5%BA%A6%E8%AF%A6%E7%BB%86%E5%AF%B9%E6%AF%94"><span class="toc-number">1.5.2.</span> <span class="toc-text">3.2 七维度详细对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%8F%A3%E8%AF%80"><span class="toc-number">1.5.3.</span> <span class="toc-text">3.3 一句话口诀</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-4-%E7%AB%A0-%E5%88%9B%E5%BB%BA%E5%B7%A5%E4%BD%9C%E5%8C%BA%EF%BC%9A%E6%89%8B%E6%8A%8A%E6%89%8B%E6%8E%8C%E6%8F%A1%E6%AF%8F%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="toc-number">1.6.</span> <span class="toc-text">第 4 章 创建工作区：手把手掌握每个参数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%88%9B%E5%BB%BA%E6%96%B9%E5%BC%8F%EF%BC%9A%E4%BA%A4%E4%BA%92%E5%BC%8F"><span class="toc-number">1.6.1.</span> <span class="toc-text">4.1 最常用的创建方式：交互式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-new-%E5%85%A8%E9%83%A8%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-number">1.6.2.</span> <span class="toc-text">4.2 --new 全部参数速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-repos-%E6%80%8E%E4%B9%88%E5%A1%AB%EF%BC%9A%E5%9B%9B%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">1.6.3.</span> <span class="toc-text">4.3 --repos 怎么填：四种写法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%88%9B%E5%BB%BA%E6%97%B6-GSD-%E5%81%B7%E5%81%B7%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%889-%E6%AD%A5%E6%BA%90%E7%A0%81%E7%BA%A7%C2%B7%E5%8F%AF%E9%80%89%E6%B7%B1%E5%85%A5%EF%BC%89"><span class="toc-number">1.6.4.</span> <span class="toc-text">4.4 创建时 GSD 偷偷做了什么（9 步源码级·可选深入）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%88%9B%E5%BB%BA%E5%90%8E%E5%BF%85%E5%81%9A%E7%9A%84%E4%B8%80%E6%AD%A5%EF%BC%9Acd-gsd-new-project"><span class="toc-number">1.6.5.</span> <span class="toc-text">4.5 创建后必做的一步：cd + &#x2F;gsd-new-project</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-5-%E7%AB%A0-worktree-%E8%BF%98%E6%98%AF-clone%EF%BC%9A%E4%B8%80%E5%BC%A0%E5%9B%BE%E5%81%9A%E5%AF%B9%E9%80%89%E6%8B%A9"><span class="toc-number">1.7.</span> <span class="toc-text">第 5 章 worktree 还是 clone：一张图做对选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%94%9F%E6%B4%BB%E7%B1%BB%E6%AF%94%EF%BC%9A%E5%88%86%E8%BA%AB-vs-%E5%A4%8D%E5%8D%B0%E4%BB%B6"><span class="toc-number">1.7.1.</span> <span class="toc-text">5.1 生活类比：分身 vs 复印件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-worktree-vs-clone-%E5%AF%B9%E6%AF%94%E5%9B%BE"><span class="toc-number">1.7.2.</span> <span class="toc-text">5.2 worktree vs clone 对比图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9%E5%86%B3%E7%AD%96%E8%A1%A8"><span class="toc-number">1.7.3.</span> <span class="toc-text">5.3 策略选择决策表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%AD%90%E6%A8%A1%E5%9D%97%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%94%A8-worktree"><span class="toc-number">1.7.4.</span> <span class="toc-text">5.4 子模块为什么不能用 worktree</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E6%B7%B1%E5%85%A5%EF%BC%9A%E5%BA%95%E5%B1%82%E5%91%BD%E4%BB%A4%E4%B8%8E%E6%97%B6%E9%97%B4%E6%88%B3%E5%9B%9E%E9%80%80%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.7.5.</span> <span class="toc-text">5.5 深入：底层命令与时间戳回退（可选）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-6-%E7%AB%A0-WORKSPACE-md%EF%BC%9A%E8%BF%99%E4%B8%AA%E6%96%87%E4%BB%B6%E6%84%8F%E5%91%B3%E7%9D%80%E4%BB%80%E4%B9%88"><span class="toc-number">1.8.</span> <span class="toc-text">第 6 章 WORKSPACE.md：这个文件意味着什么</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%85%88%E7%BA%A0%E6%AD%A3%E4%B8%80%E4%B8%AA%E5%B8%B8%E8%A7%81%E8%AF%AF%E8%A7%A3%EF%BC%9A%E5%AE%83%E4%B8%8D%E6%98%AF-YAML"><span class="toc-number">1.8.1.</span> <span class="toc-text">6.1 先纠正一个常见误解：它不是 YAML</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E7%9C%9F%E5%AE%9E%E6%A0%BC%E5%BC%8F%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.8.2.</span> <span class="toc-text">6.2 真实格式详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%BD%A0%E8%83%BD%E7%BC%96%E8%BE%91%E4%BB%80%E4%B9%88%EF%BC%9ANotes-%E5%8C%BA%E6%98%AF%E4%BD%A0%E7%9A%84"><span class="toc-number">1.8.3.</span> <span class="toc-text">6.3 你能编辑什么：Notes 区是你的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-7-%E7%AB%A0-%E5%88%97%E5%87%BA%E5%B7%A5%E4%BD%9C%E5%8C%BA%EF%BC%9A%E7%9C%8B%E7%9C%8B%E4%BD%A0%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E4%BD%9C%E5%8C%BA"><span class="toc-number">1.9.</span> <span class="toc-text">第 7 章 列出工作区：看看你有哪些工作区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E2%80%93list-%E8%BE%93%E5%87%BA%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-number">1.9.1.</span> <span class="toc-text">7.1 –list 输出长什么样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-GSD-Project-%E5%88%97%EF%BC%9A%E5%8F%91%E7%8E%B0%E5%8D%8A%E6%88%90%E5%93%81%E5%B7%A5%E4%BD%9C%E5%8C%BA"><span class="toc-number">1.9.2.</span> <span class="toc-text">7.2 GSD Project 列：发现半成品工作区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%B8%A4%E4%B8%AA%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">1.9.3.</span> <span class="toc-text">7.3 两个要注意的边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-8-%E7%AB%A0-%E5%88%A0%E9%99%A4%E5%B7%A5%E4%BD%9C%E5%8C%BA%EF%BC%9AGSD-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E8%B0%A8%E6%85%8E"><span class="toc-number">1.10.</span> <span class="toc-text">第 8 章 删除工作区：GSD 为什么这么谨慎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%88%A0%E9%99%A4%E6%B5%81%E7%A8%8B%E4%B8%80%E8%A7%88"><span class="toc-number">1.10.1.</span> <span class="toc-text">8.1 删除流程一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E7%AC%AC%E4%B8%80%E9%81%93%E9%98%B2%E7%BA%BF%EF%BC%9A%E6%9C%89%E6%9C%AA%E6%8F%90%E4%BA%A4%E6%94%B9%E5%8A%A8%E4%B8%8D%E8%AE%A9%E5%88%A0%EF%BC%88dirty-%E6%A3%80%E6%9F%A5%EF%BC%89"><span class="toc-number">1.10.2.</span> <span class="toc-text">8.2 第一道防线：有未提交改动不让删（dirty 检查）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E7%AC%AC%E4%BA%8C%E9%81%93%E9%98%B2%E7%BA%BF%EF%BC%9A%E8%BE%93%E5%85%A5%E5%90%8D%E5%AD%97%E6%89%8D%E8%83%BD%E5%88%A0"><span class="toc-number">1.10.3.</span> <span class="toc-text">8.3 第二道防线：输入名字才能删</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E7%AC%AC%E4%B8%89%E9%81%93%E9%98%B2%E7%BA%BF%EF%BC%9Aworktree-%E5%88%A0%E4%B8%8D%E6%8E%89%E5%B0%B1%E5%85%A8%E5%81%9C%EF%BC%88fail-closed%EF%BC%89"><span class="toc-number">1.10.4.</span> <span class="toc-text">8.4 第三道防线：worktree 删不掉就全停（fail closed）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E7%9A%84%E8%BE%B9%E7%95%8C%EF%BC%9A%E6%A3%80%E6%9F%A5%E4%BB%80%E4%B9%88%E3%80%81%E4%B8%8D%E6%A3%80%E6%9F%A5%E4%BB%80%E4%B9%88"><span class="toc-number">1.10.5.</span> <span class="toc-text">8.5 安全检查的边界：检查什么、不检查什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-9-%E7%AB%A0-%E5%AE%9E%E6%88%98%E6%BC%94%E7%BB%83%EF%BC%9A5-%E4%B8%AA%E7%9C%9F%E5%AE%9E%E5%9C%BA%E6%99%AF%EF%BC%8C%E6%89%8B%E6%8A%8A%E6%89%8B%E5%B8%A6%E4%BD%A0%E5%81%9A"><span class="toc-number">1.11.</span> <span class="toc-text">第 9 章 实战演练：5 个真实场景，手把手带你做</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%89%8D%E5%90%8E%E7%AB%AF%E8%81%94%E8%B0%83%EF%BC%88API-UI-%E4%B8%80%E8%B5%B7%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.11.1.</span> <span class="toc-text">9.1 场景一：前后端联调（API + UI 一起发布）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E5%8D%95%E4%BB%93%E5%BA%93%E5%8A%9F%E8%83%BD%E5%88%86%E6%94%AF%E9%9A%94%E7%A6%BB"><span class="toc-number">1.11.2.</span> <span class="toc-text">9.2 场景二：单仓库功能分支隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E5%A4%A7%E5%9E%8B%E9%87%8D%E6%9E%84-%E5%A4%A7%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E5%B9%B6%E8%A1%8C%EF%BC%88%E6%96%B0%E5%A2%9E%EF%BC%89"><span class="toc-number">1.11.3.</span> <span class="toc-text">9.3 场景三：大型重构 &#x2F; 大版本升级并行（新增）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9A%E7%B4%A7%E6%80%A5%E7%83%AD%E4%BF%AE%E5%A4%8D%E5%B9%B6%E8%A1%8C%EF%BC%88%E6%96%B0%E5%A2%9E%EF%BC%89"><span class="toc-number">1.11.4.</span> <span class="toc-text">9.4 场景四：紧急热修复并行（新增）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-%E5%9C%BA%E6%99%AF%E4%BA%94%EF%BC%9AA-B-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C%EF%BC%88%E6%96%B0%E5%A2%9E%EF%BC%89"><span class="toc-number">1.11.5.</span> <span class="toc-text">9.5 场景五：A&#x2F;B 方案对比实验（新增）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-6-Issue-%E9%A9%B1%E5%8A%A8%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">1.11.6.</span> <span class="toc-text">9.6 Issue 驱动工作流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-10-%E7%AB%A0-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86%EF%BC%9A%E4%BB%8E%E5%88%9B%E5%BB%BA%E5%88%B0%E5%88%A0%E9%99%A4%E7%9A%84%E7%BA%AA%E5%BE%8B"><span class="toc-number">1.12.</span> <span class="toc-text">第 10 章 生命周期管理：从创建到删除的纪律</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">1.12.1.</span> <span class="toc-text">10.1 生命周期时间线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%90%88%E5%B9%B6%E5%9B%9E%E4%B8%BB%E4%BB%93%E5%BA%93%EF%BC%9Aworktree-%E5%92%8C-clone-%E4%B8%8D%E5%90%8C"><span class="toc-number">1.12.2.</span> <span class="toc-text">10.2 合并回主仓库：worktree 和 clone 不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E7%94%A8%E5%AE%8C%E5%8D%B3%E5%88%A0%EF%BC%9A%E9%81%BF%E5%85%8D-workspace-%E5%88%86%E6%94%AF%E5%A0%86%E7%A7%AF"><span class="toc-number">1.12.3.</span> <span class="toc-text">10.3 用完即删：避免 workspace&#x2F;* 分支堆积</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-11-%E7%AB%A0-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%85%BC%E5%AE%B9%E6%80%A7%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="toc-number">1.13.</span> <span class="toc-text">第 11 章 运行时兼容性与配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-text-mode%EF%BC%9A%E9%9D%9E-Claude-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%BF%85%E5%A4%87"><span class="toc-number">1.13.1.</span> <span class="toc-text">11.1 text_mode：非 Claude 运行时必备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-worktree-%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E4%B8%8E%E5%AD%90%E6%A8%A1%E5%9D%97%E9%99%90%E5%88%B6"><span class="toc-number">1.13.2.</span> <span class="toc-text">11.2 worktree 的运行时与子模块限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E9%85%8D%E7%BD%AE%E9%A1%B9%E4%B8%80%E8%A7%88"><span class="toc-number">1.13.3.</span> <span class="toc-text">11.3 配置项一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%B7%B1%E5%85%A5%EF%BC%9A-planning-%E8%B7%AF%E5%BE%84%E8%A7%A3%E6%9E%90%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.13.4.</span> <span class="toc-text">11.4 深入：.planning 路径解析（可选）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-12-%E7%AB%A0-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">1.14.</span> <span class="toc-text">第 12 章 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E9%94%99%E8%AF%AF%E6%9D%A1%E4%BB%B6%E6%80%BB%E8%A1%A8"><span class="toc-number">1.14.1.</span> <span class="toc-text">12.1 错误条件总表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98-FAQ%EF%BC%88%E5%90%AB%E8%BE%B9%E7%95%8C%EF%BC%89"><span class="toc-number">1.14.2.</span> <span class="toc-text">12.2 常见问题 FAQ（含边界）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-13-%E7%AB%A0-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.15.</span> <span class="toc-text">第 13 章 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.15.1.</span> <span class="toc-text">13.1 策略选择最佳实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E5%88%A0%E9%99%A4%E7%BA%AA%E5%BE%8B%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86"><span class="toc-number">1.15.2.</span> <span class="toc-text">13.2 删除纪律与生命周期管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E5%91%BD%E5%90%8D%E4%B8%8E%E7%BB%84%E7%BB%87%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.15.3.</span> <span class="toc-text">13.3 命名与组织建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E8%BE%B9%E7%95%8C%E4%B8%8E%E9%99%B7%E9%98%B1%E9%80%9F%E8%AE%B0"><span class="toc-number">1.15.4.</span> <span class="toc-text">13.4 边界与陷阱速记</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">1.16.</span> <span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%84%E5%BD%95-A%EF%BC%9A%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.16.1.</span> <span class="toc-text">附录 A：命令速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%84%E5%BD%95-B%EF%BC%9AWORKSPACE-md-%E5%AE%8C%E6%95%B4%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.16.2.</span> <span class="toc-text">附录 B：WORKSPACE.md 完整模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%84%E5%BD%95-C%EF%BC%9A%E7%9B%B8%E5%85%B3%E6%96%87%E6%A1%A3"><span class="toc-number">1.16.3.</span> <span class="toc-text">附录 C：相关文档</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,922 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Nginx 配置实战指南 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="Nginx 配置实战教程，覆盖静态站点部署、反向代理、SSL 证书、安全加固与常见问题排查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 配置实战指南">
+<meta property="og:url" content="https://ziogn.github.io/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="Nginx 配置实战教程，覆盖静态站点部署、反向代理、SSL 证书、安全加固与常见问题排查">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-05-26T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-26T03:30:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="devops">
+<meta property="article:tag" content="nginx">
+<meta property="article:tag" content="运维">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Nginx 配置实战指南",
+  "url": "https://ziogn.github.io/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-05-26T02:00:00.000Z",
+  "dateModified": "2026-05-26T03:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Nginx 配置实战指南',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">Nginx 配置实战指南</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Nginx 配置实战指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-26T02:00:00.000Z" title="发表于 2026-05-26 10:00:00">2026-05-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-26T03:30:00.000Z" title="更新于 2026-05-26 11:30:00">2026-05-26</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Nginx-配置实战指南"><a href="#Nginx-配置实战指南" class="headerlink" title="Nginx 配置实战指南"></a>Nginx 配置实战指南</h1><p>本教程以实际项目配置为基础，覆盖 Nginx 的两大核心场景：<strong>静态站点部署</strong>与<strong>反向代理配置</strong>。所有配置示例均来自生产环境实践，可直接复用。</p>
+<h2 id="1-Nginx-基础概念"><a href="#1-Nginx-基础概念" class="headerlink" title="1. Nginx 基础概念"></a>1. Nginx 基础概念</h2><h3 id="1-1-配置文件结构"><a href="#1-1-配置文件结构" class="headerlink" title="1.1 配置文件结构"></a>1.1 配置文件结构</h3><p>Nginx 的配置体系由主配置文件和站点配置目录组成：</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/nginx/nginx.conf</code></td>
+<td>主配置文件，定义全局设置（user、worker_processes、events、http 块）</td>
+</tr>
+<tr>
+<td><code>/etc/nginx/sites-available/</code></td>
+<td>站点配置文件存放目录</td>
+</tr>
+<tr>
+<td><code>/etc/nginx/sites-enabled/</code></td>
+<td>已启用站点的符号链接目录</td>
+</tr>
+<tr>
+<td><code>/var/log/nginx/</code></td>
+<td>默认日志目录</td>
+</tr>
+</tbody></table>
+<p>主配置文件中通过 <code>include</code> 指令加载站点配置：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># nginx.conf 中的关键 include 行</span></span><br><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">    <span class="attribute">include</span> /etc/nginx/sites-enabled/*;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>站点启用机制：将配置文件放在 <code>sites-available/</code>，然后创建符号链接到 <code>sites-enabled/</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">ln</span> -s /etc/nginx/sites-available/example.conf /etc/nginx/sites-enabled/</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-核心指令速查"><a href="#1-2-核心指令速查" class="headerlink" title="1.2 核心指令速查"></a>1.2 核心指令速查</h3><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>listen</code></td>
+<td>监听端口和协议</td>
+<td><code>listen 443 ssl;</code></td>
+</tr>
+<tr>
+<td><code>http2</code></td>
+<td>启用 HTTP&#x2F;2 协议</td>
+<td><code>http2 on;</code></td>
+</tr>
+<tr>
+<td><code>server_name</code></td>
+<td>绑定域名</td>
+<td><code>server_name x.xluo.xin;</code></td>
+</tr>
+<tr>
+<td><code>root</code></td>
+<td>网站根目录</td>
+<td><code>root /home/ubuntu/data/build/prod/fe_star/build;</code></td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>默认索引文件</td>
+<td><code>index index.html index.htm;</code></td>
+</tr>
+<tr>
+<td><code>charset</code></td>
+<td>字符编码</td>
+<td><code>charset utf-8;</code></td>
+</tr>
+<tr>
+<td><code>access_log</code></td>
+<td>访问日志路径</td>
+<td><code>access_log /var/log/nginx/x.xluo.xin.access.log;</code></td>
+</tr>
+<tr>
+<td><code>error_log</code></td>
+<td>错误日志路径</td>
+<td><code>error_log /var/log/nginx/x.xluo.xin.error.log;</code></td>
+</tr>
+<tr>
+<td><code>proxy_pass</code></td>
+<td>反向代理目标</td>
+<td><code>proxy_pass http://172.26.19.206:8090;</code></td>
+</tr>
+<tr>
+<td><code>try_files</code></td>
+<td>文件查找规则</td>
+<td><code>try_files $uri $uri/ /index.html;</code></td>
+</tr>
+<tr>
+<td><code>return</code></td>
+<td>返回状态码或重定向</td>
+<td><code>return 301 https://$server_name$request_uri;</code></td>
+</tr>
+<tr>
+<td><code>add_header</code></td>
+<td>添加响应头</td>
+<td><code>add_header X-Frame-Options DENY;</code></td>
+</tr>
+<tr>
+<td><code>expires</code></td>
+<td>缓存过期时间</td>
+<td><code>expires 1y;</code></td>
+</tr>
+<tr>
+<td><code>deny</code></td>
+<td>禁止访问</td>
+<td><code>deny all;</code></td>
+</tr>
+</tbody></table>
+<h2 id="2-静态站点部署"><a href="#2-静态站点部署" class="headerlink" title="2. 静态站点部署"></a>2. 静态站点部署</h2><p>以 Flutter Web 应用部署为案例，将域名 <code>x.xluo.xin</code> 映射到服务器上的静态文件目录。</p>
+<h3 id="2-1-基础配置"><a href="#2-1-基础配置" class="headerlink" title="2.1 基础配置"></a>2.1 基础配置</h3><p>完整的静态站点 <code>server</code> 块配置：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">server_name</span> x.xluo.xin;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 根目录指向 Flutter Web 构建产物</span></span><br><span class="line">    <span class="attribute">root</span> /home/ubuntu/data/build/prod/fe_star/build;</span><br><span class="line">    <span class="attribute">index</span> index.html index.htm;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 字符编码</span></span><br><span class="line">    <span class="attribute">charset</span> utf-<span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 日志分离</span></span><br><span class="line">    <span class="attribute">access_log</span> /var/log/nginx/x.xluo.xin.access.log;</span><br><span class="line">    <span class="attribute">error_log</span> /var/log/nginx/x.xluo.xin.<span class="literal">error</span>.log;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">try_files</span> <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.html;</span><br><span class="line">        <span class="attribute">add_header</span> Cache-Control <span class="string">&quot;public, max-age=3600&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-SPA-路由处理"><a href="#2-2-SPA-路由处理" class="headerlink" title="2.2 SPA 路由处理"></a>2.2 SPA 路由处理</h3><p>单页应用（SPA）使用前端路由时，所有未匹配的请求必须回退到 <code>index.html</code>，否则刷新页面会返回 404：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> / &#123;</span><br><span class="line">    <span class="comment"># $uri    — 尝试匹配请求的文件</span></span><br><span class="line">    <span class="comment"># $uri/   — 尝试匹配请求的目录</span></span><br><span class="line">    <span class="comment"># /index.html — 都不存在时回退到首页，交给前端路由处理</span></span><br><span class="line">    <span class="attribute">try_files</span> <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.html;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配置生效后，<code>https://x.xluo.xin/some/path</code> 这样的前端路由不再返回 404，而是正确加载 <code>index.html</code> 由前端框架接管路由。</p>
+<h3 id="2-3-静态资源缓存策略"><a href="#2-3-静态资源缓存策略" class="headerlink" title="2.3 静态资源缓存策略"></a>2.3 静态资源缓存策略</h3><p>为 CSS、JS、图片等静态资源设置长期缓存，减少重复请求：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 匹配常见静态资源文件类型</span></span><br><span class="line"><span class="section">location</span> <span class="regexp">~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$</span> &#123;</span><br><span class="line">    <span class="comment"># 缓存 1 年</span></span><br><span class="line">    <span class="attribute">expires</span> <span class="number">1y</span>;</span><br><span class="line">    <span class="comment"># immutable 表示资源内容不会变，浏览器无需重新验证</span></span><br><span class="line">    <span class="attribute">add_header</span> Cache-Control <span class="string">&quot;public, immutable&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 静态资源文件不存在时直接返回 404，不再回退到 index.html</span></span><br><span class="line">    <span class="attribute">try_files</span> <span class="variable">$uri</span> =<span class="number">404</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配合前端构建工具的文件名哈希（如 <code>main.a1b2c3d4.js</code>），新版本部署后文件名变化会自动绕过缓存。</p>
+<h2 id="3-反向代理配置"><a href="#3-反向代理配置" class="headerlink" title="3. 反向代理配置"></a>3. 反向代理配置</h2><p>以 <code>callback.xluo.xin</code> 反向代理到后端服务 <code>172.26.19.206:8090</code> 为案例。</p>
+<h3 id="3-1-基础反向代理"><a href="#3-1-基础反向代理" class="headerlink" title="3.1 基础反向代理"></a>3.1 基础反向代理</h3><p>反向代理的核心是将客户端请求转发到后端服务，同时通过 <code>proxy_set_header</code> 传递真实的客户端信息：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">http2</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">server_name</span> callback.xluo.xin;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 日志</span></span><br><span class="line">    <span class="attribute">access_log</span> /var/log/nginx/callback.xluo.xin.access.log;</span><br><span class="line">    <span class="attribute">error_log</span> /var/log/nginx/callback.xluo.xin.<span class="literal">error</span>.log;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 传递真实客户端信息到后端</span></span><br><span class="line">    <span class="attribute">proxy_set_header</span> Host <span class="variable">$host</span>;</span><br><span class="line">    <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">    <span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">    <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://172.26.19.206:8090;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Header 说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Host</code></td>
+<td>传递原始请求的域名，后端需要此信息做虚拟主机判断</td>
+</tr>
+<tr>
+<td><code>X-Real-IP</code></td>
+<td>客户端真实 IP 地址</td>
+</tr>
+<tr>
+<td><code>X-Forwarded-For</code></td>
+<td>代理链中所有经过的 IP 地址列表</td>
+</tr>
+<tr>
+<td><code>X-Forwarded-Proto</code></td>
+<td>原始请求的协议（http 或 https）</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-超时控制"><a href="#3-2-超时控制" class="headerlink" title="3.2 超时控制"></a>3.2 超时控制</h3><p>三个超时参数分别控制代理连接的不同阶段：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 与后端建立 TCP 连接的超时</span></span><br><span class="line"><span class="attribute">proxy_connect_timeout</span> <span class="number">30s</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 向后端发送请求的超时</span></span><br><span class="line"><span class="attribute">proxy_send_timeout</span> <span class="number">30s</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待后端响应的超时</span></span><br><span class="line"><span class="attribute">proxy_read_timeout</span> <span class="number">30s</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>不同场景的推荐值：</strong></p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>connect</th>
+<th>send</th>
+<th>read</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通 API</td>
+<td>10s</td>
+<td>10s</td>
+<td>30s</td>
+<td>常规请求</td>
+</tr>
+<tr>
+<td>支付回调</td>
+<td>30s</td>
+<td>30s</td>
+<td>60s</td>
+<td>回调处理可能耗时较长</td>
+</tr>
+<tr>
+<td>大文件上传</td>
+<td>30s</td>
+<td>300s</td>
+<td>300s</td>
+<td>需要足够的发送时间</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>10s</td>
+<td>3600s</td>
+<td>3600s</td>
+<td>长连接需要更长超时</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-路径精确匹配"><a href="#3-3-路径精确匹配" class="headerlink" title="3.3 路径精确匹配"></a>3.3 路径精确匹配</h3><p>当特定路径需要代理到不同的后端接口时，使用独立的 <code>location</code> 块。以支付宝回调为例，将 <code>/alipay</code> 精确代理到后端的特定接口路径：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 支付宝回调 — 精确匹配并重写路径</span></span><br><span class="line"><span class="section">location</span> /alipay &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://172.26.19.206:8090/api/guest/op.alipay/callback;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 回调处理需要更长的超时</span></span><br><span class="line">    <span class="attribute">proxy_connect_timeout</span> <span class="number">60s</span>;</span><br><span class="line">    <span class="attribute">proxy_send_timeout</span> <span class="number">60s</span>;</span><br><span class="line">    <span class="attribute">proxy_read_timeout</span> <span class="number">60s</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 独立日志便于调试支付问题</span></span><br><span class="line">    <span class="attribute">access_log</span> /var/log/nginx/callback.xluo.xin.alipay.log;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认代理规则</span></span><br><span class="line"><span class="section">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://172.26.19.206:8090;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样访问 <code>https://callback.xluo.xin/alipay</code> 会被代理到 <code>http://172.26.19.206:8090/api/guest/op.alipay/callback</code>，同时拥有独立的超时设置和日志文件。</p>
+<h2 id="4-SSL-TLS-配置与证书管理"><a href="#4-SSL-TLS-配置与证书管理" class="headerlink" title="4. SSL&#x2F;TLS 配置与证书管理"></a>4. SSL&#x2F;TLS 配置与证书管理</h2><h3 id="4-1-HTTP-到-HTTPS-重定向"><a href="#4-1-HTTP-到-HTTPS-重定向" class="headerlink" title="4.1 HTTP 到 HTTPS 重定向"></a>4.1 HTTP 到 HTTPS 重定向</h3><p>监听 80 端口，将所有 HTTP 请求 301 重定向到 HTTPS：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">server_name</span> callback.xluo.xin;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 301 永久重定向到 HTTPS</span></span><br><span class="line">    <span class="attribute">return</span> <span class="number">301</span> https://<span class="variable">$server_name</span><span class="variable">$request_uri</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>$server_name</code> 取自 <code>server_name</code> 指令，<code>$request_uri</code> 保留原始请求路径，确保重定向后用户访问的页面不变。</p>
+<h3 id="4-2-SSL-协议与密码套件"><a href="#4-2-SSL-协议与密码套件" class="headerlink" title="4.2 SSL 协议与密码套件"></a>4.2 SSL 协议与密码套件</h3><p>在 HTTPS 的 <code>server</code> 块中配置 SSL 安全参数：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">http2</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">server_name</span> callback.xluo.xin;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># SSL 证书路径（Certbot 自动生成）</span></span><br><span class="line">    <span class="attribute">ssl_certificate</span> /etc/letsencrypt/live/callback.xluo.xin/fullchain.pem;</span><br><span class="line">    <span class="attribute">ssl_certificate_key</span> /etc/letsencrypt/live/callback.xluo.xin/privkey.pem;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 仅允许 TLS 1.2 和 1.3，禁用不安全的旧版本</span></span><br><span class="line">    <span class="attribute">ssl_protocols</span> TLSv1.<span class="number">2</span> TLSv1.<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 密码套件配置（Mozilla Intermediate 推荐）</span></span><br><span class="line">    <span class="attribute">ssl_ciphers</span> ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 是否优先使用服务端的密码套件（off 为推荐值，让客户端选择最优套件）</span></span><br><span class="line">    <span class="attribute">ssl_prefer_server_ciphers</span> <span class="literal">off</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># ... 其他配置</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>TLS 1.0 和 1.1 已被主流浏览器弃用，务必只保留 TLSv1.2 和 TLSv1.3。</p>
+</blockquote>
+<h3 id="4-3-Certbot-证书部署"><a href="#4-3-Certbot-证书部署" class="headerlink" title="4.3 Certbot 证书部署"></a>4.3 Certbot 证书部署</h3><p>使用 Certbot 申请 Let’s Encrypt 免费 SSL 证书的完整流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 安装 Certbot 和 Nginx 插件</span></span><br><span class="line"><span class="comment"># Ubuntu 24.04+ 推荐使用 snap 安装：</span></span><br><span class="line"><span class="built_in">sudo</span> snap install --classic certbot</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">ln</span> -s /snap/bin/certbot /usr/bin/certbot</span><br><span class="line"></span><br><span class="line"><span class="comment"># Ubuntu 22.04 及更早版本可使用 apt：</span></span><br><span class="line"><span class="comment"># sudo apt update</span></span><br><span class="line"><span class="comment"># sudo apt install certbot python3-certbot-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 申请证书（Certbot 会自动修改 Nginx 配置）</span></span><br><span class="line"><span class="built_in">sudo</span> certbot --nginx -d callback.xluo.xin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证证书文件</span></span><br><span class="line"><span class="built_in">ls</span> -la /etc/letsencrypt/live/callback.xluo.xin/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 测试自动续期</span></span><br><span class="line"><span class="built_in">sudo</span> certbot renew --dry-run</span><br></pre></td></tr></table></figure>
+
+<p>Certbot 安装后会自动创建 systemd timer 或 cron job 实现证书自动续期。证书有效期 90 天，自动续期会在到期前 30 天内执行。</p>
+<p>如需为多个域名申请证书：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> certbot --nginx -d callback.xluo.xin -d x.xluo.xin -d another.example.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-安全加固"><a href="#5-安全加固" class="headerlink" title="5. 安全加固"></a>5. 安全加固</h2><h3 id="5-1-安全响应头"><a href="#5-1-安全响应头" class="headerlink" title="5.1 安全响应头"></a>5.1 安全响应头</h3><p>在 <code>server</code> 块或 <code>http</code> 块中添加以下安全响应头：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 防止页面被嵌入 iframe（防点击劫持）</span></span><br><span class="line"><span class="attribute">add_header</span> X-Frame-Options DENY;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 防止浏览器猜测 MIME 类型（防 MIME 嗅探攻击）</span></span><br><span class="line"><span class="attribute">add_header</span> X-Content-Type-Options nosniff;</span><br><span class="line"></span><br><span class="line"><span class="comment"># HSTS — 强制浏览器在指定时间内只通过 HTTPS 访问</span></span><br><span class="line"><span class="attribute">add_header</span> Strict-Transport-Security <span class="string">&quot;max-age=63072000; includeSubDomains; preload&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>各 Header 作用说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>防御目标</th>
+<th>推荐值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>X-Frame-Options</code></td>
+<td>点击劫持</td>
+<td><code>DENY</code>（完全禁止嵌入）或 <code>SAMEORIGIN</code>（允许同源嵌入）</td>
+</tr>
+<tr>
+<td><code>X-Content-Type-Options</code></td>
+<td>MIME 嗅探</td>
+<td><code>nosniff</code></td>
+</tr>
+<tr>
+<td><code>Strict-Transport-Security</code></td>
+<td>中间人降级攻击</td>
+<td><code>max-age=63072000; includeSubDomains; preload</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>HSTS 的 <code>max-age=63072000</code> 对应 2 年。<code>preload</code> 表示允许加入浏览器的 HSTS 预加载列表，首次启用时建议先不加 <code>preload</code>，确认无问题后再添加。</p>
+</blockquote>
+<h3 id="5-2-隐藏文件与敏感文件保护"><a href="#5-2-隐藏文件与敏感文件保护" class="headerlink" title="5.2 隐藏文件与敏感文件保护"></a>5.2 隐藏文件与敏感文件保护</h3><p>禁止访问以 <code>.</code> 开头的隐藏文件（如 <code>.git</code>、<code>.env</code>、<code>.htaccess</code>）：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 禁止访问所有以 . 开头的隐藏文件和目录</span></span><br><span class="line"><span class="section">location</span> <span class="regexp">~ /\.</span> &#123;</span><br><span class="line">    <span class="attribute">deny</span> all;</span><br><span class="line">    <span class="attribute">access_log</span> <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">log_not_found</span> <span class="literal">off</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 额外禁止访问 .htaccess 和 .htpasswd</span></span><br><span class="line"><span class="section">location</span> <span class="regexp">~* \.(htaccess|htpasswd)$</span> &#123;</span><br><span class="line">    <span class="attribute">deny</span> all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>access_log off</code> 和 <code>log_not_found off</code> 的作用是避免扫描攻击产生大量无用日志。</p>
+<h2 id="6-常见问题排查"><a href="#6-常见问题排查" class="headerlink" title="6. 常见问题排查"></a>6. 常见问题排查</h2><h3 id="6-1-权限问题排查（Permission-denied）"><a href="#6-1-权限问题排查（Permission-denied）" class="headerlink" title="6.1 权限问题排查（Permission denied）"></a>6.1 权限问题排查（Permission denied）</h3><p>这是 Nginx 最常见的问题之一。典型错误日志：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[crit] stat() &quot;/home/ubuntu/data/build/prod/fe_star/build/index.html&quot; failed (13: Permission denied)</span><br></pre></td></tr></table></figure>
+
+<p><strong>排查流程：</strong></p>
+<p><strong>第一步：检查目录权限链</strong></p>
+<p>问题往往不在目标目录本身，而在路径中的某个父目录。使用 <code>namei</code> 命令逐级检查：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">namei -l /home/ubuntu/data/build/prod/fe_star/build/</span><br></pre></td></tr></table></figure>
+
+<p>输出会显示每一级目录的权限和所有者，快速定位哪个目录缺少 <code>x</code>（执行&#x2F;进入）权限。</p>
+<p><strong>第二步：修复目录路径权限</strong></p>
+<p>确保路径中每个目录都有 <code>755</code> 权限（owner 可读写执行，group 和 others 可读和执行）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/data/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/data/build/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/data/build/prod/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/data/build/prod/fe_star/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 755 /home/ubuntu/data/build/prod/fe_star/build/</span><br></pre></td></tr></table></figure>
+
+<p>或使用一行命令修复整个路径：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> find /home/ubuntu/data -<span class="built_in">type</span> d -<span class="built_in">exec</span> <span class="built_in">chmod</span> 755 &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第三步：设置目标目录所有权和文件权限</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将 build 目录及内容的所有者设为 www-data</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R www-data:www-data /home/ubuntu/data/build/prod/fe_star/build/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 目录 755，文件 644</span></span><br><span class="line"><span class="built_in">sudo</span> find /home/ubuntu/data/build/prod/fe_star/build/ -<span class="built_in">type</span> d -<span class="built_in">exec</span> <span class="built_in">chmod</span> 755 &#123;&#125; \;</span><br><span class="line"><span class="built_in">sudo</span> find /home/ubuntu/data/build/prod/fe_star/build/ -<span class="built_in">type</span> f -<span class="built_in">exec</span> <span class="built_in">chmod</span> 644 &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第四步：验证修复结果</strong></p>
+<p>以 nginx 运行用户身份测试访问：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> -u www-data <span class="built_in">ls</span> -la /home/ubuntu/data/build/prod/fe_star/build/</span><br><span class="line"><span class="built_in">sudo</span> -u www-data <span class="built_in">cat</span> /home/ubuntu/data/build/prod/fe_star/build/index.html</span><br></pre></td></tr></table></figure>
+
+<p><strong>第五步：重启 Nginx 并验证</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nginx -t</span><br><span class="line"><span class="built_in">sudo</span> systemctl reload nginx</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-SELinux-AppArmor-安全模块"><a href="#6-2-SELinux-AppArmor-安全模块" class="headerlink" title="6.2 SELinux &#x2F; AppArmor 安全模块"></a>6.2 SELinux &#x2F; AppArmor 安全模块</h3><p>即使文件权限正确，安全模块也可能阻止 Nginx 访问非标准目录。</p>
+<p><strong>CentOS&#x2F;RHEL — SELinux：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 SELinux 状态</span></span><br><span class="line">getenforce</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果返回 Enforcing，临时禁用测试</span></span><br><span class="line"><span class="built_in">sudo</span> setenforce 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正确做法：设置目录的 SELinux 上下文</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chcon</span> -R -t httpd_sys_content_t /home/ubuntu/data/build/prod/fe_star/build/</span><br></pre></td></tr></table></figure>
+
+<p><strong>Ubuntu&#x2F;Debian — AppArmor：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 AppArmor 状态</span></span><br><span class="line"><span class="built_in">sudo</span> aa-status</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果 nginx 被 AppArmor 限制，切换到投诉模式调试</span></span><br><span class="line"><span class="built_in">sudo</span> aa-complain nginx</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>临时禁用 SELinux（<code>setenforce 0</code>）仅用于排查问题，确认是 SELinux 导致后应使用 <code>chcon</code> 或 <code>semanage fcontext</code> 正确设置上下文。</p>
+</blockquote>
+<h3 id="6-3-ACL-访问控制列表"><a href="#6-3-ACL-访问控制列表" class="headerlink" title="6.3 ACL 访问控制列表"></a>6.3 ACL 访问控制列表</h3><p>当标准权限修复无法解决问题时，使用 ACL 为 <code>www-data</code> 用户添加精细的读取权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 ACL 工具</span></span><br><span class="line"><span class="built_in">sudo</span> apt install acl</span><br><span class="line"></span><br><span class="line"><span class="comment"># 为 www-data 用户添加递归读取和执行权限</span></span><br><span class="line"><span class="built_in">sudo</span> setfacl -R -m u:www-data:rx /home/ubuntu/data/build/prod/fe_star/build/</span><br><span class="line"><span class="built_in">sudo</span> setfacl -R -m u:www-data:r /home/ubuntu/data/build/prod/fe_star/build/*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 ACL 设置</span></span><br><span class="line">getfacl /home/ubuntu/data/build/prod/fe_star/build/</span><br></pre></td></tr></table></figure>
+
+<p>ACL 的优势在于不影响文件原有的 owner&#x2F;group 权限，只额外授权给指定用户。</p>
+<h3 id="6-4-Nginx-运行用户调整"><a href="#6-4-Nginx-运行用户调整" class="headerlink" title="6.4 Nginx 运行用户调整"></a>6.4 Nginx 运行用户调整</h3><p>当权限链修复困难（如目录由特殊用户管理），可以调整 Nginx 的运行用户：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前 Nginx 运行用户</span></span><br><span class="line"><span class="built_in">cat</span> /etc/nginx/nginx.conf | grep user</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改运行用户（编辑 nginx.conf）</span></span><br><span class="line"><span class="built_in">sudo</span> nano /etc/nginx/nginx.conf</span><br><span class="line"><span class="comment"># 将 user www-data; 改为：</span></span><br><span class="line"><span class="comment"># user ubuntu;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启生效</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart nginx</span><br></pre></td></tr></table></figure>
+
+<p><strong>替代方案</strong> — 将 ubuntu 用户加入 www-data 组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> usermod -a -G www-data ubuntu</span><br><span class="line">newgrp www-data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调整目录组权限</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R ubuntu:www-data /home/ubuntu/data/build/prod/fe_star/build/</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> -R 775 /home/ubuntu/data/build/prod/fe_star/build/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>修改 Nginx 运行用户会影响所有站点的安全隔离，建议仅在开发环境使用。生产环境优先修复目录权限。</p>
+</blockquote>
+<h3 id="6-5-日志分析与调试"><a href="#6-5-日志分析与调试" class="headerlink" title="6.5 日志分析与调试"></a>6.5 日志分析与调试</h3><p><strong>实时监控日志：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 实时查看错误日志</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">tail</span> -f /var/log/nginx/x.xluo.xin.error.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看访问日志</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">tail</span> -f /var/log/nginx/x.xluo.xin.access.log</span><br></pre></td></tr></table></figure>
+
+<p><strong>常见错误信息解读：</strong></p>
+<table>
+<thead>
+<tr>
+<th>错误信息</th>
+<th>原因</th>
+<th>解决方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Permission denied (13)</code></td>
+<td>Nginx 进程无权访问文件</td>
+<td>检查目录权限链、SELinux&#x2F;AppArmor</td>
+</tr>
+<tr>
+<td><code>rewrite or internal redirection cycle</code></td>
+<td>try_files 循环重定向</td>
+<td>检查 index.html 是否存在且可读</td>
+</tr>
+<tr>
+<td><code>no live upstreams</code></td>
+<td>后端服务不可达</td>
+<td>检查后端服务状态和网络连通性</td>
+</tr>
+<tr>
+<td><code>upstream timed out</code></td>
+<td>后端响应超时</td>
+<td>增大 <code>proxy_read_timeout</code> 或优化后端性能</td>
+</tr>
+<tr>
+<td><code>connect() failed (111)</code></td>
+<td>连接被拒绝</td>
+<td>后端服务未启动或端口不对</td>
+</tr>
+</tbody></table>
+<h2 id="7-部署与验证"><a href="#7-部署与验证" class="headerlink" title="7. 部署与验证"></a>7. 部署与验证</h2><h3 id="7-1-部署步骤"><a href="#7-1-部署步骤" class="headerlink" title="7.1 部署步骤"></a>7.1 部署步骤</h3><p>从创建配置到上线的完整流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建配置文件</span></span><br><span class="line"><span class="built_in">sudo</span> nano /etc/nginx/sites-available/example.conf</span><br><span class="line"><span class="comment"># 编写配置内容并保存</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 启用站点（创建符号链接）</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">ln</span> -s /etc/nginx/sites-available/example.conf /etc/nginx/sites-enabled/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 测试配置语法</span></span><br><span class="line"><span class="built_in">sudo</span> nginx -t</span><br><span class="line"><span class="comment"># 输出 &quot;syntax is ok&quot; 和 &quot;test is successful&quot; 表示配置正确</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 重载配置（不中断现有连接）</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl reload nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如需完全重启（中断连接）</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart nginx</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>修改配置后始终先执行 <code>nginx -t</code>，语法错误会导致 reload 失败，所有站点停服。</p>
+</blockquote>
+<h3 id="7-2-验证与测试"><a href="#7-2-验证与测试" class="headerlink" title="7.2 验证与测试"></a>7.2 验证与测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 Nginx 服务状态</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl status nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查端口监听情况</span></span><br><span class="line"><span class="built_in">sudo</span> ss -tlnp | grep nginx</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line"><span class="built_in">sudo</span> netstat -tulpn | grep :80</span><br><span class="line"><span class="built_in">sudo</span> netstat -tulpn | grep :443</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查响应头（HTTP）</span></span><br><span class="line">curl -I http://x.xluo.xin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查响应头（HTTPS）</span></span><br><span class="line">curl -I https://x.xluo.xin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 HTTP 到 HTTPS 重定向</span></span><br><span class="line">curl -I http://callback.xluo.xin</span><br><span class="line"><span class="comment"># 应返回 301 状态码和 Location: https://... 头</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 SSL 证书信息</span></span><br><span class="line"><span class="built_in">echo</span> | openssl s_client -connect callback.xluo.xin:443 -servername callback.xluo.xin 2&gt;/dev/null | openssl x509 -noout -dates</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-日志分离与监控"><a href="#7-3-日志分离与监控" class="headerlink" title="7.3 日志分离与监控"></a>7.3 日志分离与监控</h3><p>为不同域名或路径配置独立的日志文件，便于问题定位：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 站点级别日志</span></span><br><span class="line"><span class="attribute">access_log</span> /var/log/nginx/callback.xluo.xin.access.log;</span><br><span class="line"><span class="attribute">error_log</span> /var/log/nginx/callback.xluo.xin.<span class="literal">error</span>.log;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 路径级别日志（覆盖站点级别）</span></span><br><span class="line"><span class="section">location</span> /alipay &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://172.26.19.206:8090/api/guest/op.alipay/callback;</span><br><span class="line">    <span class="attribute">access_log</span> /var/log/nginx/callback.xluo.xin.alipay.log;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>日志文件组织建议：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/var/log/nginx/</span><br><span class="line">├── x.xluo.xin.access.log          # 静态站点访问日志</span><br><span class="line">├── x.xluo.xin.error.log           # 静态站点错误日志</span><br><span class="line">├── callback.xluo.xin.access.log   # 反向代理访问日志</span><br><span class="line">├── callback.xluo.xin.error.log    # 反向代理错误日志</span><br><span class="line">└── callback.xluo.xin.alipay.log   # 支付宝回调专用日志</span><br></pre></td></tr></table></figure>
+
+<p>定期清理旧日志，或使用 <code>logrotate</code> 自动轮转：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Nginx 安装时通常自带 logrotate 配置</span></span><br><span class="line"><span class="built_in">cat</span> /etc/logrotate.d/nginx</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/">https://ziogn.github.io/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/nginx/">nginx</a><a class="post-meta__tags" href="/tags/devops/">devops</a><a class="post-meta__tags" href="/tags/%E8%BF%90%E7%BB%B4/">运维</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/" title="GSD 使用教程-并行开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">GSD 使用教程-并行开发</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-并行开发 GSD（Get Shit Done）提供了丰富的并行开发能力，帮助开发者同时推进多条开发线，最大化 AI 编程效率。本教程详细介绍 GSD 的六大并行能力：Wave、Workstreams、Workspace、Thread、Autonomous 和 Manager。  目录 并行开发概述 Wave 波浪式并行执行 Workstreams 并行工作流 Workspace 隔离工作空间 Thread 跨会话线程 Autonomous 自主模式 Manager 命令中心 并行开发最佳实践 常见问题 FAQ   1. 并行开发概述1.1 为什么需要并行开发单线程开发模式存在明显的效率瓶颈：  等待浪费：AI 执行一个计划时，开发者只能等待，无法同时推进其他工作 多任务需求：真实项目往往需要前后端同步开发、多个模块并行推进 配额限制：单线程执行无法充分利用 API 配额，并行可以显著提升吞吐量  并行开发的核心思想是：让多个 AI 代理同时工作，每个代理独立执行不同的任务。 1.2 GSD 并行能力全景图GSD 提供了六大并行能力，从轻量到重量，覆盖不同的并行场...</div></div></div></a><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/" title="GSD 使用教程-实战故事"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GSD 使用教程-实战故事</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-实战故事 用”小明开发电商项目”的故事，串联所有 16 大类别的实际应用场景。  目录 故事背景 1.1 版本说明   11.1 项目立项 11.2 需求讨论 11.3 制定计划 11.4 评审计划 11.5 执行开发 11.6 设计前端 11.7 验证质量 11.8 自动修复问题 11.9 调试疑难杂症 11.10 紧急插入任务 11.11 多线并行开发 11.12 临时中断去修 Bug 11.13 上下文线程 11.14 快速临时任务 11.15 AI 集成选型 11.16 知识图谱与情报 11.17 里程碑冲刺 11.18 完成里程碑 11.19 代码审查 11.20 UI 视觉审计 11.21 自主执行 11.22 导入外部计划 11.23 扫描代码库 11.24 代码库地图 11.25 更新文档 11.26 提取经验教训 11.27 创建 PR 11.28 查看进度 11.29 团队评审积压 11.30 回滚错误 11.31 健康检查 11.32 清理归档 11.33 配置个性化 11.34 行为分析生成配置 11.35 团队集成配置 11.36 摄入...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-23</div><div class="info-item-2">Sidecar 机制详解</div></div><div class="info-2"><div class="info-item-1">Sidecar 机制详解1. Sidecar 设计模式1.1 什么是 Sidecar 模式Sidecar 是一种分布式架构设计模式（也称 Sidekick 模式），核心思想是将辅助功能从主应用中剥离出来，以独立的进程或容器运行，并与主应用部署在同一环境中共享生命周期。 类比现实世界：三轮摩托车的边车（Sidecar）附加在车身旁，提供额外载客能力但不改变主车结构。在软件架构中，Sidecar 进程附加在主应用进程旁，提供日志、监控、代理、安全等辅助能力，主应用无需感知其存在。 graph LR     subgraph &quot;Pod&quot;         subgraph &quot;共享网络命名空间 localhost&quot;             A[&quot;主容器&lt;br&#x2F;&gt;业务应用&quot;] --- B[&quot;Sidecar 容器&lt;br&#x2F;&gt;代理&#x2F;日志&#x2F;监控&quot;]         end         C[&quot;共享存储卷&lt;br&#x2F;&gt;emptyD...</div></div></div></a><a class="pagination-related" href="/docker-compose%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="docker-compose 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-19</div><div class="info-item-2">docker-compose 使用教程</div></div><div class="info-2"><div class="info-item-1">docker-compose 使用教程 本教程以 Docker 官方文档与 compose-spec 为唯一依据，全程使用 v2&#x2F;v5 语法（docker compose 子命令），覆盖从安装到生产、CI、排错的完整链路。贯穿示例为 be-star 类栈：一个 Spring Boot 后端 + MySQL 8 + Redis 7。  1. 开篇与 Compose 概览1.1 多容器编排的痛点与 Compose 的定位假设你要部署 be-star：一个 Spring Boot 后端 + MySQL 数据库 + Redis 缓存，至少三个容器。用原生 docker run，你需要这样的命令链： 1234# 手动方式：三条冗长命令，且顺序、网络、卷都要手动管docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=root -v mysql-data:/var/lib/mysql mysql:8docker run -d --name redis redis:7docker run -d --name app --link mysql...</div></div></div></a><a class="pagination-related" href="/Certbot%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="Certbot 使用指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-13</div><div class="info-item-2">Certbot 使用指南</div></div><div class="info-2"><div class="info-item-1">Certbot 使用指南目录 一、Certbot 简介 二、前置条件 三、安装 Certbot 四、获取 SSL 证书 五、配置 Web 服务器 六、证书自动续期 七、证书管理 八、测试 HTTPS 配置 九、常见问题与解决方案  一、Certbot 简介Certbot 是一款免费且开源的自动化安全证书管理工具，由电子前沿基金会（EFF）开发和维护。它专门用于在 Linux、Apache 和 Nginx 服务器上配置和管理 SSL&#x2F;TLS 证书，能够自动完成域名认证和证书安装。 Let’s Encrypt 是一个由非营利组织 ISRG 提供的免费证书颁发机构，Certbot 则是其官方推荐的自动化工具。核心优势包括：  免费：无需支付证书费用 自动化：提供自动获取和续期证书的功能 开源：社区支持广泛，兼容多种服务器环境 快速：几分钟即可完成配置  二、前置条件在开始之前，请确保已准备好以下内容：  一个域名：已解析到你的服务器 IP 服务器环境：支持 Linux（如 Ubuntu、CentOS）或类似系统 Web 服务器：已安装 Nginx 或 Apache 管理员权限...</div></div></div></a><a class="pagination-related" href="/%E8%BD%BB%E9%87%8F%E7%BA%A7%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E6%9C%8D%E5%8A%A1%E8%B0%83%E7%A0%94/" title="轻量级系统日志聚合服务调研"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-24</div><div class="info-item-2">轻量级系统日志聚合服务调研</div></div><div class="info-2"><div class="info-item-1">轻量级系统日志聚合服务调研第一章 背景与需求1.1 什么是日志聚合日志聚合 (Log Aggregation) 是将分散在多台服务器上的系统日志集中采集、存储和查询的过程。它与单机日志查看有本质区别：  单机查看：运维人员通过 SSH 登录每台服务器，使用 journalctl、tail -f 或 grep 逐个排查日志文件。这种方式在服务器数量超过 3-5 台后效率急剧下降。 日志聚合：所有节点的日志自动汇集到一处，通过统一的 Web 界面或查询接口进行关联分析、过滤检索和可视化展示。  日志聚合是现代运维体系的基础设施之一，与指标监控（Prometheus &#x2F; VictoriaMetrics）、链路追踪（OpenTelemetry &#x2F; Jaeger）共同构成可观测性的三大支柱。 1.2 多服务器日志管理痛点在管理多台 Linux 服务器时，系统日志（由 systemd-journald 管理的日志数据）面临一系列实际问题：  数据分散，排查困难：排查跨多台机器的问题（如慢 SQL、网络延迟、服务调用链异常）需要依次登录每台节点执行命令。当集群规模达到数十或...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx-%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97"><span class="toc-number">1.</span> <span class="toc-text">Nginx 配置实战指南</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Nginx-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">1. Nginx 基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 配置文件结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%B8%E5%BF%83%E6%8C%87%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 核心指令速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%9D%99%E6%80%81%E7%AB%99%E7%82%B9%E9%83%A8%E7%BD%B2"><span class="toc-number">1.2.</span> <span class="toc-text">2. 静态站点部署</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 基础配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-SPA-%E8%B7%AF%E7%94%B1%E5%A4%84%E7%90%86"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 SPA 路由处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 静态资源缓存策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E9%85%8D%E7%BD%AE"><span class="toc-number">1.3.</span> <span class="toc-text">3. 反向代理配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E7%A1%80%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 基础反向代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%B6%85%E6%97%B6%E6%8E%A7%E5%88%B6"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 超时控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%B7%AF%E5%BE%84%E7%B2%BE%E7%A1%AE%E5%8C%B9%E9%85%8D"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 路径精确匹配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-SSL-TLS-%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%AF%81%E4%B9%A6%E7%AE%A1%E7%90%86"><span class="toc-number">1.4.</span> <span class="toc-text">4. SSL&#x2F;TLS 配置与证书管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-HTTP-%E5%88%B0-HTTPS-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 HTTP 到 HTTPS 重定向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-SSL-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E5%AF%86%E7%A0%81%E5%A5%97%E4%BB%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 SSL 协议与密码套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Certbot-%E8%AF%81%E4%B9%A6%E9%83%A8%E7%BD%B2"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 Certbot 证书部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA"><span class="toc-number">1.5.</span> <span class="toc-text">5. 安全加固</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%89%E5%85%A8%E5%93%8D%E5%BA%94%E5%A4%B4"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 安全响应头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%9A%90%E8%97%8F%E6%96%87%E4%BB%B6%E4%B8%8E%E6%95%8F%E6%84%9F%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 隐藏文件与敏感文件保护</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">6. 常见问题排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%EF%BC%88Permission-denied%EF%BC%89"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 权限问题排查（Permission denied）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SELinux-AppArmor-%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9D%97"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 SELinux &#x2F; AppArmor 安全模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-ACL-%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E5%88%97%E8%A1%A8"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 ACL 访问控制列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-Nginx-%E8%BF%90%E8%A1%8C%E7%94%A8%E6%88%B7%E8%B0%83%E6%95%B4"><span class="toc-number">1.6.4.</span> <span class="toc-text">6.4 Nginx 运行用户调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="toc-number">1.6.5.</span> <span class="toc-text">6.5 日志分析与调试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E9%83%A8%E7%BD%B2%E4%B8%8E%E9%AA%8C%E8%AF%81"><span class="toc-number">1.7.</span> <span class="toc-text">7. 部署与验证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%83%A8%E7%BD%B2%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.7.1.</span> <span class="toc-text">7.1 部署步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%AA%8C%E8%AF%81%E4%B8%8E%E6%B5%8B%E8%AF%95"><span class="toc-number">1.7.2.</span> <span class="toc-text">7.2 验证与测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%97%A5%E5%BF%97%E5%88%86%E7%A6%BB%E4%B8%8E%E7%9B%91%E6%8E%A7"><span class="toc-number">1.7.3.</span> <span class="toc-text">7.3 日志分离与监控</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

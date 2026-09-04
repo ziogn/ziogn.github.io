@@ -1,0 +1,1465 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>GSD 使用教程-实战故事 | Ziogn Notes</title><meta name="author" content="ziogn"><meta name="copyright" content="ziogn"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="GSD 实战故事：70+ 个命令串联完整电商项目开发流程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GSD 使用教程-实战故事">
+<meta property="og:url" content="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/index.html">
+<meta property="og:site_name" content="Ziogn Notes">
+<meta property="og:description" content="GSD 实战故事：70+ 个命令串联完整电商项目开发流程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ziogn.github.io/img/49394459.jpeg">
+<meta property="article:published_time" content="2026-04-25T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-05T07:20:00.000Z">
+<meta property="article:author" content="ziogn">
+<meta property="article:tag" content="@opengsd&#x2F;gsd-core">
+<meta property="article:tag" content="AI编程">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="GSD">
+<meta property="article:tag" content="OpenCode">
+<meta property="article:tag" content="open-gsd">
+<meta property="article:tag" content="项目工作流">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ziogn.github.io/img/49394459.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "GSD 使用教程-实战故事",
+  "url": "https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/",
+  "image": "https://ziogn.github.io/img/49394459.jpeg",
+  "datePublished": "2026-04-25T02:00:00.000Z",
+  "dateModified": "2026-08-05T07:20:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "ziogn",
+      "url": "https://github.com/ziogn"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'GSD 使用教程-实战故事',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Ziogn Notes</span></a><a class="nav-page-title" href="/"><span class="site-name">GSD 使用教程-实战故事</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">GSD 使用教程-实战故事</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-25T02:00:00.000Z" title="发表于 2026-04-25 10:00:00">2026-04-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-05T07:20:00.000Z" title="更新于 2026-08-05 15:20:00">2026-08-05</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>33分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="GSD-使用教程-实战故事"><a href="#GSD-使用教程-实战故事" class="headerlink" title="GSD 使用教程-实战故事"></a>GSD 使用教程-实战故事</h1><blockquote>
+<p>用”小明开发电商项目”的故事，串联所有 16 大类别的实际应用场景。</p>
+</blockquote>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-%E6%95%85%E4%BA%8B%E8%83%8C%E6%99%AF">故事背景</a><ul>
+<li><a href="#11-%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E%E5%85%88%E8%AF%BB%E8%BF%99%E4%B8%80%E8%8A%82">1.1 版本说明</a></li>
+</ul>
+</li>
+<li><a href="#2-111-%E9%A1%B9%E7%9B%AE%E7%AB%8B%E9%A1%B9%E7%AC%AC1%E5%A4%A9">11.1 项目立项</a></li>
+<li><a href="#3-112-%E9%9C%80%E6%B1%82%E8%AE%A8%E8%AE%BA%E7%AC%AC1-2%E5%A4%A9">11.2 需求讨论</a></li>
+<li><a href="#4-113-%E5%88%B6%E5%AE%9A%E8%AE%A1%E5%88%92%E7%AC%AC2%E5%A4%A9">11.3 制定计划</a></li>
+<li><a href="#5-114-%E8%AF%84%E5%AE%A1%E8%AE%A1%E5%88%92%E7%AC%AC2%E5%A4%A9">11.4 评审计划</a></li>
+<li><a href="#6-115-%E6%89%A7%E8%A1%8C%E5%BC%80%E5%8F%91%E7%AC%AC3-7%E5%A4%A9">11.5 执行开发</a></li>
+<li><a href="#7-116-%E8%AE%BE%E8%AE%A1%E5%89%8D%E7%AB%AF%E7%AC%AC7-10%E5%A4%A9">11.6 设计前端</a></li>
+<li><a href="#8-117-%E9%AA%8C%E8%AF%81%E8%B4%A8%E9%87%8F%E7%AC%AC10%E5%A4%A9">11.7 验证质量</a></li>
+<li><a href="#9-118-%E8%87%AA%E5%8A%A8%E4%BF%AE%E5%A4%8D%E9%97%AE%E9%A2%98%E7%AC%AC10%E5%A4%A9">11.8 自动修复问题</a></li>
+<li><a href="#10-119-%E8%B0%83%E8%AF%95%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87%E7%AC%AC11%E5%A4%A9">11.9 调试疑难杂症</a></li>
+<li><a href="#11-1110-%E7%B4%A7%E6%80%A5%E6%8F%92%E5%85%A5%E4%BB%BB%E5%8A%A1%E7%AC%AC12%E5%A4%A9">11.10 紧急插入任务</a></li>
+<li><a href="#12-1111-%E5%A4%9A%E7%BA%BF%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%E7%AC%AC13-20%E5%A4%A9">11.11 多线并行开发</a></li>
+<li><a href="#13-1112-%E4%B8%B4%E6%97%B6%E4%B8%AD%E6%96%AD%E5%8E%BB%E4%BF%AE-bug%E7%AC%AC15%E5%A4%A9">11.12 临时中断去修 Bug</a></li>
+<li><a href="#14-1113-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BA%BF%E7%A8%8B%E7%AC%AC16%E5%A4%A9">11.13 上下文线程</a></li>
+<li><a href="#15-1114-%E5%BF%AB%E9%80%9F%E4%B8%B4%E6%97%B6%E4%BB%BB%E5%8A%A1%E7%AC%AC17%E5%A4%A9">11.14 快速临时任务</a></li>
+<li><a href="#16-1115-ai-%E9%9B%86%E6%88%90%E9%80%89%E5%9E%8B%E7%AC%AC18%E5%A4%A9">11.15 AI 集成选型</a></li>
+<li><a href="#17-1116-%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E4%B8%8E%E6%83%85%E6%8A%A5%E7%AC%AC19%E5%A4%A9">11.16 知识图谱与情报</a></li>
+<li><a href="#18-1117-%E9%87%8C%E7%A8%8B%E7%A2%91%E5%86%B2%E5%88%BA%E7%AC%AC20-30%E5%A4%A9">11.17 里程碑冲刺</a></li>
+<li><a href="#19-1118-%E5%AE%8C%E6%88%90%E9%87%8C%E7%A8%8B%E7%A2%91%E7%AC%AC35%E5%A4%A9">11.18 完成里程碑</a></li>
+<li><a href="#20-1119-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E7%AC%AC36%E5%A4%A9">11.19 代码审查</a></li>
+<li><a href="#21-1120-ui-%E8%A7%86%E8%A7%89%E5%AE%A1%E8%AE%A1%E7%AC%AC37%E5%A4%A9">11.20 UI 视觉审计</a></li>
+<li><a href="#22-1121-%E8%87%AA%E4%B8%BB%E6%89%A7%E8%A1%8C%E7%AC%AC38-40%E5%A4%A9">11.21 自主执行</a></li>
+<li><a href="#23-1122-%E5%AF%BC%E5%85%A5%E5%A4%96%E9%83%A8%E8%AE%A1%E5%88%92%E7%AC%AC41%E5%A4%A9">11.22 导入外部计划</a></li>
+<li><a href="#24-1123-%E6%89%AB%E6%8F%8F%E4%BB%A3%E7%A0%81%E5%BA%93%E7%AC%AC42%E5%A4%A9">11.23 扫描代码库</a></li>
+<li><a href="#25-1124-%E4%BB%A3%E7%A0%81%E5%BA%93%E5%9C%B0%E5%9B%BE%E7%AC%AC43%E5%A4%A9">11.24 代码库地图</a></li>
+<li><a href="#26-1125-%E6%9B%B4%E6%96%B0%E6%96%87%E6%A1%A3%E7%AC%AC44%E5%A4%A9">11.25 更新文档</a></li>
+<li><a href="#27-1126-%E6%8F%90%E5%8F%96%E7%BB%8F%E9%AA%8C%E6%95%99%E8%AE%AD%E7%AC%AC45%E5%A4%A9">11.26 提取经验教训</a></li>
+<li><a href="#28-1127-%E5%88%9B%E5%BB%BA-pr%E7%AC%AC46%E5%A4%A9">11.27 创建 PR</a></li>
+<li><a href="#29-1128-%E6%9F%A5%E7%9C%8B%E8%BF%9B%E5%BA%A6%E7%AC%AC47%E5%A4%A9">11.28 查看进度</a></li>
+<li><a href="#30-1129-%E5%9B%A2%E9%98%9F%E8%AF%84%E5%AE%A1%E7%A7%AF%E5%8E%8B%E7%AC%AC48%E5%A4%A9">11.29 团队评审积压</a></li>
+<li><a href="#31-1130-%E5%9B%9E%E6%BB%9A%E9%94%99%E8%AF%AF%E7%AC%AC49%E5%A4%A9">11.30 回滚错误</a></li>
+<li><a href="#32-1131-%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E7%AC%AC50%E5%A4%A9">11.31 健康检查</a></li>
+<li><a href="#33-1132-%E6%B8%85%E7%90%86%E5%BD%92%E6%A1%A3%E7%AC%AC51%E5%A4%A9">11.32 清理归档</a></li>
+<li><a href="#34-1133-%E9%85%8D%E7%BD%AE%E4%B8%AA%E6%80%A7%E5%8C%96%E7%AC%AC52%E5%A4%A9">11.33 配置个性化</a></li>
+<li><a href="#35-1134-%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90%E7%94%9F%E6%88%90%E9%85%8D%E7%BD%AE%E7%AC%AC53%E5%A4%A9">11.34 行为分析生成配置</a></li>
+<li><a href="#36-1135-%E5%9B%A2%E9%98%9F%E9%9B%86%E6%88%90%E9%85%8D%E7%BD%AE%E7%AC%AC54%E5%A4%A9">11.35 团队集成配置</a></li>
+<li><a href="#37-1136-%E6%91%84%E5%85%A5%E7%8E%B0%E6%9C%89%E6%96%87%E6%A1%A3%E7%AC%AC55%E5%A4%A9">11.36 摄入现有文档</a></li>
+<li><a href="#38-1137-%E9%AA%8C%E8%AF%81%E9%98%B6%E6%AE%B5%E7%AC%AC56%E5%A4%A9">11.37 验证阶段</a></li>
+<li><a href="#39-1138-%E8%AF%84%E5%AE%A1%E8%AE%A1%E5%88%92%E7%AC%AC57%E5%A4%A9">11.38 评审计划</a></li>
+<li><a href="#40-1139-ai-%E8%AF%84%E4%BC%B0%E8%A6%86%E7%9B%96%E5%AE%A1%E8%AE%A1%E7%AC%AC58%E5%A4%A9">11.39 AI 评估覆盖审计</a></li>
+<li><a href="#41-1140-%E8%B0%83%E7%A0%94%E6%96%B0%E6%8A%80%E6%9C%AF%E7%AC%AC59%E5%A4%A9">11.40 调研新技术</a></li>
+<li><a href="#42-1141-%E8%8D%89%E5%9B%BE%E6%8E%A2%E7%B4%A2%E7%AC%AC60%E5%A4%A9">11.41 草图探索</a></li>
+<li><a href="#43-1142-spike-%E6%89%93%E5%8C%85%E7%AC%AC61%E5%A4%A9">11.42 Spike 打包</a></li>
+<li><a href="#44-1143-%E8%B7%A8%E9%98%B6%E6%AE%B5%E5%AE%A1%E8%AE%A1%E7%AC%AC62%E5%A4%A9">11.43 跨阶段审计</a></li>
+<li><a href="#45-1144-%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E6%9B%B4%E6%96%B0%E7%AC%AC63%E5%A4%A9">11.44 持续集成更新</a></li>
+<li><a href="#46-1145-%E7%AE%A1%E7%90%86%E9%9D%A2%E6%9D%BF%E7%AC%AC64%E5%A4%A9">11.45 管理面板</a></li>
+<li><a href="#47-1146-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%8C%BA%E7%AC%AC65%E5%A4%A9">11.46 加入社区</a></li>
+<li><a href="#48-1147-%E5%B8%AE%E5%8A%A9%E4%B8%8E%E6%94%AF%E6%8C%81%E7%AC%AC66%E5%A4%A9">11.47 帮助与支持</a></li>
+<li><a href="#49-1148-%E5%A4%A7%E5%8A%9F%E5%91%8A%E6%88%90%E7%AC%AC67%E5%A4%A9">11.48 大功告成</a></li>
+<li><a href="#50-1149-%E5%91%BD%E4%BB%A4%E4%B8%B2%E8%81%94%E6%80%BB%E7%BB%93">11.49 命令串联总结</a></li>
+<li><a href="#51-%E9%99%84%E5%BD%95%E8%BF%90%E8%A1%8C%E6%97%B6%E4%B8%8E%E5%85%83%E6%8A%80%E8%83%BD%E9%80%9F%E6%9F%A5">附录：运行时与元技能速查</a></li>
+</ol>
+<hr>
+<h2 id="1-故事背景"><a href="#1-故事背景" class="headerlink" title="1. 故事背景"></a>1. 故事背景</h2><p>小明是一个全栈工程师，老板让他用两个月开发一个<strong>电商平台</strong>。项目复杂，他决定用 GSD 管理这个大工程。</p>
+<hr>
+<h3 id="1-1-版本说明（先读这一节）"><a href="#1-1-版本说明（先读这一节）" class="headerlink" title="1.1 版本说明（先读这一节）"></a>1.1 版本说明（先读这一节）</h3><blockquote>
+<p>本文档基于 <strong>GSD v1.9.x</strong>（2026-07 发布）编写，文中所有命令均为当前可用的最新写法。</p>
+</blockquote>
+<p><strong>如果你发现命令与文档不一致，先看这里：</strong></p>
+<ul>
+<li>GSD 迭代很快，部分命令经历过<strong>改名或整合</strong>，例如：<ul>
+<li>旧版 <code>/gsd-new-workspace</code> → 新版 <code>/gsd-workspace --new</code></li>
+<li>旧版 <code>/gsd-scan</code> → 新版 <code>/gsd-map-codebase --fast</code></li>
+<li>旧版 <code>/gsd-note</code> → 新版 <code>/gsd-capture --note</code></li>
+</ul>
+</li>
+<li>运行 <strong><code>/gsd-help</code></strong>（或 <code>/gsd-help &lt;命令名&gt;</code>）可以查看你当前安装版本的权威命令说明，<strong>一切以你本地版本为准</strong>。</li>
+<li>v1.9.x 提供 6 条<strong>元技能路由</strong>（<code>/gsd-workflow</code>、<code>/gsd-project</code>、<code>/gsd-quality</code>、<code>/gsd-context</code>、<code>/gsd-manage</code>、<code>/gsd-ideate</code>）作为命令入口，原有具体命令（如 <code>/gsd-execute-phase</code>）仍可直接调用，二者互不冲突。</li>
+<li>命令形式说明：Claude Code 等运行时使用连字符形式（<code>/gsd-execute-phase</code>），Codex 等运行时使用 <code>$gsd-xxx</code> 形式，二者是同一命令的拼写变体。</li>
+<li>本文档随 GSD 版本更新，当前文档版本见 frontmatter 的 <code>version</code> 字段。</li>
+</ul>
+<hr>
+<h2 id="2-11-1-项目立项（第1天）"><a href="#2-11-1-项目立项（第1天）" class="headerlink" title="2. 11.1 项目立项（第1天）"></a>2. 11.1 项目立项（第1天）</h2><p>小明坐在工位上，准备开始这个大项目。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">小明：我要开发一个电商平台了！</span><br><span class="line"></span><br><span class="line"># 第一步：初始化项目</span><br><span class="line">/gsd-new-project</span><br><span class="line">  项目名称: ecommerce-platform</span><br><span class="line">  描述: 包含商品、订单、支付、用户的完整电商平台</span><br><span class="line">  技术栈: Next.js, Node.js, PostgreSQL, Redis, Stripe</span><br></pre></td></tr></table></figure>
+
+<p>突然想到还有另一个老项目要维护，小明决定同时管理两个项目。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 创建隔离的工作空间</span><br><span class="line">/gsd-workspace --new --name ecommerce --repos ecommerce-platform</span><br><span class="line">/gsd-workspace --new --name old-backend --repos legacy-api</span><br><span class="line"></span><br><span class="line"># 查看所有工作空间</span><br><span class="line">/gsd-workspace --list</span><br><span class="line">输出:</span><br><span class="line">  ecommerce        ✅ active</span><br><span class="line">  old-backend     ⏸️  paused</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别1：项目与工作空间</strong> —— 搞定项目初始化和多项目隔离</p>
+</blockquote>
+<hr>
+<h2 id="3-11-2-需求讨论（第1-2天）"><a href="#3-11-2-需求讨论（第1-2天）" class="headerlink" title="3. 11.2 需求讨论（第1-2天）"></a>3. 11.2 需求讨论（第1-2天）</h2><p>小明拉上产品和 UI，开始需求讨论。GSD 的标准流程是 spec（需求澄清）→ discuss → plan，需求已经明确，直接从 discuss 开始。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 讨论第一阶段：商品模块</span><br><span class="line">/gsd-discuss-phase 1</span><br><span class="line"></span><br><span class="line">讨论内容:</span><br><span class="line">1. 商品需要哪些字段？（名称、价格、库存、图片、分类）</span><br><span class="line">2. 搜索方案？（Elasticsearch 还是数据库 LIKE）</span><br><span class="line">3. 图片存储？（S3 CDN）</span><br><span class="line">4. 分类层级？（两级够用还是要无限递归）</span><br></pre></td></tr></table></figure>
+
+<p>讨论中冒出很多模糊地带，小明让 AI 帮忙探索。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 苏格拉底式探索：搜索方案选型</span><br><span class="line">/gsd-explore search strategy</span><br><span class="line"></span><br><span class="line">AI 追问: &quot;你希望搜索的响应时间是多久？&quot;</span><br><span class="line">小明: &quot;最好 100ms 以内&quot;</span><br><span class="line">AI 追问: &quot;商品数量预计多少？&quot;</span><br><span class="line">小明: &quot;10万以内&quot;</span><br><span class="line">AI 结论: &quot;那建议用数据库索引 + Redis 缓存，Elasticsearch 杀鸡焉用牛刀&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别2：核心阶段工作流</strong> —— discuss 需求澄清<br><strong>类别8：研究与知识</strong> —— explore 苏格拉底探索</p>
+</blockquote>
+<hr>
+<h2 id="4-11-3-制定计划（第2天）"><a href="#4-11-3-制定计划（第2天）" class="headerlink" title="4. 11.3 制定计划（第2天）"></a>4. 11.3 制定计划（第2天）</h2><p>需求讨论清楚了，小明开始制定详细计划。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 制定 Phase 1 的详细计划</span><br><span class="line">/gsd-plan-phase 1</span><br><span class="line"></span><br><span class="line">Phase 1 计划:</span><br><span class="line">- [ ] 商品数据模型</span><br><span class="line">- [ ] 分类管理接口</span><br><span class="line">- [ ] 商品 CRUD API</span><br><span class="line">- [ ] 图片上传服务</span><br><span class="line">- [ ] 单元测试</span><br><span class="line">执行顺序: tracer-first（先做一条端到端验证链路，再水平展开）</span><br><span class="line">估算: ~120K tokens / 置信度 85%</span><br><span class="line"></span><br><span class="line">小明发现有个不确定的技术点：</span><br><span class="line"># 分布式 ID 生成方案还没定</span><br><span class="line">/gsd-discuss-phase --assumptions</span><br><span class="line">输出:</span><br><span class="line">  ⚠️ 假设1: 使用自增 ID</span><br><span class="line">  ⚠️ 假设2: 雪花算法生成 ID（高并发场景）</span><br></pre></td></tr></table></figure>
+
+<p>小明想看看阶段之间的依赖关系。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/gsd-manager --analyze-deps</span><br><span class="line"></span><br><span class="line">分析结果:</span><br><span class="line">Phase 1 (商品模块)</span><br><span class="line">  └── Phase 2 (订单模块) [依赖: Phase 1 商品模型]</span><br><span class="line">        └── Phase 3 (支付模块) [依赖: Phase 2 订单模型]</span><br><span class="line"></span><br><span class="line">合理！没有循环依赖。</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别3：阶段结构管理</strong> —— phase&#x2F;discuss-phase –assumptions&#x2F;manager –analyze-deps</p>
+</blockquote>
+<hr>
+<h2 id="5-11-4-评审计划（第2天）"><a href="#5-11-4-评审计划（第2天）" class="headerlink" title="5. 11.4 评审计划（第2天）"></a>5. 11.4 评审计划（第2天）</h2><p>计划制定好了，小明想找另一个 AI 来评审一下。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 启动跨 AI 评审循环</span><br><span class="line">/gsd-plan-review-convergence 1</span><br><span class="line"></span><br><span class="line">评审结果:</span><br><span class="line">第1轮评审:</span><br><span class="line">  ❌ 问题1: 计划中没有考虑分页方案</span><br><span class="line">  ❌ 问题2: 缺少错误处理策略</span><br><span class="line"></span><br><span class="line">重新规划...</span><br><span class="line">第2轮评审:</span><br><span class="line">  ⚠️ 问题1: 分页方案过于复杂，建议简化</span><br><span class="line">  ✅ 无 HIGH 问题</span><br><span class="line"></span><br><span class="line">计划收敛完成！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别2：核心阶段工作流</strong> —— plan-review-convergence 计划收敛评审</p>
+</blockquote>
+<hr>
+<h2 id="6-11-5-执行开发（第3-7天）"><a href="#6-11-5-执行开发（第3-7天）" class="headerlink" title="6. 11.5 执行开发（第3-7天）"></a>6. 11.5 执行开发（第3-7天）</h2><p>计划评审通过，小明开始执行。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开始执行 Phase 1</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line"></span><br><span class="line">执行内容:</span><br><span class="line">1. 创建 Product 模型</span><br><span class="line">2. 编写 TypeScript 类型</span><br><span class="line">3. 实现 API 路由</span><br><span class="line">4. 编写单元测试</span><br><span class="line"></span><br><span class="line">执行过程中...</span><br></pre></td></tr></table></figure>
+
+<p>小明突然有个临时想法需要记录。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 突然想到：要不要加商品收藏功能？</span><br><span class="line">/gsd-capture --note &quot;考虑加商品收藏功能，以后做推荐用&quot;</span><br><span class="line"></span><br><span class="line"># 暂时放下，先完成当前任务</span><br><span class="line">/gsd-capture --backlog &quot;用户行为分析模块&quot;</span><br></pre></td></tr></table></figure>
+
+<p>执行到一半，小明想去调研一下新技术。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 突然想尝试 Prisma ORM 替代 TypeORM</span><br><span class="line">/gsd-spike &quot;Prisma vs TypeORM 选型&quot;</span><br><span class="line"></span><br><span class="line"># 做了3个实验后结论：</span><br><span class="line"># Prisma 完胜！迁移到 Prisma</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别2：核心阶段工作流</strong> —— execute-phase 执行<br><strong>类别10：想法、待办与积压</strong> —— capture –note&#x2F;–backlog 记录想法<br><strong>类别11：探索与原型</strong> —— spike 可行性实验</p>
+</blockquote>
+<hr>
+<h2 id="7-11-6-设计前端（第7-10天）"><a href="#7-11-6-设计前端（第7-10天）" class="headerlink" title="7. 11.6 设计前端（第7-10天）"></a>7. 11.6 设计前端（第7-10天）</h2><p>后端 API 差不多了，小明开始做前端页面。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 启动前端阶段</span><br><span class="line">/gsd-execute-phase 2</span><br><span class="line"></span><br><span class="line"># 突然想看看 UI 长什么样，先画个草图</span><br><span class="line">/gsd-sketch &quot;商品列表页布局&quot;</span><br><span class="line"></span><br><span class="line"># 输出了一个可交互的 HTML 原型</span><br><span class="line"># 产品经理看完：可以，就这个风格！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别11：探索与原型</strong> —— sketch 设计草图</p>
+</blockquote>
+<hr>
+<h2 id="8-11-7-验证质量（第10天）"><a href="#8-11-7-验证质量（第10天）" class="headerlink" title="8. 11.7 验证质量（第10天）"></a>8. 11.7 验证质量（第10天）</h2><p>功能开发完了，需要验证质量。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 用户验收测试</span><br><span class="line">/gsd-verify-work 1</span><br><span class="line"></span><br><span class="line">验证结果:</span><br><span class="line">✅ 商品列表 API 正常</span><br><span class="line">✅ 商品详情 API 正常</span><br><span class="line">✅ 图片上传成功</span><br><span class="line">（自动化证据自动通过）</span><br><span class="line">⚠️ 库存更新有并发问题</span><br></pre></td></tr></table></figure>
+
+<p>发现问题了！GSD 优先用自动化证据分类验证结果，无法确认的标出待人工验证。小明需要进行安全审查。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 安全审查</span><br><span class="line">/gsd-secure-phase 1</span><br><span class="line"></span><br><span class="line">安全报告:</span><br><span class="line">🔴 库存更新存在超卖风险（严重）</span><br><span class="line">🟡 图片上传未限制文件类型（中等）</span><br><span class="line">✅ 鉴权机制正常</span><br></pre></td></tr></table></figure>
+
+<p>还需要代码审查。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 代码质量审查</span><br><span class="line">/gsd-code-review 1</span><br><span class="line"></span><br><span class="line">审查结果:</span><br><span class="line">❌ [高] 库存更新未使用事务</span><br><span class="line">❌ [高] 缺少参数校验</span><br><span class="line">⚠️ [中] 魔法数字未定义为常量</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— verify-work 验证、secure-phase 安全审查、code-review 代码审查</p>
+</blockquote>
+<hr>
+<h2 id="9-11-8-自动修复问题（第10天）"><a href="#9-11-8-自动修复问题（第10天）" class="headerlink" title="9. 11.8 自动修复问题（第10天）"></a>9. 11.8 自动修复问题（第10天）</h2><p>发现问题后，小明不想手动一个个改。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 自动修复审查发现的问题</span><br><span class="line">/gsd-audit-fix --severity high</span><br><span class="line"></span><br><span class="line">修复过程:</span><br><span class="line">1. 审计问题分类...完成</span><br><span class="line">2. 修复库存事务问题...完成</span><br><span class="line">3. 添加参数校验...完成</span><br><span class="line">4. 提交原子提交...完成</span><br><span class="line"></span><br><span class="line">修复完成，3个 HIGH 问题已解决</span><br></pre></td></tr></table></figure>
+
+<p>修复后还可以自动生成测试。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 为阶段生成测试</span><br><span class="line">/gsd-add-tests 1</span><br><span class="line"></span><br><span class="line">生成结果:</span><br><span class="line">- product.test.ts: 23 个测试用例</span><br><span class="line">- inventory.test.ts: 8 个测试用例</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— audit-fix 自动修复、add-tests 生成测试</p>
+</blockquote>
+<hr>
+<h2 id="10-11-9-调试疑难杂症（第11天）"><a href="#10-11-9-调试疑难杂症（第11天）" class="headerlink" title="10. 11.9 调试疑难杂症（第11天）"></a>10. 11.9 调试疑难杂症（第11天）</h2><p>库存超卖问题修完后，测试发现登录偶尔超时。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 启动系统化调试</span><br><span class="line">/gsd-debug &quot;用户登录偶尔超时&quot;</span><br><span class="line"></span><br><span class="line">调试过程:</span><br><span class="line">1. 收集上下文...</span><br><span class="line">2. 检查 JWT 配置 ✅</span><br><span class="line">3. 检查 Redis 连接 ✅</span><br><span class="line">4. 检查数据库连接池...发现问题！</span><br><span class="line">   根因: 连接池 max=10，但高并发时不够用</span><br><span class="line">5. 修复方案: 调大到 50</span><br><span class="line">6. 验证修复...✅ 通过</span><br></pre></td></tr></table></figure>
+
+<p>调试完了，小明想复盘一下这次调试过程。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 事后调查分析</span><br><span class="line">/gsd-forensics &quot;登录超时问题&quot;</span><br><span class="line"></span><br><span class="line">诊断报告:</span><br><span class="line">根本原因: 连接池配置不当</span><br><span class="line">影响范围: 高并发场景</span><br><span class="line">解决时间: 30分钟</span><br><span class="line">经验教训: 生产环境需要监控连接池指标</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别7：调试与诊断</strong> —— debug 调试、forensics 事后分析</p>
+</blockquote>
+<hr>
+<h2 id="11-11-10-紧急插入任务（第12天）"><a href="#11-11-10-紧急插入任务（第12天）" class="headerlink" title="11. 11.10 紧急插入任务（第12天）"></a>11. 11.10 紧急插入任务（第12天）</h2><p>老板突然说：支付模块要提前，因为下周一要给投资人演示！</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 紧急插入 Phase 2.1</span><br><span class="line">/gsd-phase --insert 2 &quot;支付模块 - MVP&quot;</span><br><span class="line"></span><br><span class="line">创建: Phase 2.1 (支付模块 - MVP)</span><br><span class="line"></span><br><span class="line">老板: &quot;下周一演示只需要能调起微信支付就行&quot;</span><br><span class="line">小明: &quot;收到！&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别3：阶段结构管理</strong> —— phase –insert 紧急插入</p>
+</blockquote>
+<hr>
+<h2 id="12-11-11-多线并行开发（第13-20天）"><a href="#12-11-11-多线并行开发（第13-20天）" class="headerlink" title="12. 11.11 多线并行开发（第13-20天）"></a>12. 11.11 多线并行开发（第13-20天）</h2><p>现在电商平台和支付模块同时进行，小明开启并行工作流。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 创建并行工作流</span><br><span class="line">/gsd-workstreams create payment    # 支付模块工作流</span><br><span class="line">/gsd-workstreams create frontend   # 前端工作流</span><br><span class="line"></span><br><span class="line"># 切换到支付工作流</span><br><span class="line">/gsd-workstreams switch payment</span><br><span class="line"></span><br><span class="line"># 在支付工作流中执行</span><br><span class="line">/gsd-execute-phase 2.1</span><br><span class="line"></span><br><span class="line"># 同时小明可以开另一个窗口做前端</span><br><span class="line"># 切换到前端工作流</span><br><span class="line">/gsd-workstreams switch frontend</span><br><span class="line">/gsd-execute-phase 3</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别5：会话管理与交接</strong> —— workstreams 并行工作流</p>
+</blockquote>
+<hr>
+<h2 id="13-11-12-临时中断去修-Bug（第15天）"><a href="#13-11-12-临时中断去修-Bug（第15天）" class="headerlink" title="13. 11.12 临时中断去修 Bug（第15天）"></a>13. 11.12 临时中断去修 Bug（第15天）</h2><p>开发到一半，测试说线上有个 Bug，小明需要暂停当前工作。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 当前工作先暂停</span><br><span class="line">/gsd-pause-work</span><br><span class="line"></span><br><span class="line">保存上下文:</span><br><span class="line">- Phase 2.1 执行到 60%</span><br><span class="line">- 完成了微信支付联调</span><br><span class="line">- 下一步: 支付宝支付</span><br><span class="line"></span><br><span class="line">保存成功！</span><br></pre></td></tr></table></figure>
+
+<p>然后去修 Bug，修完后恢复。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 修完 Bug 回来</span><br><span class="line">/gsd-resume-work</span><br><span class="line"></span><br><span class="line">上下文恢复:</span><br><span class="line">- Phase 2.1: 60%</span><br><span class="line">- 当前任务: 支付宝支付</span><br><span class="line"></span><br><span class="line">继续开发！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别5：会话管理与交接</strong> —— pause-work 暂停、resume-work 恢复</p>
+</blockquote>
+<hr>
+<h2 id="14-11-13-上下文线程（第16天）"><a href="#14-11-13-上下文线程（第16天）" class="headerlink" title="14. 11.13 上下文线程（第16天）"></a>14. 11.13 上下文线程（第16天）</h2><p>修 Bug 期间，测试又发现新问题，小明用线程追踪。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 创建问题追踪线程</span><br><span class="line">/gsd-thread</span><br><span class="line"></span><br><span class="line">选项:</span><br><span class="line">1. list    - 列出所有线程</span><br><span class="line">2. status &lt;slug&gt; - 查看线程状态</span><br><span class="line">3. close &lt;slug&gt;  - 关闭线程</span><br><span class="line">4. &lt;描述&gt;   - 创建新线程</span><br><span class="line"></span><br><span class="line">/gsd-thread &quot;会话超时问题追踪&quot;</span><br><span class="line"></span><br><span class="line">创建成功:</span><br><span class="line">线程 ID: thread-bug-001</span><br><span class="line">状态: open</span><br><span class="line">描述: 会话超时问题追踪</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别5：会话管理与交接</strong> —— thread 上下文线程</p>
+</blockquote>
+<hr>
+<h2 id="15-11-14-快速临时任务（第17天）"><a href="#15-11-14-快速临时任务（第17天）" class="headerlink" title="15. 11.14 快速临时任务（第17天）"></a>15. 11.14 快速临时任务（第17天）</h2><p>同事问小明能不能帮忙加个小功能。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 快速处理临时任务</span><br><span class="line">/gsd-quick</span><br><span class="line"></span><br><span class="line">输入: &quot;给用户中心加个修改头像功能&quot;</span><br><span class="line"></span><br><span class="line">GSD 自动路由到:</span><br><span class="line">/gsd-workspace --new 用户头像功能（临时工作空间）</span><br><span class="line">/gsd-execute-phase 1</span><br><span class="line">/gsd-verify-work</span><br><span class="line">/gsd-cleanup</span><br><span class="line"></span><br><span class="line">完成！自动清理临时空间</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别15：管理与自动化</strong> —— quick 快速临时任务</p>
+</blockquote>
+<hr>
+<h2 id="16-11-15-AI-集成选型（第18天）"><a href="#16-11-15-AI-集成选型（第18天）" class="headerlink" title="16. 11.15 AI 集成选型（第18天）"></a>16. 11.15 AI 集成选型（第18天）</h2><p>现在要做推荐系统，小明不知道用哪个 AI 服务。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># AI 集成选型向导</span><br><span class="line">/gsd-ai-integration-phase 5</span><br><span class="line"></span><br><span class="line">向导问题:</span><br><span class="line">1. 需要什么 AI 能力？→ 商品推荐</span><br><span class="line">2. 数据规模？→ 10万商品，100万用户行为</span><br><span class="line">3. 实时性要求？→ 准实时（分钟级）</span><br><span class="line">4. 预算？→ 每月 $500 以内</span><br><span class="line"></span><br><span class="line">推荐方案:</span><br><span class="line">✅ OpenAI fine-tuned model（推荐）</span><br><span class="line">⚠️ Anthropic Claude（太贵）</span><br><span class="line">❌ 本地部署（算力不够）</span><br><span class="line"></span><br><span class="line">选择: OpenAI fine-tuned model</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别8：研究与知识</strong> —— ai-integration-phase AI 集成选型</p>
+</blockquote>
+<hr>
+<h2 id="17-11-16-知识图谱与情报（第19天）"><a href="#17-11-16-知识图谱与情报（第19天）" class="headerlink" title="17. 11.16 知识图谱与情报（第19天）"></a>17. 11.16 知识图谱与情报（第19天）</h2><p>项目做了一半，小明想整理一下已有的知识。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 构建项目知识图谱</span><br><span class="line">/gsd-graphify build</span><br><span class="line"></span><br><span class="line">构建完成:</span><br><span class="line">- 节点: 234 个</span><br><span class="line">- 关系: 892 条</span><br><span class="line">- 模块: 12 个</span><br><span class="line"></span><br><span class="line"># 查询图谱</span><br><span class="line">/gsd-graphify query &quot;支付模块&quot;</span><br><span class="line"></span><br><span class="line">结果:</span><br><span class="line">- 支付模块 → Stripe 集成</span><br><span class="line">- 支付模块 → 微信支付 API</span><br><span class="line">- 支付模块 → 支付宝 API</span><br><span class="line">- 支付模块 → 订单服务（依赖）</span><br></pre></td></tr></table></figure>
+
+<p>还可以查情报（代码智能），不过 intel 能力默认是关闭的。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 尝试查看项目情报（会提示未启用）</span><br><span class="line">gsd-tools intel status</span><br><span class="line"></span><br><span class="line">提示: intel 能力未启用，请在设置中开启</span><br><span class="line"></span><br><span class="line"># 通过配置开启 intel 能力</span><br><span class="line">/gsd-settings</span><br><span class="line">  Features 组 → Enable Intel? → Yes</span><br><span class="line"></span><br><span class="line"># 再次查看情报状态</span><br><span class="line">gsd-tools intel status</span><br><span class="line"></span><br><span class="line">情报文件:</span><br><span class="line">✅ architecture.md (3天前更新)</span><br><span class="line">✅ api-design.md (1天前更新)</span><br><span class="line">⚠️ tech-debt.md (7天前更新，建议更新)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别8：研究与知识</strong> —— graphify 知识图谱、intel 项目情报</p>
+</blockquote>
+<hr>
+<h2 id="18-11-17-里程碑冲刺（第20-30天）"><a href="#18-11-17-里程碑冲刺（第20-30天）" class="headerlink" title="18. 11.17 里程碑冲刺（第20-30天）"></a>18. 11.17 里程碑冲刺（第20-30天）</h2><p>支付模块 MVP 完成了，老板说要给投资人演示。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 创建里程碑</span><br><span class="line">/gsd-new-milestone &quot;v0.1 投资人演示版&quot;</span><br><span class="line"></span><br><span class="line">里程碑目标:</span><br><span class="line">- [x] Phase 1: 商品模块</span><br><span class="line">- [x] Phase 2.1: 支付 MVP</span><br><span class="line">- [ ] Phase 3: 用户模块</span><br><span class="line">- [ ] Phase 4: 订单模块</span><br></pre></td></tr></table></figure>
+
+<p>演示很成功！投资人很满意。现在做里程碑审计。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 审计里程碑完成情况</span><br><span class="line">/gsd-audit-milestone</span><br><span class="line"></span><br><span class="line">审计报告:</span><br><span class="line">✅ Phase 1 完成且验证通过</span><br><span class="line">✅ Phase 2.1 完成但缺少集成测试</span><br><span class="line">❌ Phase 3 用户模块未完成</span><br><span class="line"></span><br><span class="line">完成率: 60%</span><br><span class="line"></span><br><span class="line">发现缺口:</span><br><span class="line">1. 缺少支付集成测试</span><br><span class="line">2. 缺少性能测试</span><br></pre></td></tr></table></figure>
+
+<p>发现缺点了，补上！</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 根据审计缺口手工创建新阶段</span><br><span class="line">/gsd-phase &quot;Phase 2.6: 支付集成测试&quot;</span><br><span class="line">/gsd-phase &quot;Phase 2.7: 性能测试&quot;</span><br><span class="line"></span><br><span class="line">创建:</span><br><span class="line">- Phase 2.6: 支付集成测试</span><br><span class="line">- Phase 2.7: 性能测试</span><br><span class="line"></span><br><span class="line">继续完成！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别4：里程碑管理</strong> —— new-milestone 创建、audit-milestone 审计、phase 补缺口</p>
+</blockquote>
+<hr>
+<h2 id="19-11-18-完成里程碑（第35天）"><a href="#19-11-18-完成里程碑（第35天）" class="headerlink" title="19. 11.18 完成里程碑（第35天）"></a>19. 11.18 完成里程碑（第35天）</h2><p>终于，所有功能都完成了！</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 完成里程碑</span><br><span class="line">/gsd-complete-milestone &quot;v0.1 投资人演示版&quot;</span><br><span class="line"></span><br><span class="line">归档内容:</span><br><span class="line">- 5 个 Phase 完成</span><br><span class="line">- 234 个文件变更</span><br><span class="line">- 892 行代码新增</span><br><span class="line">- 测试覆盖率 78%</span><br><span class="line"></span><br><span class="line">发布标签: v0.1.0 ✅</span><br></pre></td></tr></table></figure>
+
+<p>小明还想生成一份项目摘要。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 生成里程碑摘要</span><br><span class="line">/gsd-milestone-summary v0.1</span><br><span class="line"></span><br><span class="line">输出文档:</span><br><span class="line">- 项目概述</span><br><span class="line">- 完成的功能</span><br><span class="line">- 技术架构</span><br><span class="line">- 团队贡献</span><br><span class="line">- 经验教训</span><br><span class="line"></span><br><span class="line">用于: 新人入职、团队评审</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别4：里程碑管理</strong> —— complete-milestone 完成、milestone-summary 摘要生成</p>
+</blockquote>
+<hr>
+<h2 id="20-11-19-代码审查（第36天）"><a href="#20-11-19-代码审查（第36天）" class="headerlink" title="20. 11.19 代码审查（第36天）"></a>20. 11.19 代码审查（第36天）</h2><p>准备上线前，做一次全面代码审查。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 深度代码审查</span><br><span class="line">/gsd-code-review 5 --depth=deep</span><br><span class="line"></span><br><span class="line">审查范围:</span><br><span class="line">- src/payment/* (56 文件)</span><br><span class="line">- src/order/* (43 文件)</span><br><span class="line"></span><br><span class="line">发现问题:</span><br><span class="line">🔴 [严重] 支付回调未验证签名</span><br><span class="line">🔴 [严重] 订单状态机不严谨</span><br><span class="line">🟡 [中等] 缺少重试机制</span><br><span class="line">🟡 [中等] 日志级别不规范</span><br></pre></td></tr></table></figure>
+
+<p>发现问题，自动修复！</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 自动修复并重新审查</span><br><span class="line">/gsd-code-review 5 --fix --auto</span><br><span class="line"></span><br><span class="line">修复循环:</span><br><span class="line">第1轮: 修复签名验证</span><br><span class="line">  重新审查: ✅ 通过</span><br><span class="line"></span><br><span class="line">第2轮: 修复状态机</span><br><span class="line">  重新审查: ✅ 通过</span><br><span class="line"></span><br><span class="line">所有 HIGH 问题已解决！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— code-review 深度审查、–fix 自动修复</p>
+</blockquote>
+<hr>
+<h2 id="21-11-20-UI-视觉审计（第37天）"><a href="#21-11-20-UI-视觉审计（第37天）" class="headerlink" title="21. 11.20 UI 视觉审计（第37天）"></a>21. 11.20 UI 视觉审计（第37天）</h2><p>前端页面做完了，要检查 UI 质量。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 前端视觉审计</span><br><span class="line">/gsd-ui-review 4</span><br><span class="line"></span><br><span class="line">6 维度审计:</span><br><span class="line">1. ✅ 一致性: 符合设计系统</span><br><span class="line">2. ✅ 可用性: 交互流畅</span><br><span class="line">3. ⚠️ 美观性: 移动端适配待优化</span><br><span class="line">4. ✅ 可访问性: 键盘导航支持</span><br><span class="line">5. ✅ 性能: LCP &lt; 2.5s</span><br><span class="line">6. ✅ 响应式: 桌面端正常</span><br><span class="line"></span><br><span class="line">审计评分: 85/100</span><br><span class="line">建议: 优化移动端商品卡片布局</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— ui-review UI 视觉审计</p>
+</blockquote>
+<hr>
+<h2 id="22-11-21-自主执行（第38-40天）"><a href="#22-11-21-自主执行（第38-40天）" class="headerlink" title="22. 11.21 自主执行（第38-40天）"></a>22. 11.21 自主执行（第38-40天）</h2><p>基础功能都完成了，小明想让它自动跑剩下的任务。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 开启自主执行模式</span><br><span class="line">/gsd-autonomous --from 5 --to 8</span><br><span class="line"></span><br><span class="line">执行计划:</span><br><span class="line">Phase 5: 搜索优化 [自动执行中...]</span><br><span class="line">Phase 6: 推荐系统 [排队中...]</span><br><span class="line">Phase 7: 消息通知 [排队中...]</span><br><span class="line">Phase 8: 后台管理 [排队中...]</span><br><span class="line"></span><br><span class="line">小明: &quot;我去吃个午饭，让它自己跑！&quot;</span><br><span class="line"></span><br><span class="line">回来后发现...</span><br><span class="line">✅ Phase 5 完成</span><br><span class="line">✅ Phase 6 完成</span><br><span class="line">⚠️ Phase 7 遇到问题需要人工介入</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别12：项目生命周期</strong> —— autonomous 自主执行</p>
+</blockquote>
+<hr>
+<h2 id="23-11-22-导入外部计划（第41天）"><a href="#23-11-22-导入外部计划（第41天）" class="headerlink" title="23. 11.22 导入外部计划（第41天）"></a>23. 11.22 导入外部计划（第41天）</h2><p>团队其他成员用其他工具做了份计划，小明想导入进来。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 导入外部计划文件</span><br><span class="line">/gsd-import --from /tmp/team-plan.md</span><br><span class="line"></span><br><span class="line">导入内容:</span><br><span class="line">- 客服模块需求</span><br><span class="line">- 数据分析需求</span><br><span class="line">- 运维监控需求</span><br><span class="line"></span><br><span class="line">自动创建:</span><br><span class="line">- Phase 9: 客服模块</span><br><span class="line">- Phase 10: 数据分析</span><br><span class="line">- Phase 11: 运维监控</span><br><span class="line"></span><br><span class="line">导入成功！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别14：导入、导出与更新</strong> —— import 导入外部计划</p>
+</blockquote>
+<hr>
+<h2 id="24-11-23-扫描代码库（第42天）"><a href="#24-11-23-扫描代码库（第42天）" class="headerlink" title="24. 11.23 扫描代码库（第42天）"></a>24. 11.23 扫描代码库（第42天）</h2><p>项目越来越大了，小明想快速摸一遍风险底细。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># 快速扫描代码库，聚焦风险点</span><br><span class="line">/gsd-map-codebase --fast --focus concerns</span><br><span class="line"></span><br><span class="line">快速扫描结果:</span><br><span class="line">🔴 高风险:</span><br><span class="line">  - src/payment/ 缺少集成测试</span><br><span class="line">  - src/order/ 存在循环依赖</span><br><span class="line"></span><br><span class="line">🟡 中风险:</span><br><span class="line">  - 数据库连接未使用连接池</span><br><span class="line">  - 缺少 API 限流</span><br><span class="line"></span><br><span class="line">🟢 低风险:</span><br><span class="line">  - 部分组件缺少注释</span><br><span class="line">  - 工具函数可抽离复用</span><br><span class="line"></span><br><span class="line">技术债: 约 32 人天</span><br><span class="line"></span><br><span class="line">小明: &quot;先快速扫一遍风险，详细的代码库地图等新人入职再生成&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别7：调试与诊断</strong> —— map-codebase –fast 快速风险扫描</p>
+</blockquote>
+<hr>
+<h2 id="25-11-24-代码库地图（第43天）"><a href="#25-11-24-代码库地图（第43天）" class="headerlink" title="25. 11.24 代码库地图（第43天）"></a>25. 11.24 代码库地图（第43天）</h2><p>新来了两个同事，小明要给他们介绍代码库。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 生成完整代码库地图</span><br><span class="line">/gsd-map-codebase</span><br><span class="line"></span><br><span class="line">分析完成，生成:</span><br><span class="line">📁 src/</span><br><span class="line">  📁 auth/         (认证模块)</span><br><span class="line">  📁 product/      (商品模块)</span><br><span class="line">  📁 order/        (订单模块)</span><br><span class="line">  📁 payment/      (支付模块)</span><br><span class="line">  📁 user/         (用户模块)</span><br><span class="line"></span><br><span class="line">依赖关系图:</span><br><span class="line">auth → user → product → order → payment</span><br><span class="line"></span><br><span class="line">新同事: &quot;一下子就看懂了！&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别8：研究与知识</strong> —— map-codebase 代码库地图</p>
+</blockquote>
+<hr>
+<h2 id="26-11-25-更新文档（第44天）"><a href="#26-11-25-更新文档（第44天）" class="headerlink" title="26. 11.25 更新文档（第44天）"></a>26. 11.25 更新文档（第44天）</h2><p>代码改了那么多，文档要更新了。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 更新项目文档</span><br><span class="line">/gsd-docs-update</span><br><span class="line"></span><br><span class="line">文档更新:</span><br><span class="line">✅ README.md (API 文档已同步)</span><br><span class="line">✅ API.md (新增 12 个端点)</span><br><span class="line">✅ ARCHITECTURE.md (架构图已更新)</span><br><span class="line">✅ DEPLOY.md (新增 Docker 部署说明)</span><br><span class="line"></span><br><span class="line">文档验证:</span><br><span class="line">✅ 所有文档与代码一致</span><br><span class="line">✅ 无过期文档</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别9：输出与文档</strong> —— docs-update 文档更新</p>
+</blockquote>
+<hr>
+<h2 id="27-11-26-提取经验教训（第45天）"><a href="#27-11-26-提取经验教训（第45天）" class="headerlink" title="27. 11.26 提取经验教训（第45天）"></a>27. 11.26 提取经验教训（第45天）</h2><p>Phase 5-8 完成了，小明想总结一下经验。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># 提取可复用模式</span><br><span class="line">/gsd-extract-learnings 5 --all</span><br><span class="line"></span><br><span class="line">提取结果:</span><br><span class="line"></span><br><span class="line">📚 可复用模式:</span><br><span class="line">1. 支付回调处理模板</span><br><span class="line">2. 订单状态机实现</span><br><span class="line">3. 第三方 API 封装规范</span><br><span class="line"></span><br><span class="line">⚠️ 反模式（需避免）:</span><br><span class="line">1. 避免在支付回调中执行复杂逻辑</span><br><span class="line">2. 避免使用数据库触发器更新库存</span><br><span class="line"></span><br><span class="line">🏗️ 架构决策:</span><br><span class="line">1. 选用 Stripe 而非自建支付（已验证合理）</span><br><span class="line">2. 使用 Redis 缓存热门商品（性能提升 300%）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别9：输出与文档</strong> —— extract-learnings 提取经验</p>
+</blockquote>
+<hr>
+<h2 id="28-11-27-创建-PR（第46天）"><a href="#28-11-27-创建-PR（第46天）" class="headerlink" title="28. 11.27 创建 PR（第46天）"></a>28. 11.27 创建 PR（第46天）</h2><p>功能开发完了，要提交代码审查。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># 创建 PR</span><br><span class="line">/gsd-ship 8</span><br><span class="line"></span><br><span class="line">ship:pre 检查:</span><br><span class="line">✅ security 门: 无未解决威胁</span><br><span class="line">✅ broken-windows 门: 无未修复缺陷</span><br><span class="line"></span><br><span class="line">自动生成 PR:</span><br><span class="line">标题: feat: 完成搜索优化和推荐系统</span><br><span class="line"></span><br><span class="line">正文包含:</span><br><span class="line">- 实现了什么</span><br><span class="line">- 如何测试</span><br><span class="line">- 截图/演示</span><br><span class="line">- 性能提升数据</span><br><span class="line"></span><br><span class="line">PR 创建成功！</span><br></pre></td></tr></table></figure>
+
+<p>小明还想清理一下分支，只提交业务代码。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 创建干净的 PR 分支</span><br><span class="line">/gsd-pr-branch</span><br><span class="line"></span><br><span class="line">过滤内容:</span><br><span class="line">❌ .planning/ 目录</span><br><span class="line">❌ node_modules/</span><br><span class="line">❌ .env 文件</span><br><span class="line"></span><br><span class="line">生成干净分支: feature/search-recommendation</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别9：输出与文档</strong> —— ship 创建 PR、pr-branch 清理分支</p>
+</blockquote>
+<hr>
+<h2 id="29-11-28-查看进度（第47天）"><a href="#29-11-28-查看进度（第47天）" class="headerlink" title="29. 11.28 查看进度（第47天）"></a>29. 11.28 查看进度（第47天）</h2><p>老板问项目进度怎么样了。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># 查看项目进度</span><br><span class="line">/gsd-progress</span><br><span class="line"></span><br><span class="line">电商平台 v0.2 进度:</span><br><span class="line">━━━━━━━━━━━━━━━━━━━━━━━</span><br><span class="line">Phase 1  商品模块     ✅ 完成</span><br><span class="line">Phase 2  支付模块     ✅ 完成</span><br><span class="line">Phase 3  用户模块     ✅ 完成</span><br><span class="line">Phase 4  订单模块     ✅ 完成</span><br><span class="line">Phase 5  搜索优化     ✅ 完成</span><br><span class="line">Phase 6  推荐系统     ✅ 完成</span><br><span class="line">Phase 7  消息通知     ✅ 完成</span><br><span class="line">Phase 8  后台管理     ✅ 完成</span><br><span class="line">━━━━━━━━━━━━━━━━━━━━━━━</span><br><span class="line">总体进度: 80%</span><br><span class="line">建议下一步: Phase 9 客服模块</span><br><span class="line"></span><br><span class="line">小明: &quot;进度不错，继续推进下一阶段&quot;</span><br><span class="line"># 继续推进</span><br><span class="line">/gsd-progress --next</span><br><span class="line">→ 已推进: Phase 9 客服模块</span><br></pre></td></tr></table></figure>
+
+<p>小明还可以看看详细统计。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 查看项目统计</span><br><span class="line">/gsd-stats</span><br><span class="line"></span><br><span class="line">代码统计:</span><br><span class="line">- 总文件数: 892</span><br><span class="line">- 总代码行: 45,230</span><br><span class="line">- 测试覆盖率: 82%</span><br><span class="line">- API 端点数: 156</span><br><span class="line"></span><br><span class="line">团队贡献:</span><br><span class="line">- 小明: 67%</span><br><span class="line">- 小红: 28%</span><br><span class="line">- 小刚: 5%</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别12：项目生命周期</strong> —— progress 进度查看、stats 统计</p>
+</blockquote>
+<hr>
+<h2 id="30-11-29-团队评审积压（第48天）"><a href="#30-11-29-团队评审积压（第48天）" class="headerlink" title="30. 11.29 团队评审积压（第48天）"></a>30. 11.29 团队评审积压（第48天）</h2><p>产品经理说要评审一下之前积压的需求。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 评审积压需求</span><br><span class="line">/gsd-review-backlog</span><br><span class="line"></span><br><span class="line">积压清单:</span><br><span class="line">999.1 用户等级系统</span><br><span class="line">999.2 积分商城</span><br><span class="line">999.3 优惠券系统</span><br><span class="line">999.4 会员专享价</span><br><span class="line">999.5 数据分析看板</span><br><span class="line"></span><br><span class="line">评审结果:</span><br><span class="line">→ 提升: 用户等级系统 → Phase 12</span><br><span class="line">→ 提升: 积分商城 → Phase 13</span><br><span class="line">⏭️ 跳过: 优惠券系统（暂时不做）</span><br><span class="line">⏭️ 跳过: 会员专享价（等用户量上来再做）</span><br><span class="line">→ 提升: 数据分析看板 → Phase 14</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别10：想法、待办与积压</strong> —— review-backlog 评审积压</p>
+</blockquote>
+<hr>
+<h2 id="31-11-30-回滚错误（第49天）"><a href="#31-11-30-回滚错误（第49天）" class="headerlink" title="31. 11.30 回滚错误（第49天）"></a>31. 11.30 回滚错误（第49天）</h2><p>小明不小心提交错了代码，想回滚。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 安全回滚</span><br><span class="line">/gsd-undo --last 5</span><br><span class="line"></span><br><span class="line">最近5个提交:</span><br><span class="line">1. feat: 搜索优化 - OK</span><br><span class="line">2. fix: 修复支付签名验证 - OK</span><br><span class="line">3. refactor: 重构订单服务 - OK</span><br><span class="line">4. oops: 误提交测试文件 - ⚠️ 需要回滚</span><br><span class="line">5. feat: 推荐系统 - OK</span><br><span class="line"></span><br><span class="line">输入: 4</span><br><span class="line"></span><br><span class="line">回滚提交 &quot;oops: 误提交测试文件&quot; ✅</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别12：项目生命周期</strong> —— undo 安全回滚</p>
+</blockquote>
+<hr>
+<h2 id="32-11-31-健康检查（第50天）"><a href="#32-11-31-健康检查（第50天）" class="headerlink" title="32. 11.31 健康检查（第50天）"></a>32. 11.31 健康检查（第50天）</h2><p>项目跑了一段时间了，做个全面体检。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 项目健康检查</span><br><span class="line">/gsd-health</span><br><span class="line"></span><br><span class="line">检查结果:</span><br><span class="line">✅ .planning/ 目录完整</span><br><span class="line">✅ state.json 可读</span><br><span class="line">✅ Phase 文件无损坏</span><br><span class="line">✅ 无孤儿临时文件</span><br><span class="line"></span><br><span class="line">健康评分: 92/100</span><br><span class="line"></span><br><span class="line">建议: 清理已完成阶段的临时文件</span><br></pre></td></tr></table></figure>
+
+<p>有个小问题，自动修复一下。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 自动修复</span><br><span class="line">/gsd-health --repair</span><br><span class="line"></span><br><span class="line">修复内容:</span><br><span class="line">- 清理过期缓存 ✅</span><br><span class="line">- 重建索引 ✅</span><br><span class="line">- 归档旧阶段 ✅</span><br><span class="line"></span><br><span class="line">修复完成！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别7：调试与诊断</strong> —— health 健康检查</p>
+</blockquote>
+<hr>
+<h2 id="33-11-32-清理归档（第51天）"><a href="#33-11-32-清理归档（第51天）" class="headerlink" title="33. 11.32 清理归档（第51天）"></a>33. 11.32 清理归档（第51天）</h2><p>项目进入维护阶段，清理一下归档。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 归档已完成里程碑的阶段目录</span><br><span class="line">/gsd-cleanup</span><br><span class="line"></span><br><span class="line">归档内容:</span><br><span class="line">- milestone-v0.1/ (5 个阶段) → 归档到 .planning/milestones/v0.1-phases/</span><br><span class="line">- milestone-v0.2/ (8 个阶段) → 归档到 .planning/milestones/v0.2-phases/</span><br><span class="line"></span><br><span class="line">释放空间: 45 MB</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别12：项目生命周期</strong> —— cleanup 清理归档</p>
+</blockquote>
+<hr>
+<h2 id="34-11-33-配置个性化（第52天）"><a href="#34-11-33-配置个性化（第52天）" class="headerlink" title="34. 11.33 配置个性化（第52天）"></a>34. 11.33 配置个性化（第52天）</h2><p>小明想根据自己的习惯配置 GSD。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 打开配置界面</span><br><span class="line">/gsd-settings</span><br><span class="line"></span><br><span class="line">配置分组:</span><br><span class="line">1. Planning      - 研究、计划检查、模式映射、Nyquist、UI Phase、UI Gate、AI Phase</span><br><span class="line">2. Execution     - 验证器、TDD 模式、代码审查、UI 审查</span><br><span class="line">3. Docs &amp; Output - 提交文档、跳过讨论、Worktrees</span><br><span class="line">4. Features      - Intel、Graphify</span><br><span class="line">5. Model &amp; Pipeline - 模型配置、自动推进、分支</span><br><span class="line">6. Misc          - 上下文警告、研究问题数</span><br><span class="line"></span><br><span class="line">小明: &quot;把模型换成 Sonnet，省点钱&quot;</span><br><span class="line">/gsd-config --profile budget</span><br><span class="line"></span><br><span class="line">切换到 budget 配置 ✅</span><br></pre></td></tr></table></figure>
+
+<p>还可以做高级配置。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 高级配置</span><br><span class="line">/gsd-config --advanced</span><br><span class="line"></span><br><span class="line">高级选项:</span><br><span class="line">- 计划反弹次数: 3 (当前)</span><br><span class="line">- 子代理超时: 5分钟 (当前)</span><br><span class="line">- 分支模板: standard (当前)</span><br><span class="line">- 调试模式: 关闭 (当前)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别13：配置与设置</strong> —— settings&#x2F;config –advanced&#x2F;–profile</p>
+</blockquote>
+<hr>
+<h2 id="35-11-34-行为分析生成配置（第53天）"><a href="#35-11-34-行为分析生成配置（第53天）" class="headerlink" title="35. 11.34 行为分析生成配置（第53天）"></a>35. 11.34 行为分析生成配置（第53天）</h2><p>小明想看看自己平时怎么用 GSD 的。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 分析使用行为</span><br><span class="line">/gsd-profile-user</span><br><span class="line"></span><br><span class="line">分析报告:</span><br><span class="line">1. 执行模式: 偏好快速迭代 (证据: 35次 execute, 3次 autonomous)</span><br><span class="line">2. 质量关注: 高 (证据: 每次都做 code-review)</span><br><span class="line">3. 文档习惯: 中 (证据: 偶尔运行 docs-update)</span><br><span class="line">4. 协作风格: 独立型 (证据: 少用 review)</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">生成建议:</span><br><span class="line">- 建议开启 autonomous 模式</span><br><span class="line">- 建议加强文档更新频率</span><br><span class="line">- 建议多使用 workstreams</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别13：配置与设置</strong> —— profile-user 行为分析</p>
+</blockquote>
+<hr>
+<h2 id="36-11-35-团队集成配置（第54天）"><a href="#36-11-35-团队集成配置（第54天）" class="headerlink" title="36. 11.35 团队集成配置（第54天）"></a>36. 11.35 团队集成配置（第54天）</h2><p>小明想配置项目的第三方集成（API 密钥、评审工具路由）。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 配置第三方集成</span><br><span class="line">/gsd-config --integrations</span><br><span class="line"></span><br><span class="line">集成选项:</span><br><span class="line">1. API Keys     - Brave / Firecrawl / Exa</span><br><span class="line">2. 代码评审 CLI   - 路由到外部评审命令</span><br><span class="line">3. Agent Skills - 注入子代理技能</span><br><span class="line"></span><br><span class="line">选择: 1 (API Keys)</span><br><span class="line"></span><br><span class="line">Brave API Key: ************</span><br><span class="line">Firecrawl API Key: ************</span><br><span class="line"></span><br><span class="line">配置完成！</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别13：配置与设置</strong> —— config –integrations 集成配置</p>
+</blockquote>
+<hr>
+<h2 id="37-11-36-摄入现有文档（第55天）"><a href="#37-11-36-摄入现有文档（第55天）" class="headerlink" title="37. 11.36 摄入现有文档（第55天）"></a>37. 11.36 摄入现有文档（第55天）</h2><p>团队之前有一些文档，小明想导入到 GSD。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 摄入文档到规划系统</span><br><span class="line">/gsd-ingest-docs docs/</span><br><span class="line"></span><br><span class="line">扫描文档:</span><br><span class="line">📄 docs/PRD-v1.md → PRD</span><br><span class="line">📄 docs/ARCHITECTURE.md → DOC</span><br><span class="line">📄 docs/api-design.md → DOC</span><br><span class="line">📄 docs/decisions/auth.md → ADR</span><br><span class="line">📄 docs/decisions/db.md → ADR</span><br><span class="line"></span><br><span class="line">摄入完成！</span><br><span class="line">创建 .planning/intel/ 索引</span><br><span class="line">创建 .planning/roadmap.md</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别14：导入、导出与更新</strong> —— ingest-docs 摄入文档</p>
+</blockquote>
+<hr>
+<h2 id="38-11-37-验证阶段（第56天）"><a href="#38-11-37-验证阶段（第56天）" class="headerlink" title="38. 11.37 验证阶段（第56天）"></a>38. 11.37 验证阶段（第56天）</h2><p>Phase 12 完成了，做一个完整验证。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 验证阶段</span><br><span class="line">/gsd-validate-phase 12</span><br><span class="line"></span><br><span class="line">Nyquist 验证:</span><br><span class="line">✅ 功能完整性</span><br><span class="line">✅ 测试覆盖</span><br><span class="line">✅ 性能基准</span><br><span class="line">✅ 安全扫描</span><br><span class="line">✅ 文档同步</span><br><span class="line">✅ 代码规范</span><br><span class="line"></span><br><span class="line">验证评分: 91/100</span><br><span class="line">通过 ✅</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别2：核心阶段工作流</strong> —— validate-phase 阶段验证</p>
+</blockquote>
+<hr>
+<h2 id="39-11-38-评审计划（第57天）"><a href="#39-11-38-评审计划（第57天）" class="headerlink" title="39. 11.38 评审计划（第57天）"></a>39. 11.38 评审计划（第57天）</h2><p>Phase 13 计划做好了，让外部 AI 评审一下。Gemini CLI 已停服，现在用它的继任者 Antigravity。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 跨 AI 评审</span><br><span class="line">/gsd-review --phase 13 --all</span><br><span class="line"></span><br><span class="line">评审 AI:</span><br><span class="line">- Antigravity: 技术可行性 ✅</span><br><span class="line">- Codex: 代码质量 ✅</span><br><span class="line">- OpenCode: 性能优化 ✅</span><br><span class="line"></span><br><span class="line">综合评分: 88/100</span><br><span class="line">建议: 优化缓存策略</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— review 跨 AI 评审</p>
+</blockquote>
+<hr>
+<h2 id="40-11-39-AI-评估覆盖审计（第58天）"><a href="#40-11-39-AI-评估覆盖审计（第58天）" class="headerlink" title="40. 11.39 AI 评估覆盖审计（第58天）"></a>40. 11.39 AI 评估覆盖审计（第58天）</h2><p>检查一下 AI 功能的测试覆盖。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 评估覆盖审计</span><br><span class="line">/gsd-eval-review 6</span><br><span class="line"></span><br><span class="line">AI 功能:</span><br><span class="line">1. 智能搜索 - 测试覆盖 85% ✅</span><br><span class="line">2. 推荐系统 - 测试覆盖 62% ⚠️</span><br><span class="line">3. 图像识别 - 测试覆盖 45% ❌</span><br><span class="line"></span><br><span class="line">缺口分析:</span><br><span class="line">- 推荐系统: 缺少离线评测</span><br><span class="line">- 图像识别: 缺少边界测试</span><br><span class="line"></span><br><span class="line">建议补充测试用例: 23 个</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— eval-review 评估覆盖审计</p>
+</blockquote>
+<hr>
+<h2 id="41-11-40-调研新技术（第59天）"><a href="#41-11-40-调研新技术（第59天）" class="headerlink" title="41. 11.40 调研新技术（第59天）"></a>41. 11.40 调研新技术（第59天）</h2><p>老板问能不能加个 AI 客服功能，小明先调研一下。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># 深度研究</span><br><span class="line">/gsd-plan-phase --research-phase 15</span><br><span class="line"></span><br><span class="line">研究内容:</span><br><span class="line">- LangChain</span><br><span class="line">- LlamaIndex</span><br><span class="line">- RAG 技术</span><br><span class="line">- 各大 LLM 对比</span><br><span class="line"></span><br><span class="line">研究结论:</span><br><span class="line">推荐方案: Claude API + RAG</span><br><span class="line">- 成本: $0.002/消息</span><br><span class="line">- 延迟: &lt; 1s</span><br><span class="line">- 准确率: 85%</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别2：核心阶段工作流</strong> —— plan-phase –research-phase 深度研究</p>
+</blockquote>
+<hr>
+<h2 id="42-11-41-草图探索（第60天）"><a href="#42-11-41-草图探索（第60天）" class="headerlink" title="42. 11.41 草图探索（第60天）"></a>42. 11.41 草图探索（第60天）</h2><p>AI 客服的界面应该长什么样？</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 设计草图</span><br><span class="line">/gsd-sketch &quot;AI 客服对话界面&quot;</span><br><span class="line"></span><br><span class="line">输出:</span><br><span class="line">- 桌面端对话界面 HTML</span><br><span class="line">- 移动端对话界面 HTML</span><br><span class="line">- 暗色模式版本</span><br><span class="line"></span><br><span class="line">小明和产品经理看完：</span><br><span class="line">&quot;不错！就按这个风格做&quot;</span><br></pre></td></tr></table></figure>
+
+<p>草图确定后，打包为可复用技能。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 打包草图决策</span><br><span class="line">/gsd-sketch --wrap-up</span><br><span class="line"></span><br><span class="line">打包内容:</span><br><span class="line">- 样式规范</span><br><span class="line">- 组件库</span><br><span class="line">- 交互动效</span><br><span class="line"></span><br><span class="line">创建项目技能: chat-ui-pattern ✅</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别11：探索与原型</strong> —— sketch 草图、–wrap-up 打包技能</p>
+</blockquote>
+<hr>
+<h2 id="43-11-42-Spike-打包（第61天）"><a href="#43-11-42-Spike-打包（第61天）" class="headerlink" title="43. 11.42 Spike 打包（第61天）"></a>43. 11.42 Spike 打包（第61天）</h2><p>之前做的 Stripe 集成方案很好，打包成可复用技能。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 打包 spike 发现</span><br><span class="line">/gsd-spike --wrap-up</span><br><span class="line"></span><br><span class="line">打包内容:</span><br><span class="line">- Stripe 集成模板</span><br><span class="line">- 回调处理模板</span><br><span class="line">- 测试用例</span><br><span class="line"></span><br><span class="line">创建项目技能: payment-stripe-pattern ✅</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别11：探索与原型</strong> —— spike –wrap-up 打包</p>
+</blockquote>
+<hr>
+<h2 id="44-11-43-跨阶段审计（第62天）"><a href="#44-11-43-跨阶段审计（第62天）" class="headerlink" title="44. 11.43 跨阶段审计（第62天）"></a>44. 11.43 跨阶段审计（第62天）</h2><p>项目快完成了，做一次全面审计。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 跨阶段 UAT 审计</span><br><span class="line">/gsd-audit-uat</span><br><span class="line"></span><br><span class="line">审计结果:</span><br><span class="line">Phase 1-5: ✅ 全部 UAT 通过</span><br><span class="line">Phase 6-10: ✅ 全部 UAT 通过</span><br><span class="line">Phase 11-15: ⚠️ 3 个 UAT 待验证</span><br><span class="line"></span><br><span class="line">待验证项:</span><br><span class="line">1. Phase 12: 用户等级计算逻辑</span><br><span class="line">2. Phase 14: 数据分析看板数据准确性</span><br><span class="line">3. Phase 15: AI 客服回复质量</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别6：审查、审计与验证</strong> —— audit-uat 跨阶段审计</p>
+</blockquote>
+<hr>
+<h2 id="45-11-44-持续集成更新（第63天）"><a href="#45-11-44-持续集成更新（第63天）" class="headerlink" title="45. 11.44 持续集成更新（第63天）"></a>45. 11.44 持续集成更新（第63天）</h2><p>GSD 有新版本了。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 更新 GSD</span><br><span class="line">/gsd-update</span><br><span class="line"></span><br><span class="line">更新内容:</span><br><span class="line">新版本更新包:</span><br><span class="line">- 新增: 更多 AI 运行时支持</span><br><span class="line">- 优化: execute-phase 并行度提升 30%</span><br><span class="line">- 修复: health 命令误报问题</span><br><span class="line"></span><br><span class="line">是否更新? [Y/n] Y</span><br><span class="line"></span><br><span class="line">更新完成！已升级到最新版本</span><br></pre></td></tr></table></figure>
+
+<p>之前小明做过本地修改，看看能不能恢复。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 恢复本地修改</span><br><span class="line">/gsd-update --reapply</span><br><span class="line"></span><br><span class="line">本地修改:</span><br><span class="line">- 自定义 prompt 模板</span><br><span class="line">- 配色方案</span><br><span class="line"></span><br><span class="line">恢复状态: ✅ 全部恢复</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别14：导入、导出与更新</strong> —— update 更新、–reapply 恢复补丁</p>
+</blockquote>
+<hr>
+<h2 id="46-11-45-管理面板（第64天）"><a href="#46-11-45-管理面板（第64天）" class="headerlink" title="46. 11.45 管理面板（第64天）"></a>46. 11.45 管理面板（第64天）</h2><p>项目太多了，用管理面板统一管理。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 打开管理面板</span><br><span class="line">/gsd-manager</span><br><span class="line"></span><br><span class="line">仪表盘显示:</span><br><span class="line">📊 电商平台:</span><br><span class="line">  - 活跃 Phase: 3</span><br><span class="line">  - 本周进度: +12%</span><br><span class="line">  - 问题数: 5</span><br><span class="line"></span><br><span class="line">📊 旧系统维护:</span><br><span class="line">  - 活跃 Phase: 1</span><br><span class="line">  - 本周进度: +3%</span><br><span class="line">  - 问题数: 2</span><br><span class="line"></span><br><span class="line">📊 技术预研:</span><br><span class="line">  - 活跃 Phase: 0</span><br><span class="line">  - 本周进度: +8%</span><br><span class="line">  - 问题数: 0</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别15：管理与自动化</strong> —— manager 管理面板</p>
+</blockquote>
+<hr>
+<h2 id="47-11-46-加入社区（第65天）"><a href="#47-11-46-加入社区（第65天）" class="headerlink" title="47. 11.46 加入社区（第65天）"></a>47. 11.46 加入社区（第65天）</h2><p>小明想加入 GSD 社区交流，看看怎么加入。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 查询社区入口</span><br><span class="line">/gsd-help</span><br><span class="line"></span><br><span class="line">GSD 帮助（默认导览）:</span><br><span class="line">- 查看命令: /gsd-help &lt;命令名&gt;</span><br><span class="line">- 社区入口:</span><br><span class="line">  - Discord: https://discord.gg/gsd-community</span><br><span class="line">  - GitHub Discussions: https://github.com/open-gsd/gsd-core/discussions</span><br><span class="line"></span><br><span class="line">打开: https://discord.gg/gsd-community</span><br><span class="line"></span><br><span class="line">社区:</span><br><span class="line">- 3000+ 成员</span><br><span class="line">- 每日活跃讨论</span><br><span class="line">- 官方支持频道</span><br><span class="line">- 技能分享频道</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别16：工具与社区</strong> —— help 帮助导览（含社区入口）</p>
+</blockquote>
+<hr>
+<h2 id="48-11-47-帮助与支持（第66天）"><a href="#48-11-47-帮助与支持（第66天）" class="headerlink" title="48. 11.47 帮助与支持（第66天）"></a>48. 11.47 帮助与支持（第66天）</h2><p>新来的同事问小明 GSD 怎么用。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 查看帮助</span><br><span class="line">/gsd-help</span><br><span class="line"></span><br><span class="line">GSD 帮助信息:</span><br><span class="line">- 70+ 个命令</span><br><span class="line">- 16 个类别</span><br><span class="line">- 文档链接</span><br><span class="line">- 社区链接</span><br><span class="line"></span><br><span class="line">小明: &quot;这是文档链接，有问题随时问我&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>类别16：工具与社区</strong> —— help 帮助</p>
+</blockquote>
+<hr>
+<h2 id="49-11-48-大功告成（第67天）"><a href="#49-11-48-大功告成（第67天）" class="headerlink" title="49. 11.48 大功告成（第67天）"></a>49. 11.48 大功告成（第67天）</h2><p>电商平台终于完成了！小明收工前，暂停会话并生成一份完整报告留档。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 收工！暂停会话并生成报告</span><br><span class="line">/gsd-pause-work --report</span><br><span class="line"></span><br><span class="line">会话报告:</span><br><span class="line">项目: 电商平台 v1.0</span><br><span class="line">时间: 67 天</span><br><span class="line">代码量: 89,000 行</span><br><span class="line">测试: 1,234 个</span><br><span class="line">覆盖率: 85%</span><br><span class="line"></span><br><span class="line">完成阶段: 15 个</span><br><span class="line">质量评分: 92/100</span><br><span class="line"></span><br><span class="line">会话已安全保存，随时可以恢复继续。</span><br><span class="line"></span><br><span class="line">感谢 GSD！</span><br></pre></td></tr></table></figure>
+
+<p>小明长舒一口气：两个月，70+ 个命令，全程用 GSD 管理，顺利完成！</p>
+<blockquote>
+<p><strong>类别5：会话管理与交接</strong> —— pause-work –report 收工报告</p>
+</blockquote>
+<hr>
+<h2 id="50-11-49-命令串联总结"><a href="#50-11-49-命令串联总结" class="headerlink" title="50. 11.49 命令串联总结"></a>50. 11.49 命令串联总结</h2><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>flowchart TB
+    subgraph 立项[&quot;📋 立项阶段&quot;]
+        P1[项目初始化]
+        P2[工作空间]
+    end
+
+<pre><code>subgraph 规划[&amp;quot;🎯 规划阶段&amp;quot;]
+    P3[需求讨论]
+    P4[制定计划]
+    P5[评审计划]
+end
+
+subgraph 执行[&amp;quot;🚀 执行阶段&amp;quot;]
+    P6[执行开发]
+    P7[临时任务]
+    P8[并行工作流]
+end
+
+subgraph 质量[&amp;quot;✅ 质量阶段&amp;quot;]
+    P9[验证测试]
+    P10[代码审查]
+    P11[安全审查]
+    P12[自动修复]
+end
+
+subgraph 知识[&amp;quot;📚 知识阶段&amp;quot;]
+    P13[调研探索]
+    P14[原型设计]
+    P15[知识管理]
+end
+
+subgraph 里程碑[&amp;quot;🏆 里程碑&amp;quot;]
+    P16[创建里程碑]
+    P17[审计完成]
+    P18[归档清理]
+end
+
+P1 --&amp;gt; P2
+P2 --&amp;gt; P3
+P3 --&amp;gt; P4
+P4 --&amp;gt; P5
+P5 --&amp;gt; P6
+P6 --&amp;gt; P7
+P6 --&amp;gt; P8
+P8 --&amp;gt; P9
+P9 --&amp;gt; P10
+P10 --&amp;gt; P11
+P11 --&amp;gt; P12
+P12 --&amp;gt; P13
+P13 --&amp;gt; P14
+P14 --&amp;gt; P15
+P15 --&amp;gt; P16
+P16 --&amp;gt; P17
+P17 --&amp;gt; P18
+
+style 立项 fill:#e3f2fd
+style 规划 fill:#e8f5e9
+style 执行 fill:#fff3e0
+style 质量 fill:#fce4ec
+style 知识 fill:#f3e5f5
+style 里程碑 fill:#e0f7fa&lt;/pre&gt;&lt;/div&gt;
+</code></pre>
+<hr>
+<h3 id="类别与故事对照表"><a href="#类别与故事对照表" class="headerlink" title="类别与故事对照表"></a>类别与故事对照表</h3><table>
+<thead>
+<tr>
+<th>故事章节</th>
+<th>使用的类别</th>
+<th>代表命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>11.1 立项</td>
+<td><strong>项目与工作空间</strong></td>
+<td>new-project, workspace</td>
+</tr>
+<tr>
+<td>11.2 讨论</td>
+<td><strong>核心阶段工作流</strong> + <strong>研究与知识</strong></td>
+<td>discuss-phase, explore</td>
+</tr>
+<tr>
+<td>11.3 计划</td>
+<td><strong>阶段结构管理</strong></td>
+<td>plan-phase, manager</td>
+</tr>
+<tr>
+<td>11.4 评审</td>
+<td><strong>核心阶段工作流</strong></td>
+<td>plan-review-convergence</td>
+</tr>
+<tr>
+<td>11.5 执行</td>
+<td><strong>核心工作流</strong> + <strong>想法积压</strong></td>
+<td>execute-phase, capture, spike</td>
+</tr>
+<tr>
+<td>11.6 设计</td>
+<td><strong>探索与原型</strong></td>
+<td>sketch</td>
+</tr>
+<tr>
+<td>11.7 验证</td>
+<td><strong>审查与审计</strong></td>
+<td>verify-work, secure-phase, code-review</td>
+</tr>
+<tr>
+<td>11.8 修复</td>
+<td><strong>审查与审计</strong></td>
+<td>audit-fix, add-tests</td>
+</tr>
+<tr>
+<td>11.9 调试</td>
+<td><strong>调试与诊断</strong></td>
+<td>debug, forensics</td>
+</tr>
+<tr>
+<td>11.10 插入</td>
+<td><strong>阶段结构管理</strong></td>
+<td>phase</td>
+</tr>
+<tr>
+<td>11.11 并行</td>
+<td><strong>会话管理</strong></td>
+<td>workstreams</td>
+</tr>
+<tr>
+<td>11.12 中断</td>
+<td><strong>会话管理</strong></td>
+<td>pause-work, resume-work</td>
+</tr>
+<tr>
+<td>11.13 线程</td>
+<td><strong>会话管理</strong></td>
+<td>thread</td>
+</tr>
+<tr>
+<td>11.14 临时</td>
+<td><strong>管理与自动化</strong></td>
+<td>quick</td>
+</tr>
+<tr>
+<td>11.15 AI选型</td>
+<td><strong>研究与知识</strong></td>
+<td>ai-integration-phase</td>
+</tr>
+<tr>
+<td>11.16 知识</td>
+<td><strong>研究与知识</strong></td>
+<td>graphify, intel</td>
+</tr>
+<tr>
+<td>11.17 冲刺</td>
+<td><strong>里程碑管理</strong></td>
+<td>new-milestone, audit-milestone</td>
+</tr>
+<tr>
+<td>11.18 完成</td>
+<td><strong>里程碑管理</strong></td>
+<td>complete-milestone, milestone-summary</td>
+</tr>
+<tr>
+<td>11.19 审查</td>
+<td><strong>审查与审计</strong></td>
+<td>code-review, –fix</td>
+</tr>
+<tr>
+<td>11.20 UI审计</td>
+<td><strong>审查与审计</strong></td>
+<td>ui-review</td>
+</tr>
+<tr>
+<td>11.21 自主</td>
+<td><strong>生命周期</strong></td>
+<td>autonomous</td>
+</tr>
+<tr>
+<td>11.22 导入</td>
+<td><strong>导入与更新</strong></td>
+<td>import</td>
+</tr>
+<tr>
+<td>11.23 扫描</td>
+<td><strong>调试与诊断</strong></td>
+<td>map-codebase –fast</td>
+</tr>
+<tr>
+<td>11.24 地图</td>
+<td><strong>研究与知识</strong></td>
+<td>map-codebase</td>
+</tr>
+<tr>
+<td>11.25 文档</td>
+<td><strong>输出与文档</strong></td>
+<td>docs-update</td>
+</tr>
+<tr>
+<td>11.26 经验</td>
+<td><strong>输出与文档</strong></td>
+<td>extract-learnings</td>
+</tr>
+<tr>
+<td>11.27 PR</td>
+<td><strong>输出与文档</strong></td>
+<td>ship, pr-branch</td>
+</tr>
+<tr>
+<td>11.28 进度</td>
+<td><strong>生命周期</strong></td>
+<td>progress, stats</td>
+</tr>
+<tr>
+<td>11.29 积压</td>
+<td><strong>想法与积压</strong></td>
+<td>review-backlog</td>
+</tr>
+<tr>
+<td>11.30 回滚</td>
+<td><strong>生命周期</strong></td>
+<td>undo</td>
+</tr>
+<tr>
+<td>11.31 健康</td>
+<td><strong>调试与诊断</strong></td>
+<td>health</td>
+</tr>
+<tr>
+<td>11.32 清理</td>
+<td><strong>生命周期</strong></td>
+<td>cleanup</td>
+</tr>
+<tr>
+<td>11.33 配置</td>
+<td><strong>配置与设置</strong></td>
+<td>settings, config</td>
+</tr>
+<tr>
+<td>11.34 分析</td>
+<td><strong>配置与设置</strong></td>
+<td>profile-user</td>
+</tr>
+<tr>
+<td>11.35 集成</td>
+<td><strong>配置与设置</strong></td>
+<td>config –integrations</td>
+</tr>
+<tr>
+<td>11.36 摄入</td>
+<td><strong>导入与更新</strong></td>
+<td>ingest-docs</td>
+</tr>
+<tr>
+<td>11.37 验证</td>
+<td><strong>核心工作流</strong></td>
+<td>validate-phase</td>
+</tr>
+<tr>
+<td>11.38 评审</td>
+<td><strong>审查与审计</strong></td>
+<td>review</td>
+</tr>
+<tr>
+<td>11.39 评估</td>
+<td><strong>审查与审计</strong></td>
+<td>eval-review</td>
+</tr>
+<tr>
+<td>11.40 调研</td>
+<td><strong>核心工作流</strong></td>
+<td>plan-phase –research-phase</td>
+</tr>
+<tr>
+<td>11.41 草图</td>
+<td><strong>探索与原型</strong></td>
+<td>sketch, –wrap-up</td>
+</tr>
+<tr>
+<td>11.42 打包</td>
+<td><strong>探索与原型</strong></td>
+<td>spike –wrap-up</td>
+</tr>
+<tr>
+<td>11.43 审计</td>
+<td><strong>审查与审计</strong></td>
+<td>audit-uat</td>
+</tr>
+<tr>
+<td>11.44 更新</td>
+<td><strong>导入与更新</strong></td>
+<td>update, –reapply</td>
+</tr>
+<tr>
+<td>11.45 面板</td>
+<td><strong>管理与自动化</strong></td>
+<td>manager</td>
+</tr>
+<tr>
+<td>11.46 社区</td>
+<td><strong>工具与社区</strong></td>
+<td>help</td>
+</tr>
+<tr>
+<td>11.47 帮助</td>
+<td><strong>工具与社区</strong></td>
+<td>help</td>
+</tr>
+<tr>
+<td>11.48 报告</td>
+<td><strong>会话管理</strong></td>
+<td>pause-work –report</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="51-附录：运行时与元技能速查"><a href="#51-附录：运行时与元技能速查" class="headerlink" title="51. 附录：运行时与元技能速查"></a>51. 附录：运行时与元技能速查</h2><h3 id="运行时支持矩阵"><a href="#运行时支持矩阵" class="headerlink" title="运行时支持矩阵"></a>运行时支持矩阵</h3><table>
+<thead>
+<tr>
+<th>运行时</th>
+<th>支持方式</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Claude Code</td>
+<td>一等公民</td>
+<td>连字符命令 <code>/gsd-xxx</code></td>
+</tr>
+<tr>
+<td>Codex</td>
+<td>EoS 声明式适配</td>
+<td><code>$gsd-xxx</code> 命令形式</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>EoS + 原生插件</td>
+<td>自动注册 mcp.gsd</td>
+</tr>
+<tr>
+<td>Kimi CLI &#x2F; Kimi Code</td>
+<td>EoS 接入</td>
+<td>v1.9.0 起 Kimi Code 独立运行时</td>
+</tr>
+<tr>
+<td>GitHub Copilot &#x2F; Cursor &#x2F; Cline &#x2F; Qwen &#x2F; Trae &#x2F; Kilo &#x2F; Hermes</td>
+<td>EoS 接入</td>
+<td>v1.7.0 起</td>
+</tr>
+<tr>
+<td>Antigravity</td>
+<td>EoS 接入</td>
+<td>Gemini CLI 停服后继任</td>
+</tr>
+<tr>
+<td>Augment &#x2F; CodeBuddy &#x2F; Windsurf</td>
+<td>声明式适配 + MCP</td>
+<td>v1.7.0 起</td>
+</tr>
+<tr>
+<td>ZCode &#x2F; pi &#x2F; VS Code</td>
+<td>可安装运行时</td>
+<td>v1.7.0 新增</td>
+</tr>
+<tr>
+<td>本地模型服务器</td>
+<td>ollama &#x2F; lm-studio &#x2F; llama-cpp</td>
+<td>评审 lane 与运行时</td>
+</tr>
+</tbody></table>
+<h3 id="六个元技能路由一览"><a href="#六个元技能路由一览" class="headerlink" title="六个元技能路由一览"></a>六个元技能路由一览</h3><table>
+<thead>
+<tr>
+<th>路由</th>
+<th>用途</th>
+<th>覆盖的具体命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/gsd-workflow</code></td>
+<td>核心工作流</td>
+<td>discuss &#x2F; plan &#x2F; execute &#x2F; verify &#x2F; phase &#x2F; progress &#x2F; next</td>
+</tr>
+<tr>
+<td><code>/gsd-project</code></td>
+<td>项目与里程碑</td>
+<td>milestones &#x2F; audits &#x2F; summary</td>
+</tr>
+<tr>
+<td><code>/gsd-quality</code></td>
+<td>质量与审查</td>
+<td>code review &#x2F; debug &#x2F; audit &#x2F; security &#x2F; eval &#x2F; ui</td>
+</tr>
+<tr>
+<td><code>/gsd-context</code></td>
+<td>上下文与知识</td>
+<td>map &#x2F; graphify &#x2F; docs &#x2F; learnings</td>
+</tr>
+<tr>
+<td><code>/gsd-manage</code></td>
+<td>管理与运维</td>
+<td>config &#x2F; workspace &#x2F; workstreams &#x2F; thread &#x2F; update &#x2F; ship &#x2F; inbox</td>
+</tr>
+<tr>
+<td><code>/gsd-ideate</code></td>
+<td>想法与探索</td>
+<td>explore &#x2F; sketch &#x2F; spike &#x2F; spec &#x2F; capture</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>元技能是入口路由，最终执行的具体命令仍以本文档各章为准。路由为 additive 设计，原有具体命令（如 <code>/gsd-execute-phase</code>）仍可直接调用。</p>
+</blockquote>
+<hr>
+<ul>
+<li><strong>GitHub</strong>: <a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core">open-gsd&#x2F;gsd-core</a></li>
+<li><strong>文档</strong>: <a target="_blank" rel="noopener" href="https://github.com/open-gsd/gsd-core#readme">gsd-core#readme</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/ziogn">ziogn</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/">https://ziogn.github.io/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ziogn.github.io" target="_blank">Ziogn Notes</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GSD/">GSD</a><a class="post-meta__tags" href="/tags/%E9%A1%B9%E7%9B%AE%E5%B7%A5%E4%BD%9C%E6%B5%81/">项目工作流</a><a class="post-meta__tags" href="/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/tags/AI%E7%BC%96%E7%A8%8B/">AI编程</a><a class="post-meta__tags" href="/tags/OpenCode/">OpenCode</a><a class="post-meta__tags" href="/tags/open-gsd/">open-gsd</a><a class="post-meta__tags" href="/tags/opengsd-gsd-core/">@opengsd/gsd-core</a></div><div class="post-share"><div class="social-share" data-image="/img/49394459.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/nginx%E9%85%8D%E7%BD%AE%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="Nginx 配置实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Nginx 配置实战指南</div></div><div class="info-2"><div class="info-item-1">Nginx 配置实战指南本教程以实际项目配置为基础，覆盖 Nginx 的两大核心场景：静态站点部署与反向代理配置。所有配置示例均来自生产环境实践，可直接复用。 1. Nginx 基础概念1.1 配置文件结构Nginx 的配置体系由主配置文件和站点配置目录组成：    路径 用途    /etc/nginx/nginx.conf 主配置文件，定义全局设置（user、worker_processes、events、http 块）   /etc/nginx/sites-available/ 站点配置文件存放目录   /etc/nginx/sites-enabled/ 已启用站点的符号链接目录   /var/log/nginx/ 默认日志目录   主配置文件中通过 include 指令加载站点配置： 12345# nginx.conf 中的关键 include 行http &#123;    # ...    include /etc/nginx/sites-enabled/*;&#125;  站点启用机制：将配置文件放在 sites-available/，然后创建符号链接到 sites...</div></div></div></a><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/" title="GSD 使用教程 - 命令速查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GSD 使用教程 - 命令速查</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程 - 命令速查 本手册覆盖 GSD 项目内部版本 v1.35.0+（预发布 v1.43.0-rc2），从 v1.6.0 全面更新。命令体系经历大幅重构：新增 7 个统一命令、6 个命名空间元技能、25+ 个旧命令被合并或移除。 版本号说明：v1.35.0+ 为项目内部版本号（对应旧包 get-shit-done-cc），新包 @opengsd/gsd-core 采用独立版本号体系（当前 latest 为 1.2.0，但代码已包含 v1.35.0+ 的全部特性）。  目录 概述与仓库迁移 命名空间元技能速查 旧命令迁移对照表 新命令详解 现有命令新增标志速查 Package Legitimacy Gate 跨 AI 评审 MVP 与 TDD 规划模式 多运行时支持 版本演进关键里程碑 附录：快速命令索引   1. 概述与仓库迁移版本跨度   项目 旧值 新值    项目内部版本 v1.6.0 v1.35.0（稳定）&#x2F; v1.43.0-rc2（预发布）   仓库 gsd-build/get-shit-done open-gsd/gsd-core   npm ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91/" title="GSD 使用教程-并行开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-28</div><div class="info-item-2">GSD 使用教程-并行开发</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程-并行开发 GSD（Get Shit Done）提供了丰富的并行开发能力，帮助开发者同时推进多条开发线，最大化 AI 编程效率。本教程详细介绍 GSD 的六大并行能力：Wave、Workstreams、Workspace、Thread、Autonomous 和 Manager。  目录 并行开发概述 Wave 波浪式并行执行 Workstreams 并行工作流 Workspace 隔离工作空间 Thread 跨会话线程 Autonomous 自主模式 Manager 命令中心 并行开发最佳实践 常见问题 FAQ   1. 并行开发概述1.1 为什么需要并行开发单线程开发模式存在明显的效率瓶颈：  等待浪费：AI 执行一个计划时，开发者只能等待，无法同时推进其他工作 多任务需求：真实项目往往需要前后端同步开发、多个模块并行推进 配额限制：单线程执行无法充分利用 API 配额，并行可以显著提升吞吐量  并行开发的核心思想是：让多个 AI 代理同时工作，每个代理独立执行不同的任务。 1.2 GSD 并行能力全景图GSD 提供了六大并行能力，从轻量到重量，覆盖不同的并行场...</div></div></div></a><a class="pagination-related" href="/GSD%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/" title="GSD 使用教程 - 命令速查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">GSD 使用教程 - 命令速查</div></div><div class="info-2"><div class="info-item-1">GSD 使用教程 - 命令速查 本手册覆盖 GSD 项目内部版本 v1.35.0+（预发布 v1.43.0-rc2），从 v1.6.0 全面更新。命令体系经历大幅重构：新增 7 个统一命令、6 个命名空间元技能、25+ 个旧命令被合并或移除。 版本号说明：v1.35.0+ 为项目内部版本号（对应旧包 get-shit-done-cc），新包 @opengsd/gsd-core 采用独立版本号体系（当前 latest 为 1.2.0，但代码已包含 v1.35.0+ 的全部特性）。  目录 概述与仓库迁移 命名空间元技能速查 旧命令迁移对照表 新命令详解 现有命令新增标志速查 Package Legitimacy Gate 跨 AI 评审 MVP 与 TDD 规划模式 多运行时支持 版本演进关键里程碑 附录：快速命令索引   1. 概述与仓库迁移版本跨度   项目 旧值 新值    项目内部版本 v1.6.0 v1.35.0（稳定）&#x2F; v1.43.0-rc2（预发布）   仓库 gsd-build/get-shit-done open-gsd/gsd-core   npm ...</div></div></div></a><a class="pagination-related" href="/deepseek-v4-flash-gsd-core-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-23</div><div class="info-item-2">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版）</div></div><div class="info-2"><div class="info-item-1">DeepSeek V4 Flash 结合 GSD-Core 工作流：幻觉率与 Claude Code 开发胜任力调研报告（第 2 版） 本文是一份面向”要不要用 DeepSeek V4 Flash 接 Claude Code、靠 GSD-Core 工作流压幻觉”这一决策的实战调研报告。写作顺序遵循 先结论 → 可抄配置 → 原理 → 决策树 → 排错 FAQ 的教程风格，不是原理参考书。读者可以直接跳到 §7 抄配置、跳到 §9 做选型。 第 2 版更新（2026-06-24）：通过 DeepWiki 深入 GSD-Core 源码，大幅扩充了 §3 GSD-Core 工作机制（新增 3.4 专业 Agent 系统、3.5 Model Profiles 分层模型配置、3.6 Wave-Based 并行执行与 Workspace 隔离、3.7 Hook 系统与 CLI 工具），同时对 §5 和 §7 做了相应增强。   1. 一句话定论先给你 4 句话的结论，剩下的章节都是在论证它。    你的疑问 一句话结论    V4 Flash 是什么？ 284B 总参 &#x2F; 激活 1...</div></div></div></a><a class="pagination-related" href="/GSD-gsd-tools%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="GSD gsd-tools 使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-13</div><div class="info-item-2">GSD gsd-tools 使用教程</div></div><div class="info-2"><div class="info-item-1">GSD gsd-tools 使用教程1. 引言与定位1.1 gsd-tools 是什么gsd-tools（全名 gsd-tools.cjs）是 open-gsd&#x2F;gsd-core 仓库中的核心 CLI 引擎，承担 GSD 五大阶段循环（Specify → Plan → Execute → Verify → Ship）的”后端 CLI”角色。在 GSD 的整体架构中，上层的所有 /gsd-* 斜杠命令、workflow Markdown 文档、agent Prompt 模板，最终都通过 Bash 工具调用 node gsd-tools.cjs ... 来完成实际的 STATE.md 读写、phase 目录操作、配置管理、artifact 验证、commit 提交等动作。 换句话说，gsd-tools 是 GSD 体系的”操作系统内核”：  上层 /gsd-* 命令 &#x3D; 用户接口（shell-like UI） 中层 workflows/*.md &#x3D; 编排逻辑（DSL） 底层 gsd-tools.cjs + lib/*.cjs &#x3D; 真正干活的工具...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/49394459.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">ziogn</div><div class="author-info-description">个人技术文档知识库</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">105</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ziogn"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ziogn" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">记录技术调研与知识规划。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#GSD-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-%E5%AE%9E%E6%88%98%E6%95%85%E4%BA%8B"><span class="toc-number">1.</span> <span class="toc-text">GSD 使用教程-实战故事</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%95%85%E4%BA%8B%E8%83%8C%E6%99%AF"><span class="toc-number">1.2.</span> <span class="toc-text">1. 故事背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E%EF%BC%88%E5%85%88%E8%AF%BB%E8%BF%99%E4%B8%80%E8%8A%82%EF%BC%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 版本说明（先读这一节）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-11-1-%E9%A1%B9%E7%9B%AE%E7%AB%8B%E9%A1%B9%EF%BC%88%E7%AC%AC1%E5%A4%A9%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">2. 11.1 项目立项（第1天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-11-2-%E9%9C%80%E6%B1%82%E8%AE%A8%E8%AE%BA%EF%BC%88%E7%AC%AC1-2%E5%A4%A9%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">3. 11.2 需求讨论（第1-2天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-11-3-%E5%88%B6%E5%AE%9A%E8%AE%A1%E5%88%92%EF%BC%88%E7%AC%AC2%E5%A4%A9%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">4. 11.3 制定计划（第2天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-11-4-%E8%AF%84%E5%AE%A1%E8%AE%A1%E5%88%92%EF%BC%88%E7%AC%AC2%E5%A4%A9%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">5. 11.4 评审计划（第2天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-11-5-%E6%89%A7%E8%A1%8C%E5%BC%80%E5%8F%91%EF%BC%88%E7%AC%AC3-7%E5%A4%A9%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">6. 11.5 执行开发（第3-7天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-11-6-%E8%AE%BE%E8%AE%A1%E5%89%8D%E7%AB%AF%EF%BC%88%E7%AC%AC7-10%E5%A4%A9%EF%BC%89"><span class="toc-number">1.8.</span> <span class="toc-text">7. 11.6 设计前端（第7-10天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-11-7-%E9%AA%8C%E8%AF%81%E8%B4%A8%E9%87%8F%EF%BC%88%E7%AC%AC10%E5%A4%A9%EF%BC%89"><span class="toc-number">1.9.</span> <span class="toc-text">8. 11.7 验证质量（第10天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-11-8-%E8%87%AA%E5%8A%A8%E4%BF%AE%E5%A4%8D%E9%97%AE%E9%A2%98%EF%BC%88%E7%AC%AC10%E5%A4%A9%EF%BC%89"><span class="toc-number">1.10.</span> <span class="toc-text">9. 11.8 自动修复问题（第10天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-11-9-%E8%B0%83%E8%AF%95%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87%EF%BC%88%E7%AC%AC11%E5%A4%A9%EF%BC%89"><span class="toc-number">1.11.</span> <span class="toc-text">10. 11.9 调试疑难杂症（第11天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-11-10-%E7%B4%A7%E6%80%A5%E6%8F%92%E5%85%A5%E4%BB%BB%E5%8A%A1%EF%BC%88%E7%AC%AC12%E5%A4%A9%EF%BC%89"><span class="toc-number">1.12.</span> <span class="toc-text">11. 11.10 紧急插入任务（第12天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-11-11-%E5%A4%9A%E7%BA%BF%E5%B9%B6%E8%A1%8C%E5%BC%80%E5%8F%91%EF%BC%88%E7%AC%AC13-20%E5%A4%A9%EF%BC%89"><span class="toc-number">1.13.</span> <span class="toc-text">12. 11.11 多线并行开发（第13-20天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-11-12-%E4%B8%B4%E6%97%B6%E4%B8%AD%E6%96%AD%E5%8E%BB%E4%BF%AE-Bug%EF%BC%88%E7%AC%AC15%E5%A4%A9%EF%BC%89"><span class="toc-number">1.14.</span> <span class="toc-text">13. 11.12 临时中断去修 Bug（第15天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-11-13-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BA%BF%E7%A8%8B%EF%BC%88%E7%AC%AC16%E5%A4%A9%EF%BC%89"><span class="toc-number">1.15.</span> <span class="toc-text">14. 11.13 上下文线程（第16天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-11-14-%E5%BF%AB%E9%80%9F%E4%B8%B4%E6%97%B6%E4%BB%BB%E5%8A%A1%EF%BC%88%E7%AC%AC17%E5%A4%A9%EF%BC%89"><span class="toc-number">1.16.</span> <span class="toc-text">15. 11.14 快速临时任务（第17天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-11-15-AI-%E9%9B%86%E6%88%90%E9%80%89%E5%9E%8B%EF%BC%88%E7%AC%AC18%E5%A4%A9%EF%BC%89"><span class="toc-number">1.17.</span> <span class="toc-text">16. 11.15 AI 集成选型（第18天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#17-11-16-%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E4%B8%8E%E6%83%85%E6%8A%A5%EF%BC%88%E7%AC%AC19%E5%A4%A9%EF%BC%89"><span class="toc-number">1.18.</span> <span class="toc-text">17. 11.16 知识图谱与情报（第19天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#18-11-17-%E9%87%8C%E7%A8%8B%E7%A2%91%E5%86%B2%E5%88%BA%EF%BC%88%E7%AC%AC20-30%E5%A4%A9%EF%BC%89"><span class="toc-number">1.19.</span> <span class="toc-text">18. 11.17 里程碑冲刺（第20-30天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19-11-18-%E5%AE%8C%E6%88%90%E9%87%8C%E7%A8%8B%E7%A2%91%EF%BC%88%E7%AC%AC35%E5%A4%A9%EF%BC%89"><span class="toc-number">1.20.</span> <span class="toc-text">19. 11.18 完成里程碑（第35天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#20-11-19-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%EF%BC%88%E7%AC%AC36%E5%A4%A9%EF%BC%89"><span class="toc-number">1.21.</span> <span class="toc-text">20. 11.19 代码审查（第36天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#21-11-20-UI-%E8%A7%86%E8%A7%89%E5%AE%A1%E8%AE%A1%EF%BC%88%E7%AC%AC37%E5%A4%A9%EF%BC%89"><span class="toc-number">1.22.</span> <span class="toc-text">21. 11.20 UI 视觉审计（第37天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#22-11-21-%E8%87%AA%E4%B8%BB%E6%89%A7%E8%A1%8C%EF%BC%88%E7%AC%AC38-40%E5%A4%A9%EF%BC%89"><span class="toc-number">1.23.</span> <span class="toc-text">22. 11.21 自主执行（第38-40天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#23-11-22-%E5%AF%BC%E5%85%A5%E5%A4%96%E9%83%A8%E8%AE%A1%E5%88%92%EF%BC%88%E7%AC%AC41%E5%A4%A9%EF%BC%89"><span class="toc-number">1.24.</span> <span class="toc-text">23. 11.22 导入外部计划（第41天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24-11-23-%E6%89%AB%E6%8F%8F%E4%BB%A3%E7%A0%81%E5%BA%93%EF%BC%88%E7%AC%AC42%E5%A4%A9%EF%BC%89"><span class="toc-number">1.25.</span> <span class="toc-text">24. 11.23 扫描代码库（第42天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-11-24-%E4%BB%A3%E7%A0%81%E5%BA%93%E5%9C%B0%E5%9B%BE%EF%BC%88%E7%AC%AC43%E5%A4%A9%EF%BC%89"><span class="toc-number">1.26.</span> <span class="toc-text">25. 11.24 代码库地图（第43天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#26-11-25-%E6%9B%B4%E6%96%B0%E6%96%87%E6%A1%A3%EF%BC%88%E7%AC%AC44%E5%A4%A9%EF%BC%89"><span class="toc-number">1.27.</span> <span class="toc-text">26. 11.25 更新文档（第44天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#27-11-26-%E6%8F%90%E5%8F%96%E7%BB%8F%E9%AA%8C%E6%95%99%E8%AE%AD%EF%BC%88%E7%AC%AC45%E5%A4%A9%EF%BC%89"><span class="toc-number">1.28.</span> <span class="toc-text">27. 11.26 提取经验教训（第45天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#28-11-27-%E5%88%9B%E5%BB%BA-PR%EF%BC%88%E7%AC%AC46%E5%A4%A9%EF%BC%89"><span class="toc-number">1.29.</span> <span class="toc-text">28. 11.27 创建 PR（第46天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#29-11-28-%E6%9F%A5%E7%9C%8B%E8%BF%9B%E5%BA%A6%EF%BC%88%E7%AC%AC47%E5%A4%A9%EF%BC%89"><span class="toc-number">1.30.</span> <span class="toc-text">29. 11.28 查看进度（第47天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#30-11-29-%E5%9B%A2%E9%98%9F%E8%AF%84%E5%AE%A1%E7%A7%AF%E5%8E%8B%EF%BC%88%E7%AC%AC48%E5%A4%A9%EF%BC%89"><span class="toc-number">1.31.</span> <span class="toc-text">30. 11.29 团队评审积压（第48天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#31-11-30-%E5%9B%9E%E6%BB%9A%E9%94%99%E8%AF%AF%EF%BC%88%E7%AC%AC49%E5%A4%A9%EF%BC%89"><span class="toc-number">1.32.</span> <span class="toc-text">31. 11.30 回滚错误（第49天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#32-11-31-%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%EF%BC%88%E7%AC%AC50%E5%A4%A9%EF%BC%89"><span class="toc-number">1.33.</span> <span class="toc-text">32. 11.31 健康检查（第50天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#33-11-32-%E6%B8%85%E7%90%86%E5%BD%92%E6%A1%A3%EF%BC%88%E7%AC%AC51%E5%A4%A9%EF%BC%89"><span class="toc-number">1.34.</span> <span class="toc-text">33. 11.32 清理归档（第51天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#34-11-33-%E9%85%8D%E7%BD%AE%E4%B8%AA%E6%80%A7%E5%8C%96%EF%BC%88%E7%AC%AC52%E5%A4%A9%EF%BC%89"><span class="toc-number">1.35.</span> <span class="toc-text">34. 11.33 配置个性化（第52天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#35-11-34-%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90%E7%94%9F%E6%88%90%E9%85%8D%E7%BD%AE%EF%BC%88%E7%AC%AC53%E5%A4%A9%EF%BC%89"><span class="toc-number">1.36.</span> <span class="toc-text">35. 11.34 行为分析生成配置（第53天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#36-11-35-%E5%9B%A2%E9%98%9F%E9%9B%86%E6%88%90%E9%85%8D%E7%BD%AE%EF%BC%88%E7%AC%AC54%E5%A4%A9%EF%BC%89"><span class="toc-number">1.37.</span> <span class="toc-text">36. 11.35 团队集成配置（第54天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#37-11-36-%E6%91%84%E5%85%A5%E7%8E%B0%E6%9C%89%E6%96%87%E6%A1%A3%EF%BC%88%E7%AC%AC55%E5%A4%A9%EF%BC%89"><span class="toc-number">1.38.</span> <span class="toc-text">37. 11.36 摄入现有文档（第55天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#38-11-37-%E9%AA%8C%E8%AF%81%E9%98%B6%E6%AE%B5%EF%BC%88%E7%AC%AC56%E5%A4%A9%EF%BC%89"><span class="toc-number">1.39.</span> <span class="toc-text">38. 11.37 验证阶段（第56天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#39-11-38-%E8%AF%84%E5%AE%A1%E8%AE%A1%E5%88%92%EF%BC%88%E7%AC%AC57%E5%A4%A9%EF%BC%89"><span class="toc-number">1.40.</span> <span class="toc-text">39. 11.38 评审计划（第57天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#40-11-39-AI-%E8%AF%84%E4%BC%B0%E8%A6%86%E7%9B%96%E5%AE%A1%E8%AE%A1%EF%BC%88%E7%AC%AC58%E5%A4%A9%EF%BC%89"><span class="toc-number">1.41.</span> <span class="toc-text">40. 11.39 AI 评估覆盖审计（第58天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#41-11-40-%E8%B0%83%E7%A0%94%E6%96%B0%E6%8A%80%E6%9C%AF%EF%BC%88%E7%AC%AC59%E5%A4%A9%EF%BC%89"><span class="toc-number">1.42.</span> <span class="toc-text">41. 11.40 调研新技术（第59天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#42-11-41-%E8%8D%89%E5%9B%BE%E6%8E%A2%E7%B4%A2%EF%BC%88%E7%AC%AC60%E5%A4%A9%EF%BC%89"><span class="toc-number">1.43.</span> <span class="toc-text">42. 11.41 草图探索（第60天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#43-11-42-Spike-%E6%89%93%E5%8C%85%EF%BC%88%E7%AC%AC61%E5%A4%A9%EF%BC%89"><span class="toc-number">1.44.</span> <span class="toc-text">43. 11.42 Spike 打包（第61天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#44-11-43-%E8%B7%A8%E9%98%B6%E6%AE%B5%E5%AE%A1%E8%AE%A1%EF%BC%88%E7%AC%AC62%E5%A4%A9%EF%BC%89"><span class="toc-number">1.45.</span> <span class="toc-text">44. 11.43 跨阶段审计（第62天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#45-11-44-%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E6%9B%B4%E6%96%B0%EF%BC%88%E7%AC%AC63%E5%A4%A9%EF%BC%89"><span class="toc-number">1.46.</span> <span class="toc-text">45. 11.44 持续集成更新（第63天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#46-11-45-%E7%AE%A1%E7%90%86%E9%9D%A2%E6%9D%BF%EF%BC%88%E7%AC%AC64%E5%A4%A9%EF%BC%89"><span class="toc-number">1.47.</span> <span class="toc-text">46. 11.45 管理面板（第64天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#47-11-46-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%8C%BA%EF%BC%88%E7%AC%AC65%E5%A4%A9%EF%BC%89"><span class="toc-number">1.48.</span> <span class="toc-text">47. 11.46 加入社区（第65天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#48-11-47-%E5%B8%AE%E5%8A%A9%E4%B8%8E%E6%94%AF%E6%8C%81%EF%BC%88%E7%AC%AC66%E5%A4%A9%EF%BC%89"><span class="toc-number">1.49.</span> <span class="toc-text">48. 11.47 帮助与支持（第66天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#49-11-48-%E5%A4%A7%E5%8A%9F%E5%91%8A%E6%88%90%EF%BC%88%E7%AC%AC67%E5%A4%A9%EF%BC%89"><span class="toc-number">1.50.</span> <span class="toc-text">49. 11.48 大功告成（第67天）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#50-11-49-%E5%91%BD%E4%BB%A4%E4%B8%B2%E8%81%94%E6%80%BB%E7%BB%93"><span class="toc-number">1.51.</span> <span class="toc-text">50. 11.49 命令串联总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E5%88%AB%E4%B8%8E%E6%95%85%E4%BA%8B%E5%AF%B9%E7%85%A7%E8%A1%A8"><span class="toc-number">1.51.1.</span> <span class="toc-text">类别与故事对照表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#51-%E9%99%84%E5%BD%95%EF%BC%9A%E8%BF%90%E8%A1%8C%E6%97%B6%E4%B8%8E%E5%85%83%E6%8A%80%E8%83%BD%E9%80%9F%E6%9F%A5"><span class="toc-number">1.52.</span> <span class="toc-text">51. 附录：运行时与元技能速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%94%AF%E6%8C%81%E7%9F%A9%E9%98%B5"><span class="toc-number">1.52.1.</span> <span class="toc-text">运行时支持矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AD%E4%B8%AA%E5%85%83%E6%8A%80%E8%83%BD%E8%B7%AF%E7%94%B1%E4%B8%80%E8%A7%88"><span class="toc-number">1.52.2.</span> <span class="toc-text">六个元技能路由一览</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/OpenSpec%20%E7%BB%93%E5%90%88%20Reasonix%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="OpenSpec 结合 Reasonix 使用指南">OpenSpec 结合 Reasonix 使用指南</a><time datetime="2026-08-21T14:45:00.000Z" title="发表于 2026-08-21 22:45:00">2026-08-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%B5%8B%E8%AF%95%E8%B0%83%E8%AF%95/" title="go语言知识规划——测试调试">go语言知识规划——测试调试</a><time datetime="2026-07-23T13:30:00.000Z" title="发表于 2026-07-23 21:30:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="go语言知识规划——微服务">go语言知识规划——微服务</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E9%AB%98%E7%BA%A7%E8%AF%9D%E9%A2%98/" title="go语言知识规划——高级话题">go语言知识规划——高级话题</a><time datetime="2026-07-23T13:00:00.000Z" title="发表于 2026-07-23 21:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/sidecar%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" title="Sidecar 机制详解">Sidecar 机制详解</a><time datetime="2026-07-23T12:45:00.000Z" title="发表于 2026-07-23 20:45:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/go%E8%AF%AD%E8%A8%80%E7%9F%A5%E8%AF%86%E8%A7%84%E5%88%92%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E5%BA%93/" title="go语言知识规划——数据库">go语言知识规划——数据库</a><time datetime="2026-07-23T12:35:00.000Z" title="发表于 2026-07-23 20:35:00">2026-07-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By ziogn</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文档" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
