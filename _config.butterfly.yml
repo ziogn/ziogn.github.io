@@ -23,6 +23,8 @@ avatar:
   effect: false
 
 # ---------------- 首页 ----------------
+# 首页 banner：false = 不渲染全屏 hero，首页直接显示文章列表（无需向下滚动）
+index_img: false
 index_site_info_top: 35%
 subtitle:
   enable: true
