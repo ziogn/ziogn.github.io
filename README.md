@@ -24,6 +24,7 @@ source/
 scaffolds/             # 新建文章/页面模板
 scripts/mermaid-tag.js # Mermaid 代码块 → 主题容器转换
 tools/migrate.mjs      # 内容迁移脚本（VitePress docs → Hexo _posts，可复用）
+docs/                  # 迁移前的 VitePress 原始文档（保留参考，不参与构建）
 .github/workflows/deploy.yml  # CI 部署
 ```
 
@@ -50,7 +51,7 @@ npm run clean        # 清理 public/ 与缓存
 
 本仓库原为 VitePress 站点，已迁移为 Hexo：
 
-- 43 篇文档全部迁入 `source/_posts/`（`docs/` 目录已删除，历史可在 git 中追溯）
+- 文档已迁入 `source/_posts/`；`docs/` 目录保留为迁移前的 VitePress 原始文档，不参与 Hexo 构建，仅作参考
 - frontmatter：VitePress 的 `created/updated` → Hexo 的 `date/updated`
 - 文档间相对链接（`](foo.md)`）已重写为 Hexo permalink（`/foo/`）
 - 迁移脚本保留在 `tools/migrate.mjs`，如需重新迁移：`MIGRATE_SRC=<原docs目录> node tools/migrate.mjs`
