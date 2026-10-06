@@ -1,0 +1,69 @@
+/* Ziogn Notes 自定义样式 —— 复刻原 VitePress 站点排版观感 */
+
+:root {
+  --sys-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --mono-font: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* 中文字体栈 */
+body {
+  font-family: var(--sys-font);
+}
+
+/* 正文行高更舒展 */
+.post-content p,
+.post-content li {
+  line-height: 1.75;
+}
+
+/* 代码字体 */
+code,
+pre,
+#article-container code,
+#article-container pre {
+  font-family: var(--mono-font);
+}
+
+/* Mermaid 图容器让宽图可横向滚动 */
+#article-container .mermaid {
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* 首页标题使用品牌渐变(与原站 hero 呼应) */
+#page-header .site-info .site-title {
+  background: linear-gradient(120deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 链接品牌色 */
+#article-container a {
+  color: #6366f1;
+}
+
+/* 标签云: 标签 chip 样式(沿用原站 tag-chip-base) */
+.tag-cloud-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1.6;
+  padding: 0 10px;
+  margin: 4px 4px;
+}
+.tag-cloud-list a:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* 引用块 */
+#article-container blockquote {
+  border-left-color: #6366f1;
+}
